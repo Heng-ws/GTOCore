@@ -50,12 +50,17 @@ public final class VoidMinerMachine extends StorageMultiblockMachine {
         dim = null;
         if (isEmpty()) return;
         dim = DimensionDataItem.getDimension(getStorageStack());
+        if (GTOOres.ALL_ORES.containsKey(dim)) {
+            getRecipeLogic().updateTickSubscription();
+            return;
+        }
+        dim = null;
     }
 
     private Recipe getRecipe() {
         if (dim == null) return null;
         if (!isEmpty()) {
-            if (RecipeRunner.matchRecipeInput(this, RECIPE) && GTOOres.ALL_ORES.containsKey(dim)) {
+            if (RecipeRunner.matchRecipeInput(this, RECIPE)) {
                 Recipe recipe = RECIPE.copy();
                 recipe.setEut(GTValues.VA[getTier()]);
                 recipe.outputs.put(ItemRecipeCapability.CAP, ContentBuilder.createList().items(getItems()).buildList());
@@ -89,7 +94,7 @@ public final class VoidMinerMachine extends StorageMultiblockMachine {
     }
 
     @Override
-    protected @NotNull RecipeLogic createRecipeLogic(Object @NotNull... args) {
+    public RecipeLogic createRecipeLogic(Object @NotNull... args) {
         return new CustomRecipeLogic(this, this::getRecipe);
     }
 }

@@ -42,13 +42,21 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
         this.inventory = new ExportOnlyAEItemSlot[slots];
         for (int i = 0; i < slots; i++) {
             this.inventory[i] = slotFactory.get();
+            this.inventory[i].setOnContentsChanged(this::onContentsChanged);
         }
-        for (ExportOnlyAEItemSlot slot : this.inventory) {
-            slot.setOnContentsChanged(() -> {
-                changed = true;
-                this.onContentsChanged();
-            });
-        }
+    }
+
+    @Override
+    public void onContentsChanged() {
+        super.onContentsChanged();
+        changed = true;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        var map = getItemMap();
+        if (map == null) return true;
+        return map.isEmpty();
     }
 
     @Override
@@ -129,8 +137,7 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
                 }
             }
             if (!simulate && changed) {
-                this.changed = true;
-                onContentsChanged();
+                notifyListeners();
             }
         }
         return left.isEmpty() ? null : left;
@@ -210,12 +217,8 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
         @NotNull
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (amount == 0) return ItemStack.EMPTY;
-            validateSlotIndex(slot);
             return list.inventory[slot].extractItem(0, amount, simulate);
         }
-
-        @Override
-        protected void validateSlotIndex(int slot) {}
 
         @Override
         public int getSlotLimit(int slot) {

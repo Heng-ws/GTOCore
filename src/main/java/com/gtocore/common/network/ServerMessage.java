@@ -78,9 +78,6 @@ public final class ServerMessage {
                     Manager.onClientReceived(monitorData);
                 }
             }
-            case "sync_field" -> {
-                SyncFieldManager.INSTANCE.handleFromServer(data);
-            }
         }
     }
 }

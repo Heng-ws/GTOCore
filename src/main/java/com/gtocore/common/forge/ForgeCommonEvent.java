@@ -8,7 +8,6 @@ import com.gtocore.common.data.GTOItems;
 import com.gtocore.common.item.ItemMap;
 import com.gtocore.common.machine.multiblock.electric.voidseries.VoidTransporterMachine;
 import com.gtocore.common.network.ServerMessage;
-import com.gtocore.common.network.SyncFieldManager;
 import com.gtocore.common.saved.*;
 import com.gtocore.config.GTOConfig;
 import com.gtocore.utils.OrganUtilsKt;
@@ -265,7 +264,7 @@ public final class ForgeCommonEvent {
     @SubscribeEvent
     public static void onPlayerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            if (GTCEu.isProd()) {
+            if (!GTCEu.isDev()) {
                 player.displayClientMessage(Component.translatable("gtocore.gtm", Component.literal("GitHub").withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/GregTech-Odyssey/GregTech-Odyssey/issues")))), false);
                 player.displayClientMessage(Component.translatable("gtocore.dev", Component.literal("GitHub").withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/GregTech-Odyssey/GregTech-Odyssey/issues")))), false);
                 Configurator.setRootLevel(org.apache.logging.log4j.Level.INFO);
@@ -293,7 +292,6 @@ public final class ForgeCommonEvent {
 
     @SubscribeEvent
     public static void onServerStoppingEvent(ServerStoppingEvent event) {
-        SyncFieldManager.INSTANCE.clear();
         ServerCache.observe = false;
     }
 

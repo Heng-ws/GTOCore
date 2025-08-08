@@ -196,10 +196,12 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
 
         private HugeNotifiableItemStackHandler(MetaMachine machine) {
             super(machine, 1, IO.IN, IO.IN, i -> new HugeCustomItemStackHandler());
-            storage.setOnContentsChanged(() -> {
-                changed = true;
-                onContentsChanged();
-            });
+        }
+
+        @Override
+        public void onContentsChanged() {
+            super.onContentsChanged();
+            changed = true;
         }
 
         private long getCount() {
@@ -254,7 +256,7 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
                     if (!simulate) {
                         ((HugeCustomItemStackHandler) storage).count -= count;
                         getStackInSlot().setCount(MathUtil.saturatedCast(((HugeCustomItemStackHandler) storage).count));
-                        changed = true;
+                        storage.onContentsChanged(0);
                     }
                     amount -= count;
                 }

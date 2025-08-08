@@ -39,12 +39,22 @@ public class ExportOnlyAEFluidList extends NotifiableFluidTank implements IConfi
         this.inventory = new ExportOnlyAEFluidSlot[slots];
         for (int i = 0; i < slots; i++) {
             this.inventory[i] = slotFactory.get();
-            this.inventory[i].setOnContentsChanged(() -> {
-                changed = true;
-                onContentsChanged();
-            });
             this.storages[i] = new FluidStorageDelegate(inventory[i]);
+            this.inventory[i].setOnContentsChanged(this::onContentsChanged);
         }
+    }
+
+    @Override
+    public void onContentsChanged() {
+        super.onContentsChanged();
+        changed = true;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        var map = getFluidMap();
+        if (map == null) return true;
+        return map.isEmpty();
     }
 
     @Override
@@ -78,8 +88,7 @@ public class ExportOnlyAEFluidList extends NotifiableFluidTank implements IConfi
                 }
             }
             if (!simulate && changed) {
-                this.changed = true;
-                onContentsChanged();
+                notifyListeners();
             }
         }
         return left.isEmpty() ? null : left;
