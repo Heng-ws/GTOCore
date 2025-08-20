@@ -15,11 +15,11 @@ import com.gtolib.api.recipe.modifier.ParallelLogic;
 import com.gtolib.utils.GTOUtils;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -65,6 +65,7 @@ public final class GeneratorArrayMachine extends StorageMultiblockMachine implem
             The larger the value, the higher the output power of the generator.
             This value is only related to difficulty, representing the efficiency of generators at different difficulty levels.""")
     private static double multiply;
+
     @DynamicInitialValue(key = "generator_array.loss", typeKey = DynamicInitialValueTypes.KEY_MULTIPLY, simpleValue = "4", normalValue = "5", expertValue = "8", cn = "发电阵列无线模式损耗 : 0.0%s", cnComment = """
             发电阵列在无线模式下的损耗，影响传输到无线网络的能量损失。
             数值越大，连接无线网络的损耗越大。""", en = "Generator Array Wireless Loss : 0.0%s", enComment = """
@@ -91,7 +92,7 @@ public final class GeneratorArrayMachine extends StorageMultiblockMachine implem
         return Wrapper.ELIGIBLE_RECIPE_TYPES.contains(type);
     }
 
-    public GeneratorArrayMachine(IMachineBlockEntity holder) {
+    public GeneratorArrayMachine(MetaMachineBlockEntity holder) {
         super(holder, generatorLimit, GeneratorArrayMachine::filter);
     }
 

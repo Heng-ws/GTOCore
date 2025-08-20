@@ -21,10 +21,10 @@ import net.minecraftforge.items.IItemHandlerModifiable
 import appeng.api.networking.IManagedGridNode
 import appeng.api.networking.security.IActionSource
 import com.gregtechceu.gtceu.api.GTValues
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity
 import com.gregtechceu.gtceu.api.capability.recipe.IO
 import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget
 import com.gregtechceu.gtceu.api.item.tool.GTToolType
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine
@@ -46,7 +46,7 @@ import javax.annotation.ParametersAreNonnullByDefault
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-internal abstract class MEPartMachine(holder: IMachineBlockEntity, io: IO) :
+internal abstract class MEPartMachine(holder: MetaMachineBlockEntity, io: IO) :
     TieredIOPartMachine(holder, GTValues.LuV, io),
     WirelessMachine,
     IMEPartMachine,
@@ -114,11 +114,6 @@ internal abstract class MEPartMachine(holder: IMachineBlockEntity, io: IO) :
     }
 
     override fun getMainNode(): IManagedGridNode = nodeHolder.getMainNode()
-
-    override fun onRotated(oldFacing: Direction, newFacing: Direction) {
-        super.onRotated(oldFacing, newFacing)
-        mainNode.setExposedOnSides(EnumSet.of(newFacing))
-    }
 
     override fun getFieldHolder(): ManagedFieldHolder = MANAGED_FIELD_HOLDER
 

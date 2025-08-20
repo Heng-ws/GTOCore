@@ -1,6 +1,7 @@
 package com.gtocore.common.machine.multiblock.part.ae;
 
 import com.gtocore.common.data.machines.GTAEMachines;
+import com.gtocore.common.machine.multiblock.part.ae.slots.MECircuitHandler;
 import com.gtocore.common.machine.trait.InternalSlotRecipeHandler;
 
 import com.gtolib.api.annotation.Scanned;
@@ -14,13 +15,12 @@ import com.gtolib.api.recipe.Recipe;
 import com.gtolib.api.recipe.ingredient.FastFluidIngredient;
 import com.gtolib.api.recipe.ingredient.FastSizedIngredient;
 import com.gtolib.syncdata.SyncManagedFieldHolder;
-import com.gtolib.utils.ItemUtils;
 import com.gtolib.utils.MathUtil;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.ButtonConfigurator;
@@ -32,6 +32,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
+import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -98,7 +99,7 @@ public class MEPatternBufferPartMachine extends MEPatternPartMachineKt<MEPattern
     @Persisted
     public final NotifiableNotConsumableFluidHandler shareTank;
     @Persisted
-    public final NotifiableNotConsumableItemHandler circuitInventorySimulated;
+    public final MECircuitHandler circuitInventorySimulated;
 
     @Persisted
     private final Set<BlockPos> proxies = new ObjectOpenHashSet<>();
@@ -133,24 +134,17 @@ public class MEPatternBufferPartMachine extends MEPatternPartMachineKt<MEPattern
 
     protected ConfiguratorPanel configuratorPanel;
 
-    public MEPatternBufferPartMachine(IMachineBlockEntity holder, int maxPatternCount) {
+    public MEPatternBufferPartMachine(MetaMachineBlockEntity holder, int maxPatternCount) {
         super(holder, maxPatternCount);
         this.caches = new boolean[maxPatternCount];
         this.shareInventory = createShareInventory();
-        this.shareTank = new NotifiableNotConsumableFluidHandler(this, 9, 64000).setSkipParallelComputing();
-        this.circuitInventorySimulated = createCircuitInventory();
+        this.shareTank = new NotifiableNotConsumableFluidHandler(this, 9, 64000);
+        this.circuitInventorySimulated = new MECircuitHandler(this);
         this.internalRecipeHandler = new InternalSlotRecipeHandler(this, getInternalInventory());
     }
 
     NotifiableNotConsumableItemHandler createShareInventory() {
-        return new NotifiableNotConsumableItemHandler(this, 9, IO.NONE).setSkipParallelComputing();
-    }
-
-    NotifiableNotConsumableItemHandler createCircuitInventory() {
-        NotifiableNotConsumableItemHandler handle = new NotifiableNotConsumableItemHandler(this, 1, IO.NONE);
-        handle.setFilter(IntCircuitBehaviour::isIntegratedCircuit);
-        handle.shouldSearchContent(false);
-        return handle.setSkipParallelComputing();
+        return new NotifiableNotConsumableItemHandler(this, 9, IO.NONE);
     }
 
     @Override
@@ -265,12 +259,26 @@ public class MEPatternBufferPartMachine extends MEPatternPartMachineKt<MEPattern
     }
 
     @Override
-    public void onMachineRemoved() {
-        super.onMachineRemoved();
-        clearInventory(shareInventory);
-        for (var inv : getInternalInventory()) {
-            clearInventory(inv.shareInventory);
+    public void saveToItem(CompoundTag tag) {
+        super.saveToItem(tag);
+        tag.put("si", shareInventory.storage.serializeNBT());
+        ListTag tanks = new ListTag();
+        for (var tank : shareTank.getStorages()) {
+            tanks.add(tank.serializeNBT());
         }
+        tag.put("st", tanks);
+        tag.put("ci", circuitInventorySimulated.storage.serializeNBT());
+    }
+
+    @Override
+    public void loadFromItem(CompoundTag tag) {
+        super.loadFromItem(tag);
+        shareInventory.storage.deserializeNBT(tag.getCompound("si"));
+        ListTag tanks = tag.getList("st", Tag.TAG_COMPOUND);
+        for (int i = 0; i < tanks.size(); i++) {
+            shareTank.getStorages()[i].deserializeNBT(tanks.getCompound(i));
+        }
+        circuitInventorySimulated.storage.deserializeNBT(tag.getCompound("ci"));
     }
 
     @Override
@@ -282,7 +290,7 @@ public class MEPatternBufferPartMachine extends MEPatternPartMachineKt<MEPattern
     public record BufferData(Object2LongMap<ItemStack> items, Object2LongMap<FluidStack> fluids) {}
 
     public BufferData mergeInternalSlots() {
-        var items = new Object2LongOpenCustomHashMap<>(ItemUtils.HASH_STRATEGY);
+        var items = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
         var fluids = new Object2LongOpenHashMap<FluidStack>();
         for (InternalSlot slot : getInternalInventory()) {
             slot.itemInventory.object2LongEntrySet().fastForEach(e -> items.addTo(e.getKey(), e.getLongValue()));
@@ -299,23 +307,21 @@ public class MEPatternBufferPartMachine extends MEPatternPartMachineKt<MEPattern
         public final int index;
         final InputSink inputSink;
         private Runnable onContentsChanged = () -> {};
-        public final Object2LongOpenCustomHashMap<ItemStack> itemInventory = new Object2LongOpenCustomHashMap<>(ItemUtils.HASH_STRATEGY);
+        public final Object2LongOpenCustomHashMap<ItemStack> itemInventory = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM);
         public final Object2LongOpenHashMap<FluidStack> fluidInventory = new Object2LongOpenHashMap<>();
         private List<ItemStack> itemStacks = null;
         private List<FluidStack> fluidStacks = null;
 
         public final NotifiableNotConsumableItemHandler shareInventory;
         public final NotifiableNotConsumableFluidHandler shareTank;
-        public final NotifiableNotConsumableItemHandler circuitInventory;
+        public final MECircuitHandler circuitInventory;
 
         private InternalSlot(MEPatternBufferPartMachine machine, int index) {
             this.machine = machine;
             this.index = index;
             this.shareInventory = machine.createShareInventory();
-            this.shareTank = new NotifiableNotConsumableFluidHandler(machine, 9, 64000).setSkipParallelComputing();
-            this.circuitInventory = new NotifiableNotConsumableItemHandler(machine, 1, IO.NONE).setSkipParallelComputing();
-            this.circuitInventory.setFilter(IntCircuitBehaviour::isIntegratedCircuit);
-            this.circuitInventory.shouldSearchContent(false);
+            this.shareTank = new NotifiableNotConsumableFluidHandler(machine, 9, 64000);
+            this.circuitInventory = new MECircuitHandler(machine);
             this.inputSink = new InputSink(this);
         }
 

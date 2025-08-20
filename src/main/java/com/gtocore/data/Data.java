@@ -2,6 +2,7 @@ package com.gtocore.data;
 
 import com.gtocore.common.CommonProxy;
 import com.gtocore.common.data.GTOLoots;
+import com.gtocore.common.data.GTOOres;
 import com.gtocore.common.data.GTORecipeTypes;
 import com.gtocore.data.recipe.*;
 import com.gtocore.data.recipe.classified.$ClassifiedRecipe;
@@ -12,6 +13,7 @@ import com.gtocore.data.recipe.gtm.misc.*;
 import com.gtocore.data.recipe.misc.*;
 import com.gtocore.data.recipe.mod.FunctionalStorage;
 import com.gtocore.data.recipe.mod.ImmersiveAircraft;
+import com.gtocore.data.recipe.mod.MeteoriteRecipe;
 import com.gtocore.data.recipe.processing.*;
 import com.gtocore.data.recipe.research.*;
 import com.gtocore.integration.emi.GTEMIRecipe;
@@ -34,6 +36,7 @@ import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import com.gregtechceu.gtceu.core.MixinHelpers;
 import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 import com.gregtechceu.gtceu.data.recipe.GTCraftingComponents;
 import com.gregtechceu.gtceu.data.recipe.MaterialInfoLoader;
@@ -64,6 +67,7 @@ public final class Data {
 
     public static void init() {
         long time = System.currentTimeMillis();
+        GTOOres.init();
         MeteoriteRecipe.init();
 
         ItemMaterialData.reinitializeMaterialData();
@@ -149,6 +153,8 @@ public final class Data {
         LootSystem.defaultBlockTable(RegistriesUtils.getBlock("farmersrespite:kettle"));
         GTOLoots.BLOCKS.forEach(b -> LootSystem.defaultBlockTable((Block) b));
         GTOLoots.BLOCKS = null;
+        GTOLoots.generateGTDynamicLoot();
+        MixinHelpers.registryGTDynamicTags();
         GTOCore.LOGGER.info("Data loading took {}ms", System.currentTimeMillis() - time);
     }
 

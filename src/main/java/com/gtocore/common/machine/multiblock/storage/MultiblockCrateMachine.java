@@ -5,11 +5,11 @@ import com.gtocore.common.network.ClientMessage;
 import com.gtolib.GTOCore;
 import com.gtolib.utils.GTOUtils;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
@@ -50,7 +50,7 @@ public class MultiblockCrateMachine extends MultiblockControllerMachine implemen
     private final NotifiableItemStackHandler inventory;
     private final LockableItemStackHandler itemStackHandler;
 
-    public MultiblockCrateMachine(IMachineBlockEntity holder) {
+    public MultiblockCrateMachine(MetaMachineBlockEntity holder) {
         super(holder);
         this.inventory = new NotifiableItemStackHandler(this, Capacity, IO.BOTH);
         itemStackHandler = new LockableItemStackHandler(inventory).setLock(true);
@@ -104,7 +104,7 @@ public class MultiblockCrateMachine extends MultiblockControllerMachine implemen
         int x = 0;
         int y = 0;
         for (int slot = 0; slot < Capacity; slot++) {
-            innerContainer.addWidget(new SlotWidget(inventory, slot, x * 18, y * 18).setBackgroundTexture(GuiTextures.SLOT));
+            innerContainer.addWidget(new SlotWidget(inventory.storage, slot, x * 18, y * 18).setBackgroundTexture(GuiTextures.SLOT));
             x++;
             if (x == yOverflow) {
                 x = 0;

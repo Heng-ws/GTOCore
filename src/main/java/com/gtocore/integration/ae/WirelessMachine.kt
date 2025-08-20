@@ -1,6 +1,7 @@
 package com.gtocore.integration.ae
 
 import com.gtocore.api.gui.ktflexible.textBlock
+import com.gtocore.api.lang.ComponentSupplier
 import com.gtocore.client.forge.GTORenderData
 import com.gtocore.client.forge.GTORenderManager
 import com.gtocore.client.forge.GTORenderType
@@ -14,7 +15,6 @@ import com.gtocore.common.saved.WirelessGrid
 import com.gtocore.common.saved.WirelessSavedData
 import com.gtocore.common.saved.createWirelessSyncedField
 import com.gtocore.config.GTOConfig
-import com.gtocore.utils.ComponentSupplier
 import com.gtocore.utils.toTicks
 
 import net.minecraft.client.Minecraft
@@ -161,6 +161,9 @@ interface WirelessMachine :
 
         @RegisterLanguage(cn = "此机器被禁止连接ME无线网络", en = "This machine is banned from connecting to ME wireless network")
         const val banned = "gtocore.integration.ae.WirelessMachine.banned"
+
+        @RegisterLanguage(cn = "断开无线网络", en = "Leave Wireless Grid")
+        const val leave = "gtocore.integration.ae.WirelessMachine.leave"
     }
 
     // ////////////////////////////////
@@ -188,16 +191,16 @@ interface WirelessMachine :
             if (self().offsetTimer > nowTick + 40 && self().offsetTimer % 10 == 0L && mainNode.node != null) {
                 if (!wirelessMachineRunTime.isInitialized && !self().isRemote) {
                     if (!wirelessMachinePersisted.beSet && wirelessMachineRunTime.shouldAutoConnect) {
-                        WirelessSavedData.INSTANCE.gridPool.firstOrNull { it.owner == uuid && it.isDefault }?.let {
+                        WirelessSavedData.INSTANCE.gridPool.firstOrNull { WirelessSavedData.checkPermission(it.owner, uuid) && it.isDefault }?.let {
                             joinGrid(it.name)
                         }
+                        wirelessMachinePersisted.beSet = true
                     } else {
                         if (wirelessMachinePersisted.gridConnectedName.isNotEmpty()) {
                             linkGrid(wirelessMachinePersisted.gridConnectedName)
                         }
                     }
                     wirelessMachineRunTime.isInitialized = true
-                    wirelessMachinePersisted.beSet = true
                 }
             }
         }
@@ -316,10 +319,17 @@ interface WirelessMachine :
                             if (GTOConfig.INSTANCE.aeLog)println("isRemote :${ck.isRemote} GridSavedValue: ${WirelessSavedData.INSTANCE.gridPool}")
                         }
                     }
+                    if (wirelessMachinePersisted.gridConnectedName.isNotEmpty()) {
+                        button(width = availableWidth - 4, transKet = leave) { ck ->
+                            if (!ck.isRemote) {
+                                leaveGrid()
+                            }
+                        }
+                    }
                     textBlock(
                         maxWidth = availableWidth - 4,
                         textSupplier = {
-                            Component.translatable(globalWirelessGrid, wirelessMachineRunTime.gridCache.get().count { it.owner == uuid }, wirelessMachineRunTime.gridCache.get().count())
+                            Component.translatable(globalWirelessGrid, wirelessMachineRunTime.gridCache.get().count { WirelessSavedData.checkPermission(it.owner, uuid) }, wirelessMachineRunTime.gridCache.get().count())
                         },
                     )
                     textBlock(
@@ -327,7 +337,7 @@ interface WirelessMachine :
                         textSupplier = { Component.translatable(yourWirelessGrid) },
                     )
                     vScroll(width = availableWidth, height = 176 - 4 - 20 - 36 - 16, { spacing = 2 }) a@{
-                        wirelessMachineRunTime.gridCache.get().filter { it.owner == uuid }
+                        wirelessMachineRunTime.gridCache.get().filter { WirelessSavedData.checkPermission(it.owner, uuid) }
                             .forEach { grid ->
                                 hBox(height = 14, { spacing = 4 }) {
                                     button(

@@ -27,6 +27,7 @@ import com.gtolib.api.annotation.NewDataAttributes;
 import com.gtolib.api.annotation.component_builder.ComponentBuilder;
 import com.gtolib.api.annotation.component_builder.StyleBuilder;
 import com.gtolib.api.lang.CNEN;
+import com.gtolib.api.machine.MultiblockDefinition;
 import com.gtolib.api.machine.multiblock.*;
 import com.gtolib.api.recipe.modifier.RecipeModifierFunction;
 import com.gtolib.utils.*;
@@ -404,7 +405,7 @@ public final class MultiBlockD {
             .shapeInfos(definition -> {
                 List<MultiblockShapeInfo> shapeInfos = new ArrayList<>();
                 for (int i = 1; i < 4; i++) {
-                    shapeInfos.addAll(MachineUtils.getMatchingShapes(false, PCBFactoryMachine.getBlockPattern(i, definition)));
+                    shapeInfos.addAll(MultiblockDefinition.getMatchingShapes(false, PCBFactoryMachine.getBlockPattern(i, definition)));
                 }
                 return shapeInfos;
             })
@@ -765,45 +766,14 @@ public final class MultiBlockD {
             .tooltips(NewDataAttributes.EMPTY_WITH_BAR.create(
                     h -> h.addLines("并行加成", "Parallelism Bonus", StyleBuilder::setGold),
                     c -> c.addLines(
-                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(x -> x.addLines("配方等级每高出ULV一级，并行数+2", "For each tier above ULV, parallelism +2", StyleBuilder::setWhite), p -> p, StyleBuilder::setOneTab),
+                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(x -> x.addLines("配方等级每高出ULV一级，并行数+2，安装附属模块后+4", "For each tier above ULV, parallelism +2, After installing the auxiliary module +4", StyleBuilder::setWhite), p -> p, StyleBuilder::setOneTab),
                             NewDataAttributes.EMPTY_WITH_POINT.createBuilder(x -> x.addLines("最终配方等级受限于整体框架等级", "Final recipe tier is constrained by framework tier", StyleBuilder::setRed), p -> p, StyleBuilder::setOneTab))))
             .specialParallelizableTooltips()
             .tooltips(NewDataAttributes.ALLOW_PARALLEL_NUMBER.create(
                     h -> h.addLines("自ULV起，电压每高出1级，获得的并行数+2", "From ULV, each voltage tier increases the obtained parallelism by 2"),
                     c -> c.addCommentLines("公式 : 2 * (tier - 0), 算去吧", "Formula: 2 * (tier - 0), go calculate it yourself")))
-            .tooltips(NewDataAttributes.RECIPES_TYPE.create(Component.translatable("gtceu.bender")
-                    .append("，").append(Component.translatable("gtceu.compressor"))
-                    .append("，").append(Component.translatable("gtceu.forge_hammer"))
-                    .append("，").append(Component.translatable("gtceu.cutter"))
-                    .append("，").append(Component.translatable("gtceu.extruder"))
-                    .append("，").append(Component.translatable("gtceu.lathe"))
-                    .append("，").append(Component.translatable("gtceu.wiremill"))
-                    .append("，").append(Component.translatable("gtceu.loom"))
-                    .append("，").append(Component.translatable("gtceu.forming_press"))
-                    .append("，").append(Component.translatable("gtceu.polarizer"))
-                    .append("，").append(Component.translatable("gtceu.cluster"))
-                    .append("，").append(Component.translatable("gtceu.rolling"))
-                    .append("，").append(Component.translatable("gtceu.centrifuge"))
-                    .append("，").append(Component.translatable("gtceu.thermal_centrifuge"))
-                    .append("，").append(Component.translatable("gtceu.electrolyzer"))
-                    .append("，").append(Component.translatable("gtceu.sifter"))
-                    .append("，").append(Component.translatable("gtceu.macerator"))
-                    .append("，").append(Component.translatable("gtceu.extractor"))
-                    .append("，").append(Component.translatable("gtceu.dehydrator"))
-                    .append("，").append(Component.translatable("gtceu.mixer"))
-                    .append("，").append(Component.translatable("gtceu.chemical_bath"))
-                    .append("，").append(Component.translatable("gtceu.laminator"))
-                    .append("，").append(Component.translatable("gtceu.ore_washer"))
-                    .append("，").append(Component.translatable("gtceu.distillery"))
-                    .append("，").append(Component.translatable("gtceu.chemical_reactor"))
-                    .append("，").append(Component.translatable("gtceu.fluid_solidifier"))
-                    .append("，").append(Component.translatable("gtceu.alloy_smelter"))
-                    .append("，").append(Component.translatable("gtceu.arc_furnace"))
-                    .append("，").append(Component.translatable("gtceu.arc_generator"))
-                    .append("，").append(Component.translatable("gtceu.laser_engraver"))
-                    .append("，").append(Component.translatable("gtceu.laser_welder"))
-                    .append("，").append(Component.translatable("gtceu.assembler"))
-                    .append("，").append(Component.translatable("gtceu.circuit_assembler"))))
+            .tooltips(NewDataAttributes.RECIPES_TYPE.create(ProcessingPlantMachine.getComponent()))
+            .moduleTooltips()
             .block(GTOBlocks.MULTI_FUNCTIONAL_CASING)
             .pattern(definition -> FactoryBlockPattern.start(definition)
                     .aisle("bbb", "bbb", "bbb")
@@ -813,15 +783,29 @@ public final class MultiBlockD {
                     .where('b', blocks(GTOBlocks.MULTI_FUNCTIONAL_CASING.get())
                             .setMinGlobalLimited(14)
                             .or(abilities(GTOPartAbility.ACCELERATE_HATCH).setMaxGlobalLimited(1))
-                            .or(Predicates.blocks(ManaMachine.MANA_AMPLIFIER_HATCH.getBlock()).setMaxGlobalLimited(1))
                             .or(abilities(IMPORT_ITEMS))
                             .or(abilities(EXPORT_ITEMS))
                             .or(abilities(IMPORT_FLUIDS))
                             .or(abilities(EXPORT_FLUIDS))
                             .or(abilities(INPUT_ENERGY).setMaxGlobalLimited(4).setPreviewCount(1))
-                            .or(blocks(GTOMachines.ADVANCED_CATALYST_HATCH.getBlock()).setMaxGlobalLimited(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where('c', GTOPredicates.integralFramework())
+                    .build())
+            .addSubPattern(definition -> FactoryBlockPattern.start(definition)
+                    .aisle("  BBBA", "  CCCA", "  CCCA")
+                    .aisle("  DDDA", "     A", "  EEEA")
+                    .aisle("  BBBA", "F CCCA", "  CCCA")
+                    .where('A', blocks(GTOBlocks.MULTI_FUNCTIONAL_CASING.get())
+                            .or(GTOPredicates.autoIOAbilities(definition.getRecipeTypes()))
+                            .or(abilities(INPUT_ENERGY).setMaxGlobalLimited(4))
+                            .or(blocks(GTOMachines.CATALYST_HATCH.getBlock()).setMaxGlobalLimited(1))
+                            .or(Predicates.blocks(ManaMachine.MANA_AMPLIFIER_HATCH.getBlock()).setMaxGlobalLimited(1)))
+                    .where('B', blocks(GTOBlocks.MULTI_FUNCTIONAL_CASING.get()))
+                    .where('C', blocks(GTBlocks.CASING_LAMINATED_GLASS.get()))
+                    .where('D', blocks(GTBlocks.CASING_STAINLESS_STEEL_GEARBOX.get()))
+                    .where('E', blocks(GTBlocks.CASING_GRATE.get()))
+                    .where('F', controller(blocks(definition.get())))
+                    .where(' ', any())
                     .build())
             .workableCasingRenderer(GTOCore.id("block/casings/multi_functional_casing"), GTCEu.id("block/multiblock/gcym/large_assembler"))
             .register();
@@ -829,7 +813,6 @@ public final class MultiBlockD {
     public static final MultiblockMachineDefinition NANO_FORGE = multiblock("nano_forge", "纳米锻炉", NanoForgeMachine::new)
             .nonYAxisRotation()
             .recipeTypes(GTORecipeTypes.NANO_FORGE_RECIPES)
-            .tooltips(GTOMachineTranslation.INSTANCE.getNanoswarmCircuitAssemblyFactoryTooltips().getSupplier())
             .tooltips(NewDataAttributes.EMPTY_WITH_BAR.create(
                     h -> h.addLines("运行条件", "Operating Conditions", StyleBuilder::setGold),
                     c -> c.addLines(
@@ -845,7 +828,7 @@ public final class MultiBlockD {
             .shapeInfos(definition -> {
                 List<MultiblockShapeInfo> shapeInfos = new ArrayList<>();
                 for (int i = 1; i < 4; i++) {
-                    shapeInfos.addAll(MachineUtils.getMatchingShapes(false, NanoForgeMachine.getBlockPattern(i, definition)));
+                    shapeInfos.addAll(MultiblockDefinition.getMatchingShapes(false, NanoForgeMachine.getBlockPattern(i, definition)));
                 }
                 return shapeInfos;
             })
@@ -1392,28 +1375,6 @@ public final class MultiBlockD {
                     .hasTESR(true)
                     .register(),
             GTValues.LuV, GTValues.ZPM, GTValues.UV, GTValues.UHV, GTValues.UEV);
-
-    public static final MultiblockMachineDefinition CREATE_COMPUTATION = multiblock("create_computation", "创造计算机", (holder) -> new ComputationProviderMachine(holder, true))
-            .allRotation()
-            .recipeTypes(GTRecipeTypes.DUMMY_RECIPES)
-            .tooltipsKey("gtceu.universal.tooltip.voltage_in", Integer.MAX_VALUE, GTValues.VNF[GTValues.MAX])
-            .overclock()
-            .block(GTBlocks.ADVANCED_COMPUTER_CASING)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("aa", "bb", "bb", "bb", "aa")
-                    .aisle("aa", "cc", "cc", "cc", "aa")
-                    .aisle("aa", "cc", "cc", "cc", "aa")
-                    .aisle("aa", "cc", "cc", "cc", "aa")
-                    .aisle("~a", "bb", "bb", "bb", "aa")
-                    .where('~', controller(blocks(definition.get())))
-                    .where('b', blocks(GTBlocks.ADVANCED_COMPUTER_CASING.get())
-                            .or(abilities(COMPUTATION_DATA_TRANSMISSION).setExactLimit(1))
-                            .or(abilities(INPUT_ENERGY).setMaxGlobalLimited(1)))
-                    .where('a', blocks(GTBlocks.ADVANCED_COMPUTER_CASING.get()))
-                    .where('c', blocks(GTOBlocks.CREATE_HPCA_COMPONENT.get()))
-                    .build())
-            .workableCasingRenderer(GTCEu.id("block/casings/hpca/advanced_computer_casing/back"), GTCEu.id("block/multiblock/hpca"))
-            .register();
 
     public static final MultiblockMachineDefinition INCUBATOR = multiblock("incubator", "培养缸", IncubatorMachine::new)
             .nonYAxisRotation()

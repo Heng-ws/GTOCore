@@ -1,16 +1,14 @@
 package com.gtocore.common.machine.multiblock.part;
 
-import com.gtolib.api.machine.trait.IExtendRecipeHandler;
 import com.gtolib.api.recipe.ingredient.FastSizedIngredient;
-import com.gtolib.utils.ItemUtils;
 import com.gtolib.utils.MathUtil;
 import com.gtolib.utils.NumberUtils;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -19,6 +17,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -66,7 +65,7 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
     @Nullable
     private ISubscription inventorySubs;
 
-    public HugeBusPartMachine(IMachineBlockEntity holder) {
+    public HugeBusPartMachine(MetaMachineBlockEntity holder) {
         super(holder, GTValues.IV, IO.IN);
         this.inventory = new HugeNotifiableItemStackHandler(this);
         workingEnabled = false;
@@ -189,19 +188,10 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
         }
     }
 
-    private static final class HugeNotifiableItemStackHandler extends NotifiableItemStackHandler implements IExtendRecipeHandler {
-
-        private Object2LongOpenCustomHashMap<ItemStack> itemInventory;
-        private boolean changed = true;
+    private static final class HugeNotifiableItemStackHandler extends NotifiableItemStackHandler {
 
         private HugeNotifiableItemStackHandler(MetaMachine machine) {
             super(machine, 1, IO.IN, IO.IN, i -> new HugeCustomItemStackHandler());
-        }
-
-        @Override
-        public void onContentsChanged() {
-            super.onContentsChanged();
-            changed = true;
         }
 
         private long getCount() {
@@ -217,15 +207,15 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
         public Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
             long c = getCount();
             if (c < 1) return null;
-            if (itemInventory == null) {
-                itemInventory = new Object2LongOpenCustomHashMap<>(ItemUtils.HASH_STRATEGY);
+            if (itemMap == null) {
+                itemMap = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM);
             }
             if (changed) {
                 changed = false;
-                itemInventory.clear();
-                itemInventory.put(getStackInSlot(), getCount());
+                itemMap.clear();
+                itemMap.put(getStackInSlot(), getCount());
             }
-            return itemInventory;
+            return itemMap;
         }
 
         @Override

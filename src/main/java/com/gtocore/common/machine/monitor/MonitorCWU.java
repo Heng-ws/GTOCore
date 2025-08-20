@@ -3,7 +3,7 @@ package com.gtocore.common.machine.monitor;
 import com.gtolib.api.machine.trait.WirelessComputationContainerTrait;
 import com.gtolib.utils.MathUtil;
 
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -19,17 +19,17 @@ public class MonitorCWU extends AbstractInfoProviderMonitor implements ITeamInfo
 
     private final WirelessComputationContainerTrait trait;
     @DescSynced
-    private int cwtTotal = 0;
+    private long cwtTotal = 0;
     @DescSynced
-    private int cwtUnused = 0;
+    private long cwtUnused = 0;
     @DescSynced
     boolean hasContainer = false;
 
     public MonitorCWU(Object o) {
-        this((IMachineBlockEntity) o);
+        this((MetaMachineBlockEntity) o);
     }
 
-    public MonitorCWU(IMachineBlockEntity holder) {
+    public MonitorCWU(MetaMachineBlockEntity holder) {
         super(holder);
         trait = new WirelessComputationContainerTrait(this, false); // 我是靶仓
     }
@@ -44,7 +44,7 @@ public class MonitorCWU extends AbstractInfoProviderMonitor implements ITeamInfo
     public DisplayComponentList provideInformation() {
         var infoList = ITeamInformationProvider.super.provideInformation();
         if (hasContainer) {
-            int cwtUsed = cwtTotal - cwtUnused;
+            long cwtUsed = cwtTotal - cwtUnused;
             infoList.addIfAbsent(
                     DisplayRegistry.COMPUTATION_WORK.id(),
                     Component.translatable("gtocore.machine.monitor.cwu.capacity",

@@ -4264,17 +4264,6 @@ final class Assembler {
                 .duration(400)
                 .save();
 
-        ASSEMBLER_RECIPES.builder("me_storage_access_proxy")
-                .inputItems("gtceu:data_access_hatch")
-                .inputItems(AEBlocks.QUANTUM_LINK.asItem())
-                .inputItems(CustomTags.IV_CIRCUITS, 4)
-                .inputItems(GTItems.SENSOR_EV.asStack(4))
-                .outputItems(GTAEMachines.ME_STORAGE_ACCESS_PROXY.asStack())
-                .inputFluids(GTMaterials.SolderingAlloy, 1000)
-                .EUt(1920)
-                .duration(400)
-                .save();
-
         ASSEMBLER_RECIPES.builder("quantum_glass")
                 .inputItems(GTBlocks.CASING_LAMINATED_GLASS.asStack())
                 .inputItems(GTOBlocks.MOLECULAR_CASING.asStack())
@@ -4379,12 +4368,12 @@ final class Assembler {
                 .save();
 
         ASSEMBLER_RECIPES.builder("advanced_tesseract_generator")
-                .inputItems(GTOMachines.TESSERACT_GENERATOR.asStack(8))
-                .inputItems(GTItems.FIELD_GENERATOR_HV.asStack(8))
-                .inputItems(GTItems.QUANTUM_STAR.asStack(16))
+                .inputItems(GTOMachines.TESSERACT_GENERATOR.asStack(4))
+                .inputItems(GTItems.FIELD_GENERATOR_HV.asStack(2))
+                .inputItems(GTItems.QUANTUM_STAR.asStack(1))
                 .outputItems(GTOMachines.ADVANCED_TESSERACT_GENERATOR.asStack())
                 .EUt(1920)
-                .duration(400)
+                .duration(200)
                 .save();
 
         ASSEMBLER_RECIPES.builder("me_big_storage_access_hatch")
@@ -4468,6 +4457,59 @@ final class Assembler {
                 .inputItems(new ItemStack(AEItems.ADVANCED_CARD.asItem(), 4))
                 .outputItems(GTOBlocks.T5_CRAFTING_STORAGE_CORE.asStack())
                 .EUt(491520)
+                .duration(200)
+                .save();
+
+        ASSEMBLER_RECIPES.builder("high_pressure_pipe_casing")
+                .inputItems(frameGt, Titanium)
+                .inputItems(TagPrefix.pipeNormalFluid, Titanium, 4)
+                .inputItems(TagPrefix.plate, TungstenSteel, 4)
+                .outputItems(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.asStack())
+                .inputFluids(GTOMaterials.HighPressureNitrogen, 576)
+                .EUt(480)
+                .duration(200)
+                .save();
+
+        ASSEMBLER_RECIPES.builder("chemical_corrosion_resistant_pipe_casing")
+                .inputItems(TagPrefix.frameGt, StainlessSteel)
+                .inputItems(TagPrefix.pipeNormalFluid, StainlessSteel, 4)
+                .inputItems(TagPrefix.plate, Polytetrafluoroethylene, 4)
+                .inputItems(TagPrefix.plate, StainlessSteel, 4)
+                .outputItems(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.asStack())
+                .inputFluids(Polytetrafluoroethylene, 576)
+                .EUt(480)
+                .duration(200)
+                .save();
+
+        ASSEMBLER_RECIPES.builder("oil_gas_transportation_pipe_casing")
+                .inputItems(TagPrefix.frameGt, HSSG)
+                .inputItems(TagPrefix.pipeNormalFluid, NiobiumTitanium, 4)
+                .inputItems(TagPrefix.plate, RhodiumPlatedPalladium, 4)
+                .inputItems(TagPrefix.plate, GTOMaterials.HastelloyN75, 4)
+                .outputItems(GTOBlocks.OIL_GAS_TRANSPORTATION_PIPE_CASING.asStack())
+                .inputFluids(GTOMaterials.MarM200Steel, 576)
+                .EUt(480)
+                .duration(200)
+                .save();
+
+        ASSEMBLER_RECIPES.builder("high_strength_support_mechanical_casing")
+                .inputItems(TagPrefix.frameGt, BlackSteel)
+                .inputItems(plateDouble, HastelloyX, 8)
+                .inputItems(TagPrefix.plate, RhodiumPlatedPalladium, 8)
+                .inputItems(rod, GTOMaterials.Inconel625, 8)
+                .outputItems(GTOBlocks.HIGH_STRENGTH_SUPPORT_MECHANICAL_CASING.asStack())
+                .inputFluids(Polybenzimidazole, 576)
+                .EUt(480)
+                .duration(200)
+                .save();
+
+        ASSEMBLER_RECIPES.builder("high_strength_support_spindle")
+                .inputItems(TagPrefix.frameGt, BlackSteel)
+                .inputItems(plateDouble, RhodiumPlatedPalladium, 8)
+                .inputItems(rodLong, Naquadah, 8)
+                .outputItems(GTOBlocks.HIGH_STRENGTH_SUPPORT_SPINDLE.asStack())
+                .inputFluids(Concrete, 576 * 4)
+                .EUt(480)
                 .duration(200)
                 .save();
     }

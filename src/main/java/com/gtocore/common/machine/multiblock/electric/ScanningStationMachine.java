@@ -7,13 +7,11 @@ import com.gtolib.api.machine.multiblock.ElectricMultiblockMachine;
 import com.gtolib.api.recipe.Recipe;
 import com.gtolib.api.recipe.RecipeRunner;
 import com.gtolib.utils.ItemUtils;
+import com.gtolib.utils.RLUtils;
 
-import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
-import com.gregtechceu.gtceu.api.capability.IOpticalComputationReceiver;
-import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
@@ -21,7 +19,6 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -41,17 +38,11 @@ import static com.gtolib.utils.RegistriesUtils.getItem;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class ScanningStationMachine extends ElectricMultiblockMachine implements IOpticalComputationReceiver {
+public class ScanningStationMachine extends ElectricMultiblockMachine {
 
-    @Override
-    public IOpticalComputationProvider getComputationProvider() {
-        return computationProvider;
-    }
-
-    private IOpticalComputationProvider computationProvider;
     private ScanningHolderMachine objectHolder;
 
-    public ScanningStationMachine(IMachineBlockEntity holder) {
+    public ScanningStationMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 
@@ -68,15 +59,10 @@ public class ScanningStationMachine extends ElectricMultiblockMachine implements
                 // 添加物品处理器（包含扫描槽、催化剂槽和数据槽）
                 addHandlerList(RecipeHandlerList.of(IO.IN, scanningHolder.getAsHandler()));
             }
-
-            // 获取计算提供者
-            part.self().holder.self()
-                    .getCapability(GTCapability.CAPABILITY_COMPUTATION_PROVIDER)
-                    .ifPresent(provider -> this.computationProvider = provider);
         }
 
         // 必须同时有扫描部件和计算提供者
-        if (computationProvider == null || objectHolder == null) {
+        if (objectHolder == null) {
             onStructureInvalid();
         }
     }
@@ -92,8 +78,6 @@ public class ScanningStationMachine extends ElectricMultiblockMachine implements
 
     @Override
     public void onStructureInvalid() {
-        computationProvider = null;
-        // 重置扫描部件状态
         if (objectHolder != null) {
             objectHolder.setLocked(false);
             objectHolder = null;
@@ -182,7 +166,7 @@ public class ScanningStationMachine extends ElectricMultiblockMachine implements
             }
 
             if (state.equals("f")) {
-                Fluid fluid = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(parts[1], parts[2]));
+                Fluid fluid = ForgeRegistries.FLUIDS.getValue(RLUtils.fromNamespaceAndPath(parts[1], parts[2]));
                 String fluidState;
                 if (parts[2].contains("gas")) fluidState = "气态 ";
                 else if (parts[2].contains("liquid")) fluidState = "液态 ";

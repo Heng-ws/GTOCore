@@ -4,11 +4,12 @@ dependencies {
     implementation("curse.maven:kotlin-for-forge-351264:5402061")
 
     modImplementation(jarJar("dev:gtolib:1.0"))
+    modImplementation(jarJar("com.hepdd:ae2emicraftingforge:1.0.0"))
 
     api(annotationProcessor("io.github.llamalad7:mixinextras-common:$project.mixinextras_version"))
     annotationProcessor 'org.spongepowered:mixin:0.8.7:processor'
 
-    modImplementation("curse.maven:ldlib-626676:6792104")
+    modImplementation("curse.maven:ldlib-626676:6899193")
 
     modImplementation("com.tterrag.registrate:Registrate:$project.registrate_version")
 
@@ -51,7 +52,7 @@ dependencies {
     modImplementation("curse.maven:ars-meteorites-1278083:6714970")
 
     modImplementation("curse.maven:glodium-957920:5006780")
-    modImplementation("curse.maven:ex-pattern-provider-892005:6505265")
+    modImplementation("curse.maven:ex-pattern-provider-892005:6870350")
 
     modImplementation("curse.maven:functional-storage-556861:5650296")
     modImplementation("curse.maven:titanium-287342:5468426")
@@ -70,13 +71,13 @@ dependencies {
 
     modImplementation("curse.maven:farmers-respite-551453:5543547")
 
-    // modImplementation("curse.maven:spark-361579:4738952")
+     modImplementation("curse.maven:spark-361579:4738952")
 
     modCompileOnly("curse.maven:libx-412525:5207625")
 
     modCompileOnly("curse.maven:mythicbotany-400058:5101899")
 
-    modCompileOnly("curse.maven:ftb-library-forge-404465:6807424")
+    modImplementation("curse.maven:ftb-library-forge-404465:6807424")
 
     modCompileOnly("curse.maven:ftb-quests-forge-289412:6259628")
 

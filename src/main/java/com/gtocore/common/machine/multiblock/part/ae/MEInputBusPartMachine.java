@@ -2,13 +2,12 @@ package com.gtocore.common.machine.multiblock.part.ae;
 
 import com.gtocore.common.machine.multiblock.part.ae.slots.ExportOnlyAEItemList;
 import com.gtocore.common.machine.multiblock.part.ae.slots.ExportOnlyAEItemSlot;
+import com.gtocore.common.machine.multiblock.part.ae.slots.MECircuitHandler;
 import com.gtocore.common.machine.multiblock.part.ae.widget.AEItemConfigWidget;
 
-import com.gtolib.api.machine.trait.NotifiableNotConsumableItemHandler;
-
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IDataStickInteractable;
@@ -51,10 +50,10 @@ public class MEInputBusPartMachine extends MEPartMachine implements IDataStickIn
     @Persisted
     protected final NotifiableItemStackHandler circuitInventory;
 
-    public MEInputBusPartMachine(IMachineBlockEntity holder) {
+    public MEInputBusPartMachine(MetaMachineBlockEntity holder) {
         super(holder, IO.IN);
         aeItemHandler = createInventory();
-        circuitInventory = new NotifiableNotConsumableItemHandler(this, 1, IO.NONE).setSkipParallelComputing().setFilter(IntCircuitBehaviour::isIntegratedCircuit).shouldSearchContent(false);
+        circuitInventory = new MECircuitHandler(this);
     }
 
     /////////////////////////////////

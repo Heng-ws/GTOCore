@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.core.BlockPos;
@@ -61,6 +62,12 @@ public final class TimeTwisterBehavior implements IInteractionItem {
         if (recipeLogic != null && recipeLogic.isWorking()) {
             MetaMachine machine = recipeLogic.getMachine();
             if (machine instanceof IOverclockMachine overclockMachine) {
+
+                GTRecipe recipe = recipeLogic.getLastOriginRecipe();
+                if (recipe == null || recipe.getOutputEUt() > 0) {
+                    return false;
+                }
+
                 int reducedDuration = (int) ((recipeLogic.getDuration() - recipeLogic.getProgress()) * 0.5);
                 long eu = 8 * reducedDuration * overclockMachine.getOverclockVoltage();
                 if (eu > 0 && container.removeEnergy(eu, null) == eu) {
@@ -99,7 +106,8 @@ public final class TimeTwisterBehavior implements IInteractionItem {
     private static void tickBlock(Level level, BlockPos pos, int tick) {
         BlockState blockState = level.getBlockState(pos);
         Block block = blockState.getBlock();
-        if (level instanceof ServerLevel && block.isRandomlyTicking(blockState)) blockState.randomTick((ServerLevel) level, pos, level.getRandom());
+        if (level instanceof ServerLevel && block.isRandomlyTicking(blockState))
+            blockState.randomTick((ServerLevel) level, pos, level.getRandom());
         if (block instanceof EntityBlock entityBlock) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity == null) return;

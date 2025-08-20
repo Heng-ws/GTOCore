@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.recipe.chance.logic.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.core.mixins.TagValueAccessor;
 import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 
 import net.minecraft.resources.ResourceLocation;
@@ -37,7 +36,7 @@ public final class GenerateDisassembly {
 
     private static final String[] outputItem = { "_frame", "_fence", "_electric_motor",
             "_electric_pump", "_conveyor_module", "_electric_piston", "_robot_arm", "_field_generator",
-            "_emitter", "_sensor", "smd_", "_lamp", "ae2:blank_pattern", "gtocore:carbon_nanites" };
+            "_emitter", "_sensor", "smd_", "_lamp", "ae2:blank_pattern", "gtocore:carbon_nanites", "cell_component" };
 
     private static boolean isExcludeItems(String id) {
         for (String pattern : outputItem) {
@@ -94,7 +93,7 @@ public final class GenerateDisassembly {
                                 }
                             }
                         } else if (value instanceof Ingredient.TagValue tagValue) {
-                            Integer i = Tags.CIRCUITS_ARRAY.get(((TagValueAccessor) tagValue).getTag());
+                            Integer i = Tags.CIRCUITS_ARRAY.get(tagValue.tag);
                             if (i != null) {
                                 builder.outputItems(GTOItems.UNIVERSAL_CIRCUIT[i].get(), sizedIngredient.getSaturatedAmount());
                                 break;

@@ -1,15 +1,17 @@
 package com.gtocore.common.machine.multiblock.electric;
 
 import com.gtolib.api.machine.multiblock.ElectricMultiblockMachine;
+import com.gtolib.api.machine.trait.InaccessibleInfiniteTank;
 import com.gtolib.api.recipe.AsyncRecipeOutputTask;
 import com.gtolib.api.recipe.Recipe;
 import com.gtolib.api.recipe.RecipeRunner;
+import com.gtolib.api.recipe.ingredient.FastFluidIngredient;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
@@ -36,7 +38,7 @@ public class DistillationTowerMachine extends ElectricMultiblockMachine {
 
     private List<IFluidHandler> fluidOutputs;
 
-    public DistillationTowerMachine(IMachineBlockEntity holder) {
+    public DistillationTowerMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 
@@ -178,10 +180,16 @@ public class DistillationTowerMachine extends ElectricMultiblockMachine {
             var size = Math.min(fluids.size(), outputs.size());
             for (int i = 0; i < size; ++i) {
                 var handler = outputs.get(i);
-                var fluid = fluids.get(i).getStacks()[0];
-                int filled = (handler instanceof NotifiableFluidTank nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
-                if (filled != fluid.getAmount()) valid = false;
-                if (action.simulate() && !valid) break;
+                var ingredient = fluids.get(i);
+                var fluid = ingredient.getStacks()[0];
+                if (handler instanceof InaccessibleInfiniteTank tank) {
+                    if (action.simulate()) continue;
+                    tank.fillInternal(fluid, FastFluidIngredient.getAmount(ingredient));
+                } else {
+                    int filled = (handler instanceof NotifiableFluidTank nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
+                    if (filled != fluid.getAmount()) valid = false;
+                    if (action.simulate() && !valid) break;
+                }
             }
             return valid;
         }

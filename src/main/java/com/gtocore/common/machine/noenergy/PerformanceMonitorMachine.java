@@ -1,9 +1,10 @@
 package com.gtocore.common.machine.noenergy;
 
 import com.gtolib.api.data.GTODimensions;
+import com.gtolib.utils.RLUtils;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 
@@ -11,7 +12,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import com.glodblock.github.extendedae.client.render.EAEHighlightHandler;
@@ -28,7 +28,7 @@ public final class PerformanceMonitorMachine extends MetaMachine implements IFan
 
     private List<Component> textListCache;
 
-    public PerformanceMonitorMachine(IMachineBlockEntity holder) {
+    public PerformanceMonitorMachine(MetaMachineBlockEntity holder) {
         super(holder);
     }
 
@@ -36,7 +36,7 @@ public final class PerformanceMonitorMachine extends MetaMachine implements IFan
         if (clickData.isRemote) {
             String[] parts = PATTERN.split(componentData);
             BlockPos pos = new BlockPos(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
-            EAEHighlightHandler.highlight(pos, GTODimensions.getDimensionKey(new ResourceLocation(parts[3])), System.currentTimeMillis() + 15000);
+            EAEHighlightHandler.highlight(pos, GTODimensions.getDimensionKey(RLUtils.parse(parts[3])), System.currentTimeMillis() + 15000);
         }
     }
 

@@ -1,10 +1,7 @@
 package com.gtocore.common.data;
 
 import com.gtocore.api.machine.part.GTOPartAbility;
-import com.gtocore.client.renderer.machine.BallHatchRenderer;
-import com.gtocore.client.renderer.machine.HeaterRenderer;
-import com.gtocore.client.renderer.machine.MonitorRenderer;
-import com.gtocore.client.renderer.machine.WindMillTurbineRenderer;
+import com.gtocore.client.renderer.machine.*;
 import com.gtocore.common.blockentity.TesseractBlockEntity;
 import com.gtocore.common.data.machines.*;
 import com.gtocore.common.data.translation.GTOMachineTranslation;
@@ -43,7 +40,6 @@ import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.data.RotationState;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.SimpleTieredMachine;
@@ -62,7 +58,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
 import com.hepdd.gtmthings.GTMThings;
-import com.hepdd.gtmthings.common.block.machine.multiblock.part.ProgrammableHatchPartMachine;
 import it.unimi.dsi.fastutil.Function;
 import it.unimi.dsi.fastutil.Pair;
 
@@ -86,9 +81,8 @@ public final class GTOMachines {
         MultiBlockG.init();
         MultiBlockH.init();
 
-        if (GTCEu.isDev() || GTCEu.isDataGen() || GTOCore.isSimple()) {
-            SimpleModeMachine.init();
-        }
+        SimpleModeMachine.init(); // 限制模式不注册会出现多方块预览错误
+
         if (GTCEu.isDev() || GTCEu.isDataGen()) {
             final MachineDefinition SYNC_TESTER_MACHINE = machine("sync_tester_machine", "同步测试机", SyncTesterMachine::new)
                     .allRotation()
@@ -448,7 +442,8 @@ public final class GTOMachines {
             .register();
 
     public static final MachineDefinition ME_WIRELESS_CONNECTION_MACHINE = machine("me_wireless_connection_machine", "ME无线连接机", MeWirelessConnectMachine::new)
-            .overlayTieredHullRenderer("neutron_sensor")
+            .renderer(MeWirelessConnectMachineRenderer::new)
+            .tooltips(GTOMachineTranslation.INSTANCE.getAutoConnectMETooltips().getSupplier())
             .tooltips(NewDataAttributes.MIRACULOUS_TOOLS.create(new CNEN("ME无线连接机", "ME Wireless Connection Machine"), p -> p.addCommentLines(
                     """
                             多对多的ME无线网络节点
@@ -817,12 +812,14 @@ public final class GTOMachines {
 
     public static final MachineDefinition TESSERACT_GENERATOR = blockEntityMachine("tesseract_generator", "超立方体发生器", TesseractMachine::new, TesseractBlockEntity::new)
             .allRotation()
+            .tooltips(GTOMachineTranslation.INSTANCE.getHyperCubeMachineTooltips().getSupplier())
             .modelRenderer(() -> GTOCore.id("block/machine/tesseract_generator"))
             .tier(HV)
             .register();
 
     public static final MachineDefinition ADVANCED_TESSERACT_GENERATOR = blockEntityMachine("advanced_tesseract_generator", "进阶超立方体发生器", AdvancedTesseractMachine::new, TesseractBlockEntity::new)
             .allRotation()
+            .tooltips(GTOMachineTranslation.INSTANCE.getAdvancedHyperCubeMachineTooltips().getSupplier())
             .modelRenderer(() -> GTOCore.id("block/machine/tesseract_generator"))
             .tier(IV)
             .register();
@@ -852,7 +849,7 @@ public final class GTOMachines {
             .tooltips(GTOMachineTranslation.INSTANCE.getMonitorMachineComponentTooltips().getSupplier())
             .register();
 
-    private static GTOMachineBuilder registerMonitor(String id, String cn, Function<IMachineBlockEntity, MetaMachine> monitorConstructor) {
+    private static GTOMachineBuilder registerMonitor(String id, String cn, Function<MetaMachineBlockEntity, MetaMachine> monitorConstructor) {
         BlockRegisterUtils.addLang(id, cn);
         MonitorBlockItem.addItem(GTOCore.id(id));
         return (GTOMachineBuilder) new GTOMachineBuilder(

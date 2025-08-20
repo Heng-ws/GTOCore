@@ -6,11 +6,9 @@
   "compatibilityLevel": "JAVA_17",
   "client": [
     "adastra.AdAstraOverlayScreenMixin",
-    "adastra.PlanetsScreenMixin",
-    "mc.GuiGraphicsAccessor"
+    "adastra.PlanetsScreenMixin"
   ],
   "mixins": [
-    "avaritia.InfinityToemNerf",
     "ftblibrary.FTBLibraryCommandsMixin",
     "ftbq.FTBQuestsCommandsMixin",
     "ftbq.ToggleEditingModeMessageMixin",
@@ -21,7 +19,6 @@
     "gtm.AssemblyLineMachineMixin",
     "mc.BlockBehaviourMixin",
     "mc.SharedConstantsMixin",
-    "mc.UnbreakingMixin",
     "mc.mob.AbstractSkeletonMixin",
     "mc.mob.MobMixin"
   ],

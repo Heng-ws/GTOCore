@@ -1,7 +1,7 @@
 package com.gtocore.config;
 
 import com.gtolib.GTOCore;
-import com.gtolib.api.annotation.Scanned;
+import com.gtolib.api.annotation.DataGeneratorScanned;
 import com.gtolib.api.annotation.language.RegisterLanguage;
 
 import com.gregtechceu.gtceu.GTCEu;
@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.embeddedt.modernfix.spark.SparkLaunchProfiler;
 
-@Scanned
+@DataGeneratorScanned
 @Config(id = GTOCore.MOD_ID)
 public final class GTOConfig {
 
@@ -138,8 +138,6 @@ public final class GTOConfig {
         ConfigHolder.INSTANCE.tools.nanoSaber.nanoSaberBaseDamage = 1;
         ConfigHolder.INSTANCE.tools.nanoSaber.zombieSpawnWithSabers = true;
         ConfigHolder.INSTANCE.tools.nanoSaber.energyConsumption = 64;
-        ConfigHolder.INSTANCE.gameplay.environmentalHazards = false;
-        ConfigHolder.INSTANCE.gameplay.environmentalHazardDecayRate = 0.001F;
         if (GTOCore.isSimple()) {
             ConfigHolder.INSTANCE.gameplay.hazardsEnabled = false;
         }
@@ -156,6 +154,11 @@ public final class GTOConfig {
     @Configurable.Comment("启用自我约束模式以防止作弊行为")
     @RegisterLanguage(namePrefix = "config.gtocore.option", en = "Self Restraint Mode", cn = "自我约束模式")
     public boolean selfRestraint = false;
+
+    @Configurable
+    @RegisterLanguage(namePrefix = "config.gtocore.option", en = "Default Value for Rename Pattern", cn = "重命名样板的默认值")
+    @Configurable.Comment("在装配线模式编码带有重命名物品的样板时使用的默认名字")
+    public String renamePatternDefaultString = "";
 
     // 性能优化设置
     @Configurable
@@ -203,6 +206,12 @@ public final class GTOConfig {
     @RegisterLanguage(namePrefix = "config.gtocore.option", en = "Show Item English Name", cn = "显示物品英文名称")
     public boolean showEnglishName = false;
 
+    @Configurable
+    @Configurable.Comment("调整监控器的最大成型尺寸")
+    @Configurable.Range(min = 4, max = 64)
+    @RegisterLanguage(namePrefix = "config.gtocore.option", en = "Maximum Monitor Size", cn = "监控器最大尺寸")
+    public int maxMonitorSize = 16;
+
     // 开发和调试设置
     @Configurable
     @Configurable.Comment("开启开发者模式")
@@ -220,9 +229,20 @@ public final class GTOConfig {
     public boolean aeLog = false;
 
     @Configurable
+    @Configurable.Comment("启用 AE2 无线网络调试日志")
+    @RegisterLanguage(namePrefix = "config.gtocore.option", en = "[Debug] AE2 & Sync Logging", cn = "[调试] AE2 无线网络调试日志")
+    public boolean aeWirelessLog = false;
+
+    @Configurable
     @Configurable.Comment("Spark 性能分析器的启动阶段")
     @RegisterLanguage(namePrefix = "config.gtocore.option", en = "Spark Profiler Start Phase", cn = "Spark 分析器启动阶段")
     public SparkRange startSpark = SparkRange.NONE;
+
+    @Configurable
+    @Configurable.Range(min = 36, max = 144000)
+    @Configurable.Comment("扩展样板供应器容量(用于暴力性能测试，仅开发模式下生效)")
+    @RegisterLanguage(namePrefix = "config.gtocore.option", en = "Extended Pattern Provider Size (Currently used for performance test, only effective in dev mode)", cn = "扩展样板供应器容量（目前用于性能测试，仅在开发模式下生效）")
+    public int exPatternSize = 36;
 
     private enum Difficulty {
         Simple,

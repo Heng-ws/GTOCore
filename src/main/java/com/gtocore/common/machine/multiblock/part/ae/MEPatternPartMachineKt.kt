@@ -8,6 +8,8 @@ import com.gtocore.integration.ae.WirelessMachine
 
 import net.minecraft.MethodsReturnNonnullByDefault
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
+import net.minecraft.nbt.Tag
 import net.minecraft.network.chat.Component
 import net.minecraft.server.TickTask
 import net.minecraft.server.level.ServerLevel
@@ -26,12 +28,13 @@ import appeng.crafting.pattern.EncodedPatternItem
 import appeng.helpers.patternprovider.PatternContainer
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity
 import com.gregtechceu.gtceu.api.capability.recipe.IO
 import com.gregtechceu.gtceu.api.gui.GuiTextures
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity
 import com.gregtechceu.gtceu.api.machine.TickableSubscription
+import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler
 import com.gtolib.ae2.MyPatternDetailsHelper
@@ -40,7 +43,6 @@ import com.gtolib.api.annotation.Scanned
 import com.gtolib.api.annotation.language.RegisterLanguage
 import com.gtolib.api.capability.ISync
 import com.gtolib.api.gui.ktflexible.*
-import com.gtolib.api.gui.ktflexible.FreshWidgetGroupAbstract
 import com.gtolib.syncdata.SyncManagedFieldHolder
 import com.lowdragmc.lowdraglib.gui.widget.Widget
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
@@ -49,7 +51,6 @@ import com.lowdragmc.lowdraglib.syncdata.ITagSerializable
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder
-import kotlinx.coroutines.Runnable
 
 import java.util.function.IntSupplier
 import javax.annotation.ParametersAreNonnullByDefault
@@ -57,12 +58,13 @@ import javax.annotation.ParametersAreNonnullByDefault
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 @Scanned
-internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.AbstractInternalSlot>(holder: IMachineBlockEntity, val maxPatternCount: Int) :
+internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.AbstractInternalSlot>(holder: MetaMachineBlockEntity, val maxPatternCount: Int) :
     MEPartMachine(holder, IO.IN),
     ICraftingProvider,
     WirelessMachine,
     ISync,
-    PatternContainer {
+    PatternContainer,
+    IDropSaveMachine {
 
     // ==================== 常量和静态成员 ====================
     @Scanned
@@ -71,7 +73,7 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
         val MANAGED_FIELD_HOLDER = ManagedFieldHolder(MEPatternPartMachineKt::class.java, MEPartMachine.MANAGED_FIELD_HOLDER)
 
         @JvmStatic
-        val SYNC_MANAGED_FIELD_HOLDER = SyncManagedFieldHolder(MEPatternPartMachineKt::class.java, MEPartMachine.sync)
+        val SYNC_MANAGED_FIELD_HOLDER = SyncManagedFieldHolder(MEPatternPartMachineKt::class.java, sync)
 
         @RegisterLanguage(cn = "AE显示名称:", en = "AE Name:")
         const val AE_NAME: String = "gtceu.ae.pattern_part_machine.ae_name"
@@ -91,12 +93,6 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
     @DescSynced
     @Persisted
     var customName: String = ""
-
-    @DescSynced
-    @Persisted
-    private var currentSlotPage = 0
-
-    var freshRootWidgetGroup: Runnable? = null
 
     // ==================== 运行时属性 ====================
     val detailsSlotMap: BiMap<IPatternDetails, T> = HashBiMap.create(maxPatternCount)
@@ -195,10 +191,6 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
 
     override fun clientTick() {
         super.clientTick()
-    }
-
-    override fun onMachineRemoved() {
-        clearInventory(patternInventory)
     }
 
     override fun onMainNodeStateChanged(reason: IGridNodeListener.State) {
@@ -304,27 +296,29 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
                             }
                         }
                     }
-                hBox(height = 13, style = { spacing = 2 }) {
-                    val wid = this@vBox.availableWidth - 2 * 2
-                    button(
-                        width = 30,
-                        height = 13,
-                        onClick = { ck ->
-                            onPagePrev()
-                            if (!isRemote)newPageField.setAndSyncToClient((newPageField.get() - 1).coerceAtLeast(0))
-                        },
-                        text = { "<<" },
-                    )
-                    text(height = 13, width = wid - 60, text = { Component.literal("${newPageField.get() + 1} / ${pageWidget.getMaxPageSize()}") })
-                    button(
-                        height = 13,
-                        width = 30,
-                        onClick = { ck ->
-                            onPageNext()
-                            if (!isRemote)newPageField.setAndSyncToClient((newPageField.get() + 1).coerceAtMost(pageWidget.getMaxPageSize() - 1))
-                        },
-                        text = { ">>" },
-                    )
+                if (pageWidget.getMaxPageSize() > 1) {
+                    hBox(height = 13, style = { spacing = 2 }) {
+                        val wid = this@vBox.availableWidth - 2 * 2
+                        button(
+                            width = 30,
+                            height = 13,
+                            onClick = { ck ->
+                                onPagePrev()
+                                if (!isRemote)newPageField.setAndSyncToClient((newPageField.get() - 1).coerceAtLeast(0))
+                            },
+                            text = { "<<" },
+                        )
+                        text(height = 13, width = wid - 60, text = { Component.literal("${newPageField.get() + 1} / ${pageWidget.getMaxPageSize()}") })
+                        button(
+                            height = 13,
+                            width = 30,
+                            onClick = { ck ->
+                                onPageNext()
+                                if (!isRemote)newPageField.setAndSyncToClient((newPageField.get() + 1).coerceAtMost(pageWidget.getMaxPageSize() - 1))
+                            },
+                            text = { ">>" },
+                        )
+                    }
                 }
                 pageWidget.refresh()
             }
@@ -392,6 +386,27 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
     }
     open fun VBoxBuilder.buildToolBoxContent() {}
     override fun createMainPage(widget: FancyMachineUIWidget?): Widget? = super.createMainPage(widget)
+
+    override fun savePickClone(): Boolean = false
+
+    override fun saveToItem(tag: CompoundTag) {
+        tag.put("p", patternInventory.serializeNBT())
+        tag.putString("n", customName)
+        val list = ListTag()
+        for (i in 0 until internalInventory.size) {
+            list.add(internalInventory[i].serializeNBT())
+        }
+        tag.put("i", list)
+    }
+
+    override fun loadFromItem(tag: CompoundTag) {
+        patternInventory.deserializeNBT(tag.getCompound("p"))
+        customName = tag.getString("n")
+        val list = tag.getList("i", Tag.TAG_COMPOUND.toInt())
+        for (i in 0 until internalInventory.size) {
+            internalInventory[i].deserializeNBT(list.getCompound(i))
+        }
+    }
 
     // ==================== 内部类 ====================
     abstract class AbstractInternalSlot :

@@ -15,9 +15,9 @@ import com.gtolib.api.recipe.RecipeBuilder;
 import com.gtolib.api.recipe.RecipeRunner;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.hpca.HPCABridgePartMachine;
@@ -38,7 +38,6 @@ import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import earth.terrarium.adastra.common.registry.ModItems;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,11 +84,12 @@ public final class SupercomputingCenterMachine extends StorageMultiblockMachine 
     private int maxCWUt;
     private int coolingAmount;
     private int maxCoolingAmount;
-    private int allocatedCWUt;
+    private long allocatedCWUt;
+    private long cacheCWUt;
     private long maxEUt;
     private Recipe runRecipe;
 
-    public SupercomputingCenterMachine(IMachineBlockEntity holder) {
+    public SupercomputingCenterMachine(MetaMachineBlockEntity holder) {
         super(holder, 1, stack -> MAINFRAME.containsKey(stack.getItem()));
         maxCWUtModificationSubs = new ConditionalSubscriptionHandler(this, this::maxCWUtModificationUpdate, () -> isFormed);
     }
@@ -104,6 +104,7 @@ public final class SupercomputingCenterMachine extends StorageMultiblockMachine 
         incompatible = false;
         runRecipe = null;
         allocatedCWUt = 0;
+        cacheCWUt = 0;
         maxCWUt = 0;
         coolingAmount = 0;
         maxCoolingAmount = 0;
@@ -206,12 +207,14 @@ public final class SupercomputingCenterMachine extends StorageMultiblockMachine 
     @Override
     public boolean onWorking() {
         if (allocatedCWUt == 0) return false;
+        cacheCWUt = allocatedCWUt;
         allocatedCWUt = 0;
         return super.onWorking();
     }
 
     @Override
     public void afterWorking() {
+        cacheCWUt = allocatedCWUt;
         allocatedCWUt = 0;
         if (coolingAmount > maxCoolingAmount) {
             int damaged = coolingAmount - maxCoolingAmount;
@@ -226,10 +229,8 @@ public final class SupercomputingCenterMachine extends StorageMultiblockMachine 
         super.afterWorking();
     }
 
-    private int requestCWUt(boolean simulate, int cwut) {
-        int maxCWUt = getMaxCWUt() * maxCWUtModification / 10000;
-        int availableCWUt = maxCWUt - this.allocatedCWUt;
-        int toAllocate = Math.min(cwut, availableCWUt);
+    private long requestCWUt(boolean simulate, long cwu) {
+        long toAllocate = Math.min(cwu, getMaxCWU());
         if (!simulate) {
             this.allocatedCWUt += toAllocate;
         }
@@ -237,21 +238,25 @@ public final class SupercomputingCenterMachine extends StorageMultiblockMachine 
     }
 
     @Override
-    public int requestCWUt(int cwut, boolean simulate, @NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
+    public long requestCWU(long cwu, boolean simulate) {
         if (incompatible) return 0;
         if (runRecipe != null) {
-            if (simulate) return requestCWUt(true, cwut);
+            if (simulate) return requestCWUt(true, cwu);
             if (getRecipeLogic().isWorking()) {
-                return requestCWUt(false, cwut);
+                return requestCWUt(false, cwu);
             } else if (RecipeRunner.matchTickRecipe(this, runRecipe) && RecipeRunner.matchRecipe(this, runRecipe)) {
                 getRecipeLogic().setupRecipe(runRecipe);
                 if (getRecipeLogic().isWorking()) {
-                    return requestCWUt(false, cwut);
+                    return requestCWUt(false, cwu);
                 }
             }
         }
         return 0;
+    }
+
+    @Override
+    public long getMaxCWU() {
+        return (getMaxCWUt() * maxCWUtModification / 10000) - cacheCWUt;
     }
 
     private void maxCWUtModificationUpdate() {
@@ -296,16 +301,13 @@ public final class SupercomputingCenterMachine extends StorageMultiblockMachine 
         maxCWUtModificationSubs.updateSubscription();
     }
 
-    @Override
-    public int getMaxCWUt(@NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
+    public long getMaxCWUt() {
         if (incompatible) return 0;
         return maxCWUt;
     }
 
     @Override
-    public boolean canBridge(@NotNull Collection<IOpticalComputationProvider> seen) {
-        seen.add(this);
+    public boolean canBridge() {
         if (incompatible) return false;
         return canBridge;
     }
@@ -325,7 +327,7 @@ public final class SupercomputingCenterMachine extends StorageMultiblockMachine 
         super.customText(textList);
         textList.add(Component.translatable("tooltip.avaritia.tier", machineTier));
         textList.add(Component.translatable("gtceu.multiblock.energy_consumption", maxEUt, GTValues.VNF[GTUtil.getTierByVoltage(maxEUt)]).withStyle(ChatFormatting.YELLOW));
-        textList.add(Component.translatable("gtceu.multiblock.hpca.computation", Component.literal(allocatedCWUt + " / " + getMaxCWUt()).append(Component.literal(" CWU/t")).withStyle(ChatFormatting.AQUA)).withStyle(ChatFormatting.GRAY));
+        textList.add(Component.translatable("gtceu.multiblock.hpca.computation", Component.literal(cacheCWUt + " / " + getMaxCWUt()).append(Component.literal(" CWU/t")).withStyle(ChatFormatting.AQUA)).withStyle(ChatFormatting.GRAY));
         textList.add(Component.translatable("gtocore.machine.cwut_modification", ((double) maxCWUtModification / 10000)).withStyle(ChatFormatting.AQUA));
         textList.add(Component.translatable("gtceu.multiblock.hpca.info_max_coolant_required", Component.literal(coolingAmount + " / " + maxCoolingAmount).withStyle(ChatFormatting.AQUA)).withStyle(ChatFormatting.GRAY));
     }

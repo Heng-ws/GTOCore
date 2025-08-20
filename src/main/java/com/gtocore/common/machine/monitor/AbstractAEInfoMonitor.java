@@ -1,6 +1,6 @@
 package com.gtocore.common.machine.monitor;
 
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.integration.ae2.machine.feature.IGridConnectedMachine;
 import com.gregtechceu.gtceu.integration.ae2.machine.trait.GridNodeHolder;
@@ -35,7 +35,7 @@ public abstract class AbstractAEInfoMonitor extends AbstractInfoProviderMonitor 
     @DescSynced
     protected boolean isOnline;
 
-    public AbstractAEInfoMonitor(IMachineBlockEntity holder) {
+    public AbstractAEInfoMonitor(MetaMachineBlockEntity holder) {
         super(holder);
         this.nodeHolder = new GridNodeHolder(this);
     }
@@ -48,6 +48,12 @@ public abstract class AbstractAEInfoMonitor extends AbstractInfoProviderMonitor 
     public void onLoad() {
         super.onLoad();
         getMainNode().setExposedOnSides(EnumSet.allOf(Direction.class));
+    }
+
+    @Override
+    public void onRotated(@NotNull Direction oldFacing, @NotNull Direction newFacing) {
+        super.onRotated(oldFacing, newFacing);
+        if (oldFacing != newFacing) getMainNode().setExposedOnSides(EnumSet.allOf(Direction.class));
     }
 
     @Override

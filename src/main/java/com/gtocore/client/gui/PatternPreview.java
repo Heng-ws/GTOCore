@@ -1,5 +1,7 @@
 package com.gtocore.client.gui;
 
+import com.gtocore.integration.emi.multipage.MultiblockInfoEmiRecipe;
+
 import com.gtolib.api.gui.PatternSlotWidget;
 import com.gtolib.api.item.ItemHandlerModifiable;
 import com.gtolib.api.machine.MultiblockDefinition;
@@ -60,6 +62,7 @@ import java.util.stream.LongStream;
 @OnlyIn(Dist.CLIENT)
 public final class PatternPreview extends WidgetGroup {
 
+    private final MultiblockInfoEmiRecipe recipe;
     private boolean isLoaded;
     private static TrackedDummyWorld LEVEL;
     private static final Map<MultiblockMachineDefinition, MBPattern[]> CACHE = new Object2ObjectOpenHashMap<>();
@@ -72,8 +75,9 @@ public final class PatternPreview extends WidgetGroup {
     private PatternSlotWidget[] slotWidgets;
     private SlotWidget[] candidates;
 
-    private PatternPreview(MultiblockMachineDefinition controllerDefinition) {
+    private PatternPreview(MultiblockInfoEmiRecipe recipe, MultiblockMachineDefinition controllerDefinition) {
         super(0, 0, 160, 160);
+        this.recipe = recipe;
         setClientSideWidget();
         layer = -1;
         addWidget(sceneWidget = new MySceneWidget().setOnSelected(this::onPosSelected).setRenderFacing(false).setRenderFacing(false));
@@ -138,7 +142,7 @@ public final class PatternPreview extends WidgetGroup {
         sceneWidget.setCenter(pattern.center.getCenter().toVector3f());
     }
 
-    public static PatternPreview getPatternWidget(MultiblockMachineDefinition controllerDefinition) {
+    public static PatternPreview getPatternWidget(MultiblockInfoEmiRecipe recipe, MultiblockMachineDefinition controllerDefinition) {
         if (LEVEL == null) {
             if (Minecraft.getInstance().level == null) {
                 GTCEu.LOGGER.error("Try to init pattern previews before level load");
@@ -146,7 +150,7 @@ public final class PatternPreview extends WidgetGroup {
             }
             LEVEL = new TrackedDummyWorld();
         }
-        return new PatternPreview(controllerDefinition);
+        return new PatternPreview(recipe, controllerDefinition);
     }
 
     private void setPage() {
@@ -156,6 +160,7 @@ public final class PatternPreview extends WidgetGroup {
             MBPattern pattern = patterns[index];
             setupScene(pattern);
             itemList = pattern.parts;
+            recipe.itemList = itemList;
         } else {
             return;
         }
@@ -221,13 +226,19 @@ public final class PatternPreview extends WidgetGroup {
         if (controllerBase instanceof IMultiStructureMachine machine) {
             pattern = machine.getMultiPattern().get(index);
         } else {
-            pattern = controllerBase.getPattern();
+            var subPattern = controllerBase.getSubPattern();
+            if (subPattern != null && index > 0) {
+                pattern = subPattern[index - 1].get();
+            } else {
+                pattern = controllerBase.getPattern();
+            }
         }
-        if (pattern != null && pattern.checkPatternAt(controllerBase.getMultiblockState(), true)) {
+        var state = controllerBase.getMultiblockState();
+        if (pattern != null && pattern.checkPatternAt(state, true)) {
             controllerBase.onStructureFormed();
         }
         if (controllerBase.isFormed()) {
-            LongSet set = controllerBase.getMultiblockState().getMatchContext().getOrDefault("renderMask", LongSets.EMPTY_SET);
+            LongSet set = state.getMatchContext().getOrDefault("renderMask", LongSets.EMPTY_SET);
             if (!set.isEmpty()) {
                 sceneWidget.setRenderedCore(poses.longStream().filter(pos -> !set.contains(pos)).mapToObj(BlockPos::of).toList(), null);
             } else {

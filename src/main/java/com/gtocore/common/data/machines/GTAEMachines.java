@@ -46,14 +46,6 @@ public final class GTAEMachines {
             .renderer(() -> new OverlayTieredMachineRenderer(EV, GTCEu.id("block/machine/part/me_pattern_buffer")))
             .register();
 
-    public static final MachineDefinition ME_STORAGE_ACCESS_PROXY = machine("me_storage_access_proxy", "ME存储访问代理", MEStorageAccessProxyartMachine::new)
-            .langValue("ME Storage Access Proxy")
-            .tooltips(GTOMachineTranslation.INSTANCE.getMEStorageAccessHatchProxyTooltips().getSupplier())
-            .tier(EV)
-            .allRotation()
-            .renderer(() -> new OverlayTieredMachineRenderer(EV, GTCEu.id("block/machine/part/me_pattern_buffer_proxy")))
-            .register();
-
     public static final MachineDefinition ME_TAG_FILTER_STOCK_BUS = machine("me_tag_filter_stock_bus", "ME标签过滤库存输入总线", METagFilterStockBusPartMachine::new)
             .tier(LuV)
             .abilities(PartAbility.IMPORT_ITEMS)
@@ -131,6 +123,7 @@ public final class GTAEMachines {
     public static final MachineDefinition ITEM_IMPORT_BUS_ME = GTM
             .machine("me_input_bus", MEInputBusPartMachine::new)
             .langValue("ME Input Bus")
+            .tooltips(GTOMachineTranslation.INSTANCE.getAutoConnectMETooltips().getSupplier())
             .tier(EV)
             .allRotation()
             .abilities(PartAbility.IMPORT_ITEMS)
@@ -145,6 +138,7 @@ public final class GTAEMachines {
             .machine("me_stocking_input_bus", MEStockingBusPartMachine::new)
             .langValue("ME Stocking Input Bus")
             .tier(LuV)
+            .tooltips(GTOMachineTranslation.INSTANCE.getAutoConnectMETooltips().getSupplier())
             .allRotation()
             .abilities(PartAbility.IMPORT_ITEMS)
             .overlayTieredHullRenderer("me_item_bus.import")
@@ -160,6 +154,7 @@ public final class GTAEMachines {
             .machine("me_output_bus", MEOutputBusPartMachine::new)
             .langValue("ME Output Bus")
             .tier(EV)
+            .tooltips(GTOMachineTranslation.INSTANCE.getAutoConnectMETooltips().getSupplier())
             .allRotation()
             .abilities(PartAbility.EXPORT_ITEMS)
             .overlayTieredHullRenderer("me_item_bus.export")
@@ -173,6 +168,7 @@ public final class GTAEMachines {
             .machine("me_input_hatch", MEInputHatchPartMachine::new)
             .langValue("ME Input Hatch")
             .tier(EV)
+            .tooltips(GTOMachineTranslation.INSTANCE.getAutoConnectMETooltips().getSupplier())
             .allRotation()
             .abilities(PartAbility.IMPORT_FLUIDS)
             .overlayTieredHullRenderer("me_fluid_hatch.import")
@@ -186,6 +182,7 @@ public final class GTAEMachines {
             .machine("me_stocking_input_hatch", MEStockingHatchPartMachine::new)
             .langValue("ME Stocking Input Hatch")
             .tier(LuV)
+            .tooltips(GTOMachineTranslation.INSTANCE.getAutoConnectMETooltips().getSupplier())
             .allRotation()
             .abilities(PartAbility.IMPORT_FLUIDS)
             .overlayTieredHullRenderer("me_fluid_hatch.import")
@@ -201,6 +198,7 @@ public final class GTAEMachines {
             .machine("me_output_hatch", MEOutputHatchPartMachine::new)
             .langValue("ME Output Hatch")
             .tier(EV)
+            .tooltips(GTOMachineTranslation.INSTANCE.getAutoConnectMETooltips().getSupplier())
             .allRotation()
             .abilities(PartAbility.EXPORT_FLUIDS)
             .overlayTieredHullRenderer("me_fluid_hatch.export")

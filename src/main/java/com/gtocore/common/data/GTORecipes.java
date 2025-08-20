@@ -1,10 +1,13 @@
 package com.gtocore.common.data;
 
+import com.gtolib.utils.RLUtils;
+
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -29,9 +32,13 @@ public final class GTORecipes {
 
     public static ImmutableSet<EmiRecipe> EMI_RECIPES;
 
+    public static <C extends Container> Recipe<C> convert(Recipe<C> recipe) {
+        return recipe;
+    }
+
     public static Recipe<?> fromJson(ResourceLocation recipeId, JsonObject json, net.minecraftforge.common.crafting.conditions.ICondition.IContext context) {
         String s = GsonHelper.getAsString(json, "type");
-        RecipeSerializer<?> recipeSerializer = BuiltInRegistries.RECIPE_SERIALIZER.get(new ResourceLocation(s));
+        RecipeSerializer<?> recipeSerializer = BuiltInRegistries.RECIPE_SERIALIZER.get(RLUtils.parse(s));
         if (recipeSerializer == null) return null;
         return recipeSerializer.fromJson(recipeId, json, context);
     }

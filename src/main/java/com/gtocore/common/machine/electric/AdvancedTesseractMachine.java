@@ -1,22 +1,27 @@
 package com.gtocore.common.machine.electric;
 
-import com.gtocore.api.capability.FluidHandlerList;
-import com.gtocore.api.capability.ItemHandlerList;
-
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IMachineModifyDrops;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerList;
+import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerList;
 import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -34,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
-public class AdvancedTesseractMachine extends MetaMachine implements IFancyUIMachine {
+public class AdvancedTesseractMachine extends MetaMachine implements IFancyUIMachine, IMachineModifyDrops {
 
     private static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             AdvancedTesseractMachine.class, MetaMachine.MANAGED_FIELD_HOLDER);
@@ -47,12 +52,15 @@ public class AdvancedTesseractMachine extends MetaMachine implements IFancyUIMac
     @Persisted
     protected NotifiableItemStackHandler inventory;
 
+    @Persisted
+    public boolean roundRobin;
+
     private final List<IItemHandler> itemHandlers = new ObjectArrayList<>(20);
     private final List<IFluidHandler> fluidHandlers = new ObjectArrayList<>(20);
 
     private boolean call;
 
-    public AdvancedTesseractMachine(IMachineBlockEntity holder) {
+    public AdvancedTesseractMachine(MetaMachineBlockEntity holder) {
         super(holder);
         inventory = new NotifiableItemStackHandler(this, 20, IO.NONE, IO.NONE);
         inventory.storage.setOnContentsChanged(() -> {
@@ -63,8 +71,8 @@ public class AdvancedTesseractMachine extends MetaMachine implements IFancyUIMac
                 ItemStack card = inventory.storage.getStackInSlot(i);
                 if (card.isEmpty()) continue;
                 CompoundTag posTags = card.getTag();
-                if (posTags == null || !posTags.contains("posX") || !posTags.contains("posY") || !posTags.contains("posZ")) continue;
-                var pos = new BlockPos(posTags.getInt("posX"), posTags.getInt("posY"), posTags.getInt("posZ"));
+                if (posTags == null || !posTags.contains("x") || !posTags.contains("y") || !posTags.contains("z")) continue;
+                var pos = new BlockPos(posTags.getInt("x"), posTags.getInt("y"), posTags.getInt("z"));
                 if (pos.equals(getPos())) continue;
                 poss.add(pos);
             }
@@ -74,6 +82,16 @@ public class AdvancedTesseractMachine extends MetaMachine implements IFancyUIMac
     @Override
     public @NotNull ManagedFieldHolder getFieldHolder() {
         return MANAGED_FIELD_HOLDER;
+    }
+
+    @Override
+    protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
+        if (!super.onScrewdriverClick(playerIn, hand, gridSide, hitResult).shouldSwing()) {
+            roundRobin = !roundRobin;
+            playerIn.displayClientMessage(Component.translatable(roundRobin ? "tooltip.ad_astra.distribution_mode.round_robin" : "tooltip.ad_astra.distribution_mode.sequential"), true);
+            return InteractionResult.sidedSuccess(playerIn.level().isClientSide);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -127,7 +145,7 @@ public class AdvancedTesseractMachine extends MetaMachine implements IFancyUIMac
                     }
                 }
             }
-            var s = itemHandlers.size();
+            var s = fluidHandlers.size();
             if (s > 0) {
                 return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap, LazyOptional.of(() -> s > 1 ? new FluidHandlerList(fluidHandlers.toArray(new IFluidHandler[0])) : fluidHandlers.get(0)));
             }
@@ -161,5 +179,10 @@ public class AdvancedTesseractMachine extends MetaMachine implements IFancyUIMac
             }
         }
         return null;
+    }
+
+    @Override
+    public void onDrops(List<ItemStack> list) {
+        clearInventory(inventory.storage);
     }
 }

@@ -8,12 +8,12 @@ import com.gtocore.common.data.translation.GTOMachineTranslation;
 import com.gtocore.common.machine.multiblock.electric.processing.CompoundExtremeCoolingMachine;
 
 import com.gtolib.GTOCore;
+import com.gtolib.api.machine.MultiblockDefinition;
 import com.gtolib.api.machine.multiblock.CoilCrossRecipeMultiblockMachine;
 import com.gtolib.api.machine.multiblock.CrossRecipeMultiblockMachine;
 import com.gtolib.api.machine.multiblock.CustomParallelMultiblockMachine;
 import com.gtolib.api.machine.multiblock.ElectricMultiblockMachine;
 import com.gtolib.api.recipe.modifier.RecipeModifierFunction;
-import com.gtolib.utils.MachineUtils;
 import com.gtolib.utils.MultiBlockFileReader;
 
 import com.gregtechceu.gtceu.GTCEu;
@@ -109,7 +109,7 @@ public final class MultiBlockF {
             .shapeInfos(definition -> {
                 List<MultiblockShapeInfo> shapeInfos = new ArrayList<>();
                 for (int i = 0; i < 2; i++) {
-                    shapeInfos.addAll(MachineUtils.getMatchingShapes(false, CompoundExtremeCoolingMachine.getBlockPattern(i, definition)));
+                    shapeInfos.addAll(MultiblockDefinition.getMatchingShapes(false, CompoundExtremeCoolingMachine.getBlockPattern(i, definition)));
                 }
                 return shapeInfos;
             })
@@ -158,16 +158,16 @@ public final class MultiBlockF {
             .recipeTypes(GTRecipeTypes.ELECTROLYZER_RECIPES)
             .block(GTOBlocks.LAFIUM_MECHANICAL_CASING)
             .pattern(definition -> MultiBlockFileReader.start(definition)
-                    .where('~', controller(blocks(definition.get())))
                     .where('A', blocks(GTOBlocks.LAFIUM_MECHANICAL_CASING.get()))
                     .where('B', blocks(GTBlocks.CASING_TEMPERED_GLASS.get()))
                     .where('C', blocks(GTOBlocks.IMPROVED_SUPERCONDUCTOR_COIL.get()))
-                    .where('D', blocks(GCYMBlocks.MOLYBDENUM_DISILICIDE_COIL_BLOCK.get()))
-                    .where('E', blocks(GCYMBlocks.ELECTROLYTIC_CELL.get()))
-                    .where('F', blocks(GTOBlocks.LAFIUM_MECHANICAL_CASING.get())
+                    .where('D', blocks(GTOBlocks.LAFIUM_MECHANICAL_CASING.get())
                             .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
                             .or(GTOPredicates.autoThreadLaserAbilities(definition.getRecipeTypes()))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
+                    .where('E', blocks(GCYMBlocks.MOLYBDENUM_DISILICIDE_COIL_BLOCK.get()))
+                    .where('F', blocks(GCYMBlocks.ELECTROLYTIC_CELL.get()))
+                    .where('G', controller(blocks(definition.get())))
                     .where('H', blocks(GTOBlocks.ACCELERATED_PIPELINE.get()))
                     .where(' ', any())
                     .build())

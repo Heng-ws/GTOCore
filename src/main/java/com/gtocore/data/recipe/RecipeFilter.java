@@ -1,6 +1,7 @@
 package com.gtocore.data.recipe;
 
 import com.gtocore.data.recipe.generated.DyeRecipes;
+import com.gtocore.data.recipe.mod.ExtraMods;
 import com.gtocore.data.recipe.mod.FunctionalStorage;
 import com.gtocore.data.recipe.mod.ImmersiveAircraft;
 import com.gtocore.integration.Mods;
@@ -8,17 +9,37 @@ import com.gtocore.integration.Mods;
 import com.gtolib.GTOCore;
 import com.gtolib.utils.RLUtils;
 
+import com.gregtechceu.gtceu.data.recipe.configurable.RecipeRemoval;
+
 import net.minecraft.resources.ResourceLocation;
 
 import appeng.core.AppEng;
 import com.glodblock.github.extendedae.ExtendedAE;
 import com.kyanite.deeperdarker.DeeperDarker;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
+import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static com.gtocore.common.data.GTORecipeTypes.*;
 
 public final class RecipeFilter {
+
+    public static Predicate<ResourceLocation> getFilter() {
+        ObjectOpenHashSet<ResourceLocation> set = new ObjectOpenHashSet<>(2048);
+        initJsonFilter(set);
+        RecipeRemoval.init(set::add);
+        List<Predicate<ResourceLocation>> customFilter = new ObjectArrayList<>();
+        initCustomJsonFilter(customFilter);
+        return id -> {
+            for (Predicate<ResourceLocation> filter : customFilter) {
+                if (filter.test(id)) return true;
+            }
+            return set.contains(id);
+        };
+    }
 
     public static void init() {
         MACERATOR_RECIPES.addFilter("macerate_wheat");
@@ -33,7 +54,11 @@ public final class RecipeFilter {
         ASSEMBLER_RECIPES.addFilter("assemble_wood_frame"); // 与告示牌重复
     }
 
-    public static void initJsonFilter(Set<ResourceLocation> filters) {
+    private static void initCustomJsonFilter(List<Predicate<ResourceLocation>> filters) {
+        ExtraMods.initCustomJsonFilter(filters);
+    }
+
+    private static void initJsonFilter(Set<ResourceLocation> filters) {
         ImmersiveAircraft.initJsonFilter(filters);
         FunctionalStorage.initJsonFilter(filters);
 
@@ -114,20 +139,20 @@ public final class RecipeFilter {
         filters.add(RLUtils.ad("smelting/lapis_lazuli_from_smelting_glacio_lapis_ore"));
         filters.add(RLUtils.ad("blasting/lapis_lazuli_from_blasting_glacio_lapis_ore"));
 
-        filters.add(new ResourceLocation("torchmaster", "frozen_pearl"));
+        filters.add(RLUtils.fromNamespaceAndPath("torchmaster", "frozen_pearl"));
 
-        filters.add(new ResourceLocation("mythicbotany", "alfsteel_block_decompress"));
-        filters.add(new ResourceLocation("mythicbotany", "alfsteel_nugget_compress"));
-        filters.add(new ResourceLocation("mythicbotany", "alfsteel_ingot_compress"));
-        filters.add(new ResourceLocation("mythicbotany", "alfsteel_ingot_decompress"));
-        filters.add(new ResourceLocation("mythicbotany", "smelting/elementium_ingot"));
-        filters.add(new ResourceLocation("mythicbotany", "blasting/elementium_ingot"));
-        filters.add(new ResourceLocation("mythicbotany", "smelting/dragonstone"));
-        filters.add(new ResourceLocation("mythicbotany", "blasting/dragonstone"));
-        filters.add(new ResourceLocation("mythicbotany", "smelting/elementium_ingot"));
-        filters.add(new ResourceLocation("mythicbotany", "blasting/elementium_ingot"));
-        filters.add(new ResourceLocation("mythicbotany", "alfsteel_pylon"));
-        filters.add(new ResourceLocation("mythicbotany", "gaia_pylon"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "alfsteel_block_decompress"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "alfsteel_nugget_compress"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "alfsteel_ingot_compress"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "alfsteel_ingot_decompress"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "smelting/elementium_ingot"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "blasting/elementium_ingot"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "smelting/dragonstone"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "blasting/dragonstone"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "smelting/elementium_ingot"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "blasting/elementium_ingot"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "alfsteel_pylon"));
+        filters.add(RLUtils.fromNamespaceAndPath("mythicbotany", "gaia_pylon"));
         filters.add(RLUtils.bot("pure_daisy/livingwood"));
         filters.add(RLUtils.bot("mana_infusion/manasteel"));
         filters.add(RLUtils.bot("mana_infusion/manasteel_block"));
@@ -331,9 +356,9 @@ public final class RecipeFilter {
         filters.add(RLUtils.ad("nasa_workbench/tier_2_rocket_from_nasa_workbench"));
         filters.add(RLUtils.ad("nasa_workbench/tier_3_rocket_from_nasa_workbench"));
         filters.add(RLUtils.ad("nasa_workbench/tier_4_rocket_from_nasa_workbench"));
-        filters.add(new ResourceLocation("ad_astra_rocketed", "nasa_workbench/default/tier_5_rocket_from_nasa_workbench"));
-        filters.add(new ResourceLocation("ad_astra_rocketed", "nasa_workbench/default/tier_6_rocket_from_nasa_workbench"));
-        filters.add(new ResourceLocation("ad_astra_rocketed", "nasa_workbench/default/tier_7_rocket_from_nasa_workbench"));
+        filters.add(RLUtils.fromNamespaceAndPath("ad_astra_rocketed", "nasa_workbench/default/tier_5_rocket_from_nasa_workbench"));
+        filters.add(RLUtils.fromNamespaceAndPath("ad_astra_rocketed", "nasa_workbench/default/tier_6_rocket_from_nasa_workbench"));
+        filters.add(RLUtils.fromNamespaceAndPath("ad_astra_rocketed", "nasa_workbench/default/tier_7_rocket_from_nasa_workbench"));
         filters.add(RLUtils.ad("compressor"));
         filters.add(RLUtils.ad("steel_block"));
         filters.add(RLUtils.ad("steel_ingot_from_steel_block"));
@@ -507,7 +532,7 @@ public final class RecipeFilter {
             filters.add(AppEng.makeId("network/blocks/interfaces_interface"));
             filters.add(AppEng.makeId("network/blocks/pattern_providers_interface"));
 
-            filters.add(new ResourceLocation("merequester", "requester"));
+            filters.add(RLUtils.fromNamespaceAndPath("merequester", "requester"));
 
             filters.add(ExtendedAE.id("cobblestone_cell"));
             filters.add(ExtendedAE.id("water_cell"));
@@ -546,15 +571,15 @@ public final class RecipeFilter {
         filters.add(RLUtils.fd("cooking_pot"));
         filters.add(RLUtils.mc("red_dye"));
 
-        filters.add(new ResourceLocation("farmersrespite", "green_tea_leaves_sack"));
-        filters.add(new ResourceLocation("farmersrespite", "yellow_tea_leaves_sack"));
-        filters.add(new ResourceLocation("farmersrespite", "black_tea_leaves_sack"));
-        filters.add(new ResourceLocation("farmersrespite", "coffee_beans_sack"));
+        filters.add(RLUtils.fromNamespaceAndPath("farmersrespite", "green_tea_leaves_sack"));
+        filters.add(RLUtils.fromNamespaceAndPath("farmersrespite", "yellow_tea_leaves_sack"));
+        filters.add(RLUtils.fromNamespaceAndPath("farmersrespite", "black_tea_leaves_sack"));
+        filters.add(RLUtils.fromNamespaceAndPath("farmersrespite", "coffee_beans_sack"));
 
         if (Mods.biomeswevegone()) {
             DyeRecipes.BWG.forEach((k, v) -> {
-                filters.add(new ResourceLocation("minecraft", k + "_dye_from_bwg_dye_tag"));
-                if (v) filters.add(new ResourceLocation("minecraft", k + "_dye_from_bwg_2_dye_tag"));
+                filters.add(RLUtils.fromNamespaceAndPath("minecraft", k + "_dye_from_bwg_dye_tag"));
+                if (v) filters.add(RLUtils.fromNamespaceAndPath("minecraft", k + "_dye_from_bwg_2_dye_tag"));
             });
             DyeRecipes.BWG.clear();
         }

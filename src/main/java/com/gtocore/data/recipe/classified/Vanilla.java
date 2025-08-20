@@ -5,6 +5,7 @@ import com.gtocore.common.data.*;
 import com.gtocore.common.data.machines.*;
 
 import com.gtolib.GTOCore;
+import com.gtolib.ae2.me2in1.Wireless;
 import com.gtolib.utils.RLUtils;
 import com.gtolib.utils.RegistriesUtils;
 import com.gtolib.utils.TagUtils;
@@ -23,12 +24,20 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 
 import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Blocks;
 
 import appeng.core.definitions.AEBlocks;
 import appeng.core.definitions.AEItems;
+import com.glodblock.github.extendedae.common.EPPItemAndBlock;
+import com.google.gson.JsonObject;
+import de.mari_023.ae2wtlib.wut.recipe.Upgrade;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -131,6 +140,20 @@ final class Vanilla {
                 "DED",
                 'A', CustomTags.CRAFTING_SAWS, 'B', Items.CRAFTING_TABLE, 'C', CustomTags.CRAFTING_SCREWDRIVERS,
                 'D', new MaterialEntry(TagPrefix.screw, GTMaterials.WroughtIron), 'E', Items.CHEST);
+
+        VanillaRecipeHelper.addShapedRecipe(provider, GTOCore.id("me_2in1_terminal"), GTOAEParts.INSTANCE.getME_2IN1_TERMINAL().get().stack(1),
+                "   ",
+                "ABA",
+                "DDD",
+                'A', CustomTags.LuV_CIRCUITS, 'B', EPPItemAndBlock.EX_PATTERN_TERMINAL,
+                'D', new MaterialEntry(TagPrefix.plate, GTMaterials.HastelloyX));
+
+        VanillaRecipeHelper.addShapedRecipe(provider, GTOCore.id("me_2in1_terminal_wireless"), GTOItems.WIRELESS_ME2IN1.asStack(),
+                "A",
+                "B",
+                "D",
+                'A', AEItems.WIRELESS_RECEIVER.asItem(), 'B', GTOAEParts.INSTANCE.getME_2IN1_TERMINAL().get().asItem(),
+                'D', AEBlocks.DENSE_ENERGY_CELL.asItem());
 
         VanillaRecipeHelper.addShapedRecipe(provider, GTOCore.id("paper_dust"), ChemicalHelper.get(TagPrefix.dust, GTMaterials.Paper), "S", "m", 'S', RegistriesUtils.getItemStack("farmersdelight:tree_bark"));
         VanillaRecipeHelper.addShapedRecipe(provider, GTOCore.id("cooking_pot"), RegistriesUtils.getItemStack("farmersdelight:cooking_pot"),
@@ -525,7 +548,7 @@ final class Vanilla {
                 "CDC",
                 "EFE",
                 'A', GTItems.ROBOT_ARM_HV.asStack(), 'B', GTItems.EMITTER_HV.asStack(), 'C', new ItemStack(Blocks.REDSTONE_TORCH.asItem()), 'D', RegistriesUtils.getItemStack("avaritia:compressed_crafting_table"), 'E', new MaterialEntry(TagPrefix.plateDouble, GTMaterials.Steel), 'F', new MaterialEntry(TagPrefix.block, GTMaterials.Steel));
-        VanillaRecipeHelper.addShapedRecipe(provider, GTOCore.id("flint_axe"), RegistriesUtils.getItemStack("gtceu:flint_axe", 1, "{DisallowContainerItem:0b,GT.Behaviours:{DisableShields:1b},GT.Tool:{AttackDamage:6.0f,AttackSpeed:-3.2f,Damage:0,HarvestLevel:2,MaxDamage:16,ToolSpeed:3.5f},HideFlags:2}"),
+        VanillaRecipeHelper.addShapedRecipe(provider, GTOCore.id("flint_axe"), RegistriesUtils.getItemStack("gtceu:flint_axe", 1, "{DisallowContainerItem:0b,GT.Behaviours:{DisableShields:1b},GT.Tool:{AttackDamage:6.0f,AttackSpeed:-3.2f,Damage:0,HarvestLevel:2,MaxDamage:64,ToolSpeed:3.5f},HideFlags:2}"),
                 "AA",
                 "BC",
                 'A', new MaterialEntry(TagPrefix.gem, GTMaterials.Flint), 'B', GTOItems.PLANT_FIBER.asStack(), 'C', new MaterialEntry(TagPrefix.rod, GTMaterials.Wood));
@@ -922,5 +945,37 @@ final class Vanilla {
                 "CDC",
                 "EBE",
                 'A', RegistriesUtils.getItemStack("botania:ender_hand"), 'B', RegistriesUtils.getItemStack("gtmthings:advanced_wireless_item_transfer_cover"), 'C', RegistriesUtils.getItemStack("gtmthings:advanced_wireless_fluid_transfer_cover"), 'D', GTOItems.ENTANGLED_SINGULARITY.asItem(), 'E', GTItems.FIELD_GENERATOR_MV.asStack());
+
+        var wtId = GTOCore.id("me2in1");
+        provider.accept(new FinishedRecipe() {
+
+            private final Upgrade recipe = new Upgrade(Ingredient.of(GTOItems.WIRELESS_ME2IN1), Wireless.ID, wtId);
+
+            @Override
+            public void serializeRecipeData(JsonObject jsonObject) {
+                jsonObject.add("terminal", recipe.getTerminal().toJson());
+                jsonObject.addProperty("terminalName", recipe.getTerminalName());
+            }
+
+            @Override
+            public @NotNull ResourceLocation getId() {
+                return GTOCore.id("me2in1");
+            }
+
+            @Override
+            public @NotNull RecipeSerializer<?> getType() {
+                return Upgrade.serializer;
+            }
+
+            @Override
+            public @Nullable JsonObject serializeAdvancement() {
+                return null;
+            }
+
+            @Override
+            public @Nullable ResourceLocation getAdvancementId() {
+                return null;
+            }
+        });
     }
 }
