@@ -28,7 +28,7 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
     private static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(ExportOnlyAEItemList.class, NotifiableItemStackHandler.MANAGED_FIELD_HOLDER);
 
     @Persisted
-    private final ExportOnlyAEItemSlot[] inventory;
+    protected final ExportOnlyAEItemSlot[] inventory;
 
     public ExportOnlyAEItemList(MetaMachine holder, int slots) {
         this(holder, slots, ExportOnlyAEItemSlot::new);
@@ -71,10 +71,7 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
     @NotNull
     @Override
     public ItemStack getStackInSlot(int slot) {
-        if (slot >= 0 && slot < inventory.length) {
-            return this.inventory[slot].getStack();
-        }
-        return ItemStack.EMPTY;
+        return this.inventory[slot].getStack();
     }
 
     @NotNull
@@ -86,17 +83,14 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
     @NotNull
     @Override
     public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
-        if (slot >= 0 && slot < inventory.length) {
-            return this.inventory[slot].extractItem(0, amount, simulate);
-        }
-        return ItemStack.EMPTY;
+        return this.inventory[slot].extractItem(0, amount, simulate);
     }
 
     @Override
     public List<Ingredient> handleRecipeInner(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate) {
         if (io == IO.IN) {
             boolean changed = false;
-            for (var it = left.iterator(); it.hasNext();) {
+            for (var it = left.listIterator(0); it.hasNext();) {
                 var ingredient = it.next();
                 if (ingredient.isEmpty()) {
                     it.remove();
@@ -148,6 +142,7 @@ public class ExportOnlyAEItemList extends NotifiableItemStackHandler implements 
             changed = false;
             itemMap.clear();
             for (var i : inventory) {
+                if (i.config == null) continue;
                 var stock = i.stock;
                 if (stock == null || stock.amount() == 0) continue;
                 var stack = i.getStack();

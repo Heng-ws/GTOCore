@@ -21,18 +21,19 @@ import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
-import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidTagList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
-import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
 import com.gregtechceu.gtceu.integration.xei.handlers.fluid.CycleFluidEntryHandler;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemEntryHandler;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Blocks;
 
 import com.google.common.collect.ImmutableList;
@@ -78,14 +79,15 @@ final class OreByProductWrapper {
         // "INPUTS"
         ObjectIntPair<Material> washedIn = property.getWashedIn();
         List<Material> separatedInto = property.getSeparatedInto();
-        ItemTagList oreStacks = new ItemTagList();
-        oreStacks.add(ChemicalHelper.getTag(TagPrefix.rawOre, material), 1, null);
+        ItemStackList oreStacks = new ItemStackList();
+        var rawOre = ChemicalHelper.get(TagPrefix.rawOre, material);
+        oreStacks.add(rawOre);
         itemInputs.add(oreStacks);
         // set up machines as inputs
         List<ItemStack> simpleWashers = new ArrayList<>();
         simpleWashers.add(new ItemStack(Items.CAULDRON));
         simpleWashers.add(GTMachines.ORE_WASHER[GTValues.LV].asStack());
-        if (!material.hasProperty(PropertyKey.BLAST)) {
+        if (!material.hasProperty(PropertyKey.BLAST) && Minecraft.getInstance().level.getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SimpleContainer(rawOre), Minecraft.getInstance().level).isPresent()) {
             addToInputs(new ItemStack(Blocks.FURNACE));
             hasDirectSmelt = true;
         } else {
@@ -119,7 +121,7 @@ final class OreByProductWrapper {
         // add prefixes that should count as inputs to input lists (they will not be
         // displayed in actual page)
         for (TagPrefix prefix : IN_PROCESSING_STEPS) {
-            itemInputs.add(ItemTagList.of(ChemicalHelper.getTag(prefix, material), 1, null));
+            itemInputs.add(ItemStackList.of(ChemicalHelper.get(prefix, material)));
         }
         // total number of inputs added
         currentSlot += 21;
@@ -129,9 +131,12 @@ final class OreByProductWrapper {
         if (hasDirectSmelt) {
             ItemStack smeltingResult;
             Material smeltingMaterial = property.getDirectSmeltResult().isNull() ? material : property.getDirectSmeltResult();
-            if (smeltingMaterial.hasProperty(PropertyKey.INGOT)) {
-                smeltingResult = ChemicalHelper.get(TagPrefix.ingot, smeltingMaterial);
-            } else if (smeltingMaterial.hasProperty(PropertyKey.GEM)) {
+            /*
+             * if (smeltingMaterial.hasProperty(PropertyKey.INGOT)) {
+             * smeltingResult = ChemicalHelper.get(TagPrefix.ingot, smeltingMaterial);
+             * } else
+             */
+            if (smeltingMaterial.hasProperty(PropertyKey.GEM)) {
                 smeltingResult = ChemicalHelper.get(TagPrefix.gem, smeltingMaterial);
             } else {
                 smeltingResult = ChemicalHelper.get(TagPrefix.dust, smeltingMaterial);
@@ -161,9 +166,9 @@ final class OreByProductWrapper {
         addToOutputs(material, TagPrefix.crushedPurified, 1);
         addToOutputs(byproducts[0], TagPrefix.dust, 1);
         addChance(3333, 0);
-        FluidTagList tagList = new FluidTagList();
-        tagList.add(GTMaterials.Water.getFluidTag(), 1000, null);
-        tagList.add(GTMaterials.DistilledWater.getFluidTag(), 100, null);
+        FluidStackList tagList = new FluidStackList();
+        tagList.add(GTMaterials.Water.getFluid(1000));
+        tagList.add(GTMaterials.DistilledWater.getFluid(100));
         fluidInputs.add(tagList);
         // TC crushed/crushed purified -> centrifuged
         addToOutputs(material, TagPrefix.crushedRefined, 1);
@@ -194,7 +199,7 @@ final class OreByProductWrapper {
             addToOutputs(material, TagPrefix.crushedPurified, 1);
             addToOutputs(byproducts[3], TagPrefix.dust, byproductMultiplier);
             addChance(7000, 580);
-            fluidInputs.add(FluidTagList.of(washedIn.first().getFluidTag(), washedIn.rightInt(), null));
+            fluidInputs.add(FluidStackList.of(washedIn.first().getFluid(washedIn.rightInt())));
         } else {
             addEmptyOutputs(2);
             fluidInputs.add(new FluidStackList());

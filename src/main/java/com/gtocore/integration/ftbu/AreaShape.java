@@ -9,11 +9,12 @@ import dev.ftb.mods.ftbultimine.shape.BlockMatcher;
 import dev.ftb.mods.ftbultimine.shape.Shape;
 import dev.ftb.mods.ftbultimine.shape.ShapeContext;
 import dev.ftb.mods.ftbultimine.shape.ShapeRegistry;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import org.antlr.v4.runtime.misc.OrderedHashSet;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,7 +63,7 @@ public class AreaShape implements Shape {
             NEIGHBOR_POSITIONS.update(GTOConfig.INSTANCE.ftbUltimineRange);
         }
 
-        HashSet<BlockPos> known = new HashSet<>();
+        Set<BlockPos> known = new OrderedHashSet<>();
         walk(context, known);
 
         List<BlockPos> list = new ArrayList<>(known);
@@ -75,11 +76,11 @@ public class AreaShape implements Shape {
         return list;
     }
 
-    private static void walk(ShapeContext context, HashSet<BlockPos> known) {
-        Set<BlockPos> traversed = new HashSet<>();
+    private static void walk(ShapeContext context, Set<BlockPos> known) {
+        LongOpenHashSet traversed = new LongOpenHashSet();
         Deque<BlockPos> openSet = new ArrayDeque<>();
         openSet.add(context.pos());
-        traversed.add(context.pos());
+        traversed.add(context.pos().asLong());
 
         while (!openSet.isEmpty()) {
             BlockPos ptr = openSet.pop();
@@ -92,7 +93,7 @@ public class AreaShape implements Shape {
                 for (BlockPos side : NEIGHBOR_POSITIONS.neighbors) {
                     BlockPos offset = ptr.offset(side);
 
-                    if (traversed.add(offset)) {
+                    if (traversed.add(offset.asLong())) {
                         openSet.add(offset);
                     }
                 }

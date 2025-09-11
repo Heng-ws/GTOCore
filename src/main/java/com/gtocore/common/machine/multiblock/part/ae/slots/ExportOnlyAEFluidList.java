@@ -51,7 +51,7 @@ public class ExportOnlyAEFluidList extends NotifiableFluidTank implements IConfi
     public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left, boolean simulate) {
         if (io == IO.IN) {
             boolean changed = false;
-            for (var it = left.iterator(); it.hasNext();) {
+            for (var it = left.listIterator(0); it.hasNext();) {
                 var ingredient = it.next();
                 if (ingredient.isEmpty()) {
                     it.remove();
@@ -129,6 +129,7 @@ public class ExportOnlyAEFluidList extends NotifiableFluidTank implements IConfi
             changed = false;
             fluidMap.clear();
             for (var i : inventory) {
+                if (i.config == null) continue;
                 var stock = i.stock;
                 if (stock == null || stock.amount() == 0) continue;
                 var stack = i.getFluid();

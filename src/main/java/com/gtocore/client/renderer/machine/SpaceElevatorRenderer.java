@@ -1,7 +1,7 @@
 package com.gtocore.client.renderer.machine;
 
 import com.gtocore.client.renderer.GTORenderTypes;
-import com.gtocore.client.renderer.RenderBufferHelper;
+import com.gtocore.client.renderer.RenderHelper;
 import com.gtocore.common.machine.multiblock.electric.space.SpaceElevatorMachine;
 import com.gtocore.common.machine.multiblock.electric.space.SuperSpaceElevatorMachine;
 
@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.model.data.ModelData;
@@ -46,10 +47,10 @@ public final class SpaceElevatorRenderer extends WorkableCasingMachineRenderer {
                 double x = 0.5, y = 1, z = 0.5;
                 if (Super) {
                     switch (machine.getFrontFacing()) {
-                        case NORTH -> z = 4.5;
-                        case SOUTH -> z = -3.5;
-                        case WEST -> x = 4.5;
-                        case EAST -> x = -3.5;
+                        case NORTH -> z = 120.5;
+                        case SOUTH -> z = -119.5;
+                        case WEST -> x = 120.5;
+                        case EAST -> x = -119.5;
                     }
                 } else {
                     switch (machine.getFrontFacing()) {
@@ -60,9 +61,9 @@ public final class SpaceElevatorRenderer extends WorkableCasingMachineRenderer {
                     }
                 }
                 poseStack.pushPose();
-                RenderBufferHelper.renderCylinder(poseStack, buffer.getBuffer(GTORenderTypes.LIGHT_CYLINDER), (float) x, (float) (y - 2), (float) z, Super ? 0.5F : 0.3F, 360, 10, 0, 0, 0, 255);
+                RenderHelper.renderCylinder(poseStack, buffer.getBuffer(GTORenderTypes.LIGHT_CYLINDER), (float) x, (float) (y - 2), (float) z, Super ? 1.6F : 0.3F, Super ? 600 : 360F, 10, 0, 0, 0, 255);
                 poseStack.translate(x, y + machine.getHigh(), z);
-                RendererModel(poseStack, buffer, Super ? 8 : 4, CLIMBER_MODEL);
+                RendererModel(poseStack, buffer, Super ? 20 : 4, CLIMBER_MODEL);
                 poseStack.popPose();
             }
         }
@@ -99,5 +100,17 @@ public final class SpaceElevatorRenderer extends WorkableCasingMachineRenderer {
     @OnlyIn(Dist.CLIENT)
     public int getViewDistance() {
         return 256;
+    }
+
+    @Override
+    public boolean shouldRender(BlockEntity blockEntity, Vec3 cameraPos) {
+        if (blockEntity instanceof MetaMachineBlockEntity machineBlockEntity) {
+            MetaMachine metaMachine = machineBlockEntity.getMetaMachine();
+            return (metaMachine instanceof SuperSpaceElevatorMachine machine && machine.isFormed() &&
+                    (machine.getSpoolCount() >= machine.getMaxSpoolCount() ||
+                            blockEntity.getLevel() instanceof TrackedDummyWorld)) ||
+                    super.shouldRender(blockEntity, cameraPos);
+        }
+        return super.shouldRender(blockEntity, cameraPos);
     }
 }

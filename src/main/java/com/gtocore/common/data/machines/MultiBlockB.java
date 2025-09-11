@@ -8,17 +8,16 @@ import com.gtocore.common.data.GTOBlocks;
 import com.gtocore.common.data.GTOMachines;
 import com.gtocore.common.data.GTOMaterials;
 import com.gtocore.common.data.GTORecipeTypes;
+import com.gtocore.common.data.translation.GTOMachineStories;
+import com.gtocore.common.data.translation.GTOMachineTooltips;
+import com.gtocore.common.machine.multiblock.electric.nano.NanoPhagocytosisPlantMachine;
 import com.gtocore.common.machine.multiblock.electric.space.SuperSpaceElevatorMachine;
 import com.gtocore.common.machine.multiblock.water.*;
+import com.gtocore.config.GTOConfig;
 
 import com.gtolib.GTOCore;
 import com.gtolib.api.annotation.NewDataAttributes;
-import com.gtolib.api.annotation.component_builder.ComponentBuilder;
-import com.gtolib.api.annotation.component_builder.StyleBuilder;
-import com.gtolib.api.machine.multiblock.CoilCrossRecipeMultiblockMachine;
-import com.gtolib.api.machine.multiblock.CoilMultiblockMachine;
-import com.gtolib.api.machine.multiblock.CrossRecipeMultiblockMachine;
-import com.gtolib.api.machine.multiblock.ElectricMultiblockMachine;
+import com.gtolib.api.machine.multiblock.*;
 import com.gtolib.utils.MachineUtils;
 import com.gtolib.utils.MultiBlockFileReader;
 
@@ -43,8 +42,9 @@ import committee.nova.mods.avaritia.init.registry.ModBlocks;
 import static com.gregtechceu.gtceu.api.machine.multiblock.PartAbility.*;
 import static com.gregtechceu.gtceu.api.pattern.Predicates.*;
 import static com.gtocore.common.block.BlockMap.SEPMMAP;
+import static com.gtocore.utils.register.MachineRegisterUtils.multiblock;
+import static com.gtolib.api.GTOValues.GLASS_TIER;
 import static com.gtolib.api.GTOValues.POWER_MODULE_TIER;
-import static com.gtolib.utils.register.MachineRegisterUtils.multiblock;
 
 public final class MultiBlockB {
 
@@ -84,6 +84,7 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition DIGESTION_TANK = multiblock("digestion_tank", "煮解池", CoilMultiblockMachine.createCoilMachine(false, true))
             .nonYAxisRotation()
+            .tooltips(GTOMachineStories.INSTANCE.getDigestionTankTooltips().getSupplier())
             .parallelizableTooltips()
             .recipeTypes(GTORecipeTypes.DIGESTION_TREATMENT_RECIPES)
             .parallelizableOverclock()
@@ -111,14 +112,15 @@ public final class MultiBlockB {
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_robust_tungstensteel"), GTCEu.id("block/multiblock/gcym/large_maceration_tower"))
             .register();
 
-    public static final MultiblockMachineDefinition WOOD_DISTILLATION = multiblock("wood_distillation", "木化工厂", ElectricMultiblockMachine::new)
+    public static final MultiblockMachineDefinition WOOD_DISTILLATION = multiblock("wood_distillation", "木化工厂", CoilCrossRecipeMultiblockMachine::createCoilParallel)
             .nonYAxisRotation()
             .recipeTypes(GTORecipeTypes.WOOD_DISTILLATION_RECIPES)
+            .tooltips(GTOMachineStories.INSTANCE.getWoodDistillationTooltips().getSupplier())
             .laserTooltips()
-            .parallelizableTooltips()
+            .coilParallelTooltips()
             .parallelizableOverclock()
             .block(GTBlocks.HIGH_POWER_CASING)
-            .pattern(definition -> MultiBlockFileReader.start(definition, RelativeDirection.BACK, RelativeDirection.UP, RelativeDirection.RIGHT)
+            .pattern(definition -> MultiBlockFileReader.start(definition)
                     .where('A', blocks(GCYMBlocks.CASING_STRESS_PROOF.get()))
                     .where('B', blocks(GTOBlocks.OXIDATION_RESISTANT_HASTELLOY_N_MECHANICAL_CASING.get()))
                     .where('C', blocks(GTOBlocks.PRESSURE_CONTAINMENT_CASING.get()))
@@ -129,22 +131,21 @@ public final class MultiBlockB {
                     .where('H', blocks(GTBlocks.FUSION_GLASS.get()))
                     .where('I', blocks(GTBlocks.HERMETIC_CASING_ZPM.get()))
                     .where('J', blocks(GTBlocks.CASING_PTFE_INERT.get()))
-                    .where('K', air())
+                    .where('K', heatingCoils())
                     .where('L', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.NaquadahAlloy)))
                     .where('M', blocks(GCYMBlocks.CASING_CORROSION_PROOF.get()))
                     .where('N', blocks(GTOBlocks.HASTELLOY_N_75_PIPE.get()))
                     .where('O', blocks(GCYMBlocks.ELECTROLYTIC_CELL.get()))
-                    .where('P', blocks(GTBlocks.CASING_STAINLESS_TURBINE.get()))
+                    .where('P', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
                     .where('Q', abilities(MUFFLER))
                     .where('R', blocks(GTBlocks.CASING_STEEL_TURBINE.get()))
                     .where('S', blocks(GTBlocks.CASING_TUNGSTENSTEEL_PIPE.get()))
                     .where('T', blocks(GTOBlocks.PROCESS_MACHINE_CASING.get()))
-                    .where('U', blocks(GTBlocks.CASING_TITANIUM_TURBINE.get()))
-                    .where('V', blocks(GTBlocks.CASING_TUNGSTENSTEEL_TURBINE.get()))
+                    .where('U', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
+                    .where('V', blocks(GTOBlocks.OIL_GAS_TRANSPORTATION_PIPE_CASING.get()))
                     .where('W', blocks(GTBlocks.CASING_POLYTETRAFLUOROETHYLENE_PIPE.get()))
                     .where('X', blocks(GTBlocks.HIGH_POWER_CASING.get())
                             .or(GTOPredicates.autoLaserAbilities(definition.getRecipeTypes()))
-                            .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where('Y', controller(blocks(definition.get())))
                     .where(' ', any())
@@ -274,27 +275,29 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition MEGA_BREWER = multiblock("mega_brewer", "巨型酿造厂", CoilCrossRecipeMultiblockMachine::createCoilParallel)
             .nonYAxisRotation()
+            .tooltips(GTOMachineStories.INSTANCE.getMegaBrewerTooltips().getSupplier())
             .coilParallelTooltips()
             .laserTooltips()
             .multipleRecipesTooltips()
             .recipeTypes(GTRecipeTypes.BREWING_RECIPES)
             .recipeTypes(GTRecipeTypes.FERMENTING_RECIPES)
             .block(GCYMBlocks.CASING_CORROSION_PROOF)
-            .pattern(definition -> MultiBlockFileReader.start(definition, RelativeDirection.FRONT, RelativeDirection.UP, RelativeDirection.RIGHT)
-                    .where('~', controller(blocks(definition.get())))
-                    .where('A', blocks(GTOBlocks.IRIDIUM_CASING.get()))
-                    .where('B', blocks(GTOBlocks.ANTIFREEZE_HEATPROOF_MACHINE_CASING.get()))
-                    .where('C', blocks(GTOBlocks.DIMENSION_INJECTION_CASING.get()))
-                    .where('D', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.HastelloyN)))
-                    .where('E', blocks(GTOBlocks.HERMETIC_CASING_UEV.get()))
-                    .where('F', heatingCoils())
-                    .where('G', blocks(GTOBlocks.AMPROSIUM_PIPE_CASING.get()))
-                    .where('H', blocks(GTOBlocks.CONTAINMENT_FIELD_GENERATOR.get()))
-                    .where('I', blocks(GTBlocks.CASING_PTFE_INERT.get()))
-                    .where('J', blocks(GCYMBlocks.CASING_CORROSION_PROOF.get())
-                            .setMinGlobalLimited(160)
+            .pattern(definition -> MultiBlockFileReader.start(definition)
+                    .where('A', blocks(GTBlocks.CASING_PTFE_INERT.get()))
+                    .where('B', blocks(GCYMBlocks.CASING_CORROSION_PROOF.get())
                             .or(GTOPredicates.autoThreadLaserAbilities(definition.getRecipeTypes()))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
+                    .where('C', blocks(GCYMBlocks.CASING_CORROSION_PROOF.get()))
+                    .where('D', blocks(GTOBlocks.AMPROSIUM_PIPE_CASING.get()))
+                    .where('E', blocks(GTOBlocks.HERMETIC_CASING_UEV.get()))
+                    .where('F', blocks(GTOBlocks.DIMENSION_INJECTION_CASING.get()))
+                    .where('G', blocks(GTOBlocks.ANTIFREEZE_HEATPROOF_MACHINE_CASING.get()))
+                    .where('H', controller(blocks(definition.get())))
+                    .where('I', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
+                    .where('J', blocks(GTOBlocks.IRIDIUM_CASING.get()))
+                    .where('K', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.HastelloyN)))
+                    .where('L', heatingCoils())
+                    .where('M', blocks(GTOBlocks.CONTAINMENT_FIELD_GENERATOR.get()))
                     .where(' ', any())
                     .build())
             .workableCasingRenderer(GTCEu.id("block/casings/gcym/corrosion_proof_casing"), GTCEu.id("block/multiblock/gcym/large_brewer"))
@@ -308,9 +311,7 @@ public final class MultiBlockB {
             .recipeTypes(GTORecipeTypes.FUEL_REFINING_RECIPES)
             .parallelizableOverclock()
             .block(GTBlocks.HIGH_POWER_CASING)
-            .pattern(definition -> MultiBlockFileReader.start(definition) // , RelativeDirection.RIGHT,
-                                                                          // RelativeDirection.UP,
-                                                                          // RelativeDirection.BACK
+            .pattern(definition -> MultiBlockFileReader.start(definition)
                     .where('A', blocks(GCYMBlocks.CASING_STRESS_PROOF.get()))
                     .where('C', blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get()))
                     .where('D', GTOPredicates.light())
@@ -352,7 +353,8 @@ public final class MultiBlockB {
     public static final MultiblockMachineDefinition MICROORGANISM_MASTER = multiblock("microorganism_master", "微生物之主", CrossRecipeMultiblockMachine::createHatchParallel)
             .nonYAxisRotation()
             .recipeTypes(GTORecipeTypes.INCUBATOR_RECIPES)
-            .tooltipsText("无视辐射与洁净要求", "Ignores radiation and cleanliness requirements")
+            .tooltips(GTOMachineStories.INSTANCE.getMicroorganismMasterTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getMicroorganismMasterTooltips().getSupplier())
             .parallelizableTooltips()
             .laserTooltips()
             .multipleRecipesTooltips()
@@ -360,6 +362,7 @@ public final class MultiBlockB {
             .pattern(definition -> MultiBlockFileReader.start(definition)
                     .where('A', blocks(GTBlocks.CASING_PTFE_INERT.get())
                             .or(GTOPredicates.autoThreadLaserAbilities(definition.getRecipeTypes()))
+                            .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where('B', controller(blocks(definition.get())))
                     .where('C', blocks(GTOBlocks.IRIDIUM_CASING.get()))
@@ -371,12 +374,12 @@ public final class MultiBlockB {
                     .where('I', blocks(GTOBlocks.MOLECULAR_CASING.get()))
                     .where('J', blocks(GTBlocks.CLEANROOM_GLASS.get()))
                     .where('K', blocks(GTOBlocks.CONTAINMENT_FIELD_GENERATOR.get()))
-                    .where('L', blocks(GTBlocks.CASING_STAINLESS_TURBINE.get()))
+                    .where('L', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
                     .where('M', blocks(GTOBlocks.DEGENERATE_RHENIUM_CONSTRAINED_CASING.get()))
-                    .where('N', blocks(GTBlocks.PLASTCRETE.get()))
+                    .where('N', blocks(GTOBlocks.BIOACTIVE_MECHANICAL_CASING.get()))
                     .where('O', blocks(Blocks.SPONGE))
                     .where('P', blocks(GTOBlocks.HYPER_CORE.get()))
-                    .where('Q', blocks(GTBlocks.CASING_TUNGSTENSTEEL_TURBINE.get()))
+                    .where('Q', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
                     .where('R', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Naquadria)))
                     .where('S', blocks(GTOBlocks.AMPROSIUM_ACTIVE_CASING.get()))
                     .where(' ', any())
@@ -384,18 +387,19 @@ public final class MultiBlockB {
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_inert_ptfe"), GTCEu.id("block/multiblock/gcym/large_maceration_tower"))
             .register();
 
-    public static final MultiblockMachineDefinition LIGHTNING_ROD = multiblock("lightning_rod", "引雷针", CrossRecipeMultiblockMachine::createHatchParallel)
+    public static final MultiblockMachineDefinition LIGHTNING_ROD = multiblock("lightning_rod", "引雷针", TierCasingCrossRecipeMultiblockMachine.createParallel(m -> 1L << (2 * m.getCasingTier(GLASS_TIER)), GLASS_TIER))
             .nonYAxisRotation()
             .recipeTypes(GTORecipeTypes.ARC_GENERATOR_RECIPES)
-            .parallelizableTooltips()
+            .specialParallelizableTooltips()
+            .tooltips(GTOMachineStories.INSTANCE.getLightningRodTooltips().getSupplier())
+            .tooltips(NewDataAttributes.ALLOW_PARALLEL_NUMBER.create(
+                    h -> h.addLines("由玻璃等级决定", "Determined by glass tier"),
+                    c -> c.addCommentLines("公式 : 4^玻璃等级", "Formula: 4^(Glass Tier)")))
             .laserTooltips()
             .multipleRecipesTooltips()
             .block(GTBlocks.CASING_PALLADIUM_SUBSTATION)
-            .pattern(definition -> MultiBlockFileReader.start(definition) // , RelativeDirection.BACK,
-                                                                          // RelativeDirection.UP,
-                                                                          // RelativeDirection.LEFT
+            .pattern(definition -> MultiBlockFileReader.start(definition)
                     .where('A', blocks(GTBlocks.CASING_PALLADIUM_SUBSTATION.get())
-                            .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
                             .or(GTOPredicates.autoThreadLaserAbilities(definition.getRecipeTypes()))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where('B', blocks(GTBlocks.CASING_PALLADIUM_SUBSTATION.get()))
@@ -418,7 +422,7 @@ public final class MultiBlockB {
                     .where(' ', any())
                     .build())
             .onWorking(machine -> {
-                if (machine.self().getOffsetTimer() % 20 == 0 && machine.self().getLevel() instanceof ServerLevel serverLevel) {
+                if (GTOConfig.INSTANCE.lightningRodEffect && machine.self().getLevel() instanceof ServerLevel serverLevel && machine.self().getOffsetTimer() % serverLevel.random.nextInt(20, 200) == 0) {
                     LightningBolt entityToSpawn = EntityType.LIGHTNING_BOLT.create(serverLevel);
                     if (entityToSpawn != null) {
                         entityToSpawn.setPos(MachineUtils.getOffsetPos(9, 50, machine.self().getFrontFacing(), machine.self().getPos()).getCenter());
@@ -428,12 +432,12 @@ public final class MultiBlockB {
                 }
                 return true;
             })
-            .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_palladium_substation"), GTCEu.id("block/multiblock/fusion_reactor"))
+            .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_palladium_substation"), GTOCore.id("block/multiblock/general0"))
             .register();
 
     public static final MultiblockMachineDefinition MAGNETIC_ENERGY_REACTION_FURNACE = multiblock("magnetic_energy_reaction_furnace", "磁能反应炉", CoilCrossRecipeMultiblockMachine::createCoilParallel)
             .nonYAxisRotation()
-            .tooltipsText("电容器满负荷运作中", "Capacitor at full charge.")
+            .tooltips(GTOMachineStories.INSTANCE.getMagneticEnergyReactionFurnaceTooltips().getSupplier())
             .recipeTypes(GTRecipeTypes.ARC_FURNACE_RECIPES)
             .coilParallelTooltips()
             .laserTooltips()
@@ -458,22 +462,21 @@ public final class MultiBlockB {
                     .where('O', blocks(GTBlocks.FUSION_GLASS.get()))
                     .where('a', blocks(GCYMBlocks.CASING_NONCONDUCTING.get())
                             .or(GTOPredicates.autoThreadLaserAbilities(definition.getRecipeTypes()))
-                            .or(abilities(MAINTENANCE)))
+                            .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where(' ', any())
                     .build())
-            .workableCasingRenderer(GTCEu.id("block/casings/gcym/nonconducting_casing"), GTCEu.id("block/multiblock/fusion_reactor"))
+            .workableCasingRenderer(GTCEu.id("block/casings/gcym/nonconducting_casing"), GTOCore.id("block/multiblock/general1"))
             .register();
 
     public static final MultiblockMachineDefinition HIGH_ENERGY_LASER_LATHE = multiblock("high_energy_laser_lathe", "高能激光车床", CrossRecipeMultiblockMachine::createHatchParallel)
             .nonYAxisRotation()
             .recipeTypes(GTRecipeTypes.LATHE_RECIPES)
+            .tooltips(GTOMachineStories.INSTANCE.getHighEnergyLaserLatheTooltips().getSupplier())
             .parallelizableTooltips()
             .laserTooltips()
             .multipleRecipesTooltips()
             .block(GTOBlocks.MOLECULAR_CASING)
-            .pattern(definition -> MultiBlockFileReader.start(definition) // , RelativeDirection.BACK,
-                                                                          // RelativeDirection.UP,
-                                                                          // RelativeDirection.LEFT
+            .pattern(definition -> MultiBlockFileReader.start(definition)
                     .where('A', blocks(GTOBlocks.IRIDIUM_CASING.get()))
                     .where('B', blocks(GTBlocks.FILTER_CASING.get()))
                     .where('C', blocks(GCYMBlocks.ELECTROLYTIC_CELL.get()))
@@ -481,7 +484,7 @@ public final class MultiBlockB {
                     .where('E', blocks(GTBlocks.HIGH_POWER_CASING.get()))
                     .where('F', blocks(GTOBlocks.LASER_COOLING_CASING.get()))
                     .where('G', blocks(GCYMBlocks.CASING_LASER_SAFE_ENGRAVING.get()))
-                    .where('H', blocks(GTOBlocks.AMPROSIUM_CASING.get()))
+                    .where('H', blocks(GTOBlocks.OPTICAL_RESONANCE_CHAMBER.get()))
                     .where('I', blocks(GTBlocks.FUSION_GLASS.get()))
                     .where('J', blocks(GTOBlocks.LASER_CASING.get()))
                     .where('K', blocks(GTOBlocks.ELECTRON_PERMEABLE_AMPROSIUM_COATED_GLASS.get()))
@@ -491,8 +494,8 @@ public final class MultiBlockB {
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where('M', blocks(GTOBlocks.CONTAINMENT_FIELD_GENERATOR.get()))
                     .where('N', blocks(GTOBlocks.AMPROSIUM_GEARBOX.get()))
-                    .where('O', blocks(GTOBlocks.AMPROSIUM_ACTIVE_CASING.get()))
-                    .where('P', blocks(ChemicalHelper.getBlock(TagPrefix.block, GTMaterials.Ruby)))
+                    .where('O', blocks(GTOBlocks.PRECISION_PROCESSING_MECHANICAL_CASING.get()))
+                    .where('P', blocks(GTOBlocks.HIGH_ENERGY_LASER_EMITTER.get()))
                     .where('Q', controller(blocks(definition.get())))
                     .where(' ', any())
                     .build())
@@ -502,13 +505,12 @@ public final class MultiBlockB {
     public static final MultiblockMachineDefinition NEUTRONIUM_WIRE_CUTTING = multiblock("neutronium_wire_cutting", "中子丝线切割", CrossRecipeMultiblockMachine::createHatchParallel)
             .nonYAxisRotation()
             .recipeTypes(GTRecipeTypes.CUTTER_RECIPES)
+            .tooltips(GTOMachineStories.INSTANCE.getNeutroniumWireCuttingTooltips().getSupplier())
             .parallelizableTooltips()
             .laserTooltips()
             .multipleRecipesTooltips()
             .block(GTBlocks.HIGH_POWER_CASING)
-            .pattern(definition -> MultiBlockFileReader.start(definition) // , RelativeDirection.BACK,
-                                                                          // RelativeDirection.UP,
-                                                                          // RelativeDirection.LEFT
+            .pattern(definition -> MultiBlockFileReader.start(definition)
                     .where('A', blocks(GTOBlocks.HIGH_PRESSURE_RESISTANT_CASING.get()))
                     .where('B', blocks(GTOBlocks.NAQUADAH_REINFORCED_PLANT_CASING.get()))
                     .where('C', blocks(GTOBlocks.IRIDIUM_CASING.get()))
@@ -520,7 +522,7 @@ public final class MultiBlockB {
                     .where('I', blocks(GTOBlocks.PRESSURE_CONTAINMENT_CASING.get()))
                     .where('J', blocks(GTOBlocks.AMPROSIUM_ACTIVE_CASING.get()))
                     .where('K', blocks(GTBlocks.CASING_TEMPERED_GLASS.get()))
-                    .where('L', blocks(GTOBlocks.AMPROSIUM_CASING.get()))
+                    .where('L', blocks(GTOBlocks.PRECISION_PROCESSING_MECHANICAL_CASING.get()))
                     .where('M', blocks(GTOBlocks.EXTREME_DENSITY_CASING.get()))
                     .where('N', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.Amprosium)))
                     .where('O', blocks(GTOBlocks.CONTAINMENT_FIELD_GENERATOR.get()))
@@ -537,10 +539,11 @@ public final class MultiBlockB {
             .workableCasingRenderer(GTCEu.id("block/casings/hpca/high_power_casing"), GTCEu.id("block/multiblock/gcym/large_cutter"))
             .register();
 
-    public static final MultiblockMachineDefinition NANO_PHAGOCYTOSIS_PLANT = multiblock("nano_phagocytosis_plant", "纳米吞噬厂", CrossRecipeMultiblockMachine::createHatchParallel)
+    public static final MultiblockMachineDefinition NANO_PHAGOCYTOSIS_PLANT = multiblock("nano_phagocytosis_plant", "纳米吞噬厂", NanoPhagocytosisPlantMachine::new)
             .nonYAxisRotation()
-            .tooltipsText("使用纳米蜂群无情的撕碎一切", "Use nanitess to mercilessly tear everything apart.")
-            .recipeTypes(GTRecipeTypes.MACERATOR_RECIPES)
+            .tooltips(GTOMachineStories.INSTANCE.getNanoPhagocytosisPlantTooltips().getSupplier())
+            .recipeTypes(GTORecipeTypes.MACERATOR_RECIPES)
+            .recipeTypes(GTORecipeTypes.ISA_MILL_RECIPES)
             .parallelizableTooltips()
             .laserTooltips()
             .multipleRecipesTooltips()
@@ -561,14 +564,14 @@ public final class MultiBlockB {
                     .where('M', blocks(GTOBlocks.CONTAINMENT_FIELD_GENERATOR.get()))
                     .where('N', blocks(GTOBlocks.IMPROVED_SUPERCONDUCTOR_COIL.get()))
                     .where('O', blocks(GTOBlocks.ECHO_CASING.get()))
-                    .where('P', blocks(GTBlocks.CASING_TUNGSTENSTEEL_TURBINE.get()))
+                    .where('P', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
                     .where('Q', blocks(GTOBlocks.PRESSURE_CONTAINMENT_CASING.get()))
                     .where('R', blocks(ChemicalHelper.getBlock(TagPrefix.block, GTMaterials.NeodymiumMagnetic)))
                     .where('S', blocks(GTOBlocks.HIGH_ENERGY_ULTRAVIOLET_EMITTER_CASING.get()))
                     .where('T', blocks(GTBlocks.SUPERCONDUCTING_COIL.get()))
                     .where('U', blocks(GTOBlocks.HYPER_CORE.get()))
                     .where('V', blocks(GTOBlocks.QUANTUM_GLASS.get()))
-                    .where('W', blocks(GTBlocks.CASING_TITANIUM_TURBINE.get()))
+                    .where('W', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
                     .where('X', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Ultimet)))
                     .where('Y', blocks(GTOBlocks.OXIDATION_RESISTANT_HASTELLOY_N_MECHANICAL_CASING.get()))
                     .where('Z', blocks(GCYMBlocks.HEAT_VENT.get()))
@@ -578,63 +581,135 @@ public final class MultiBlockB {
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where(' ', any())
                     .build())
+            .addSubPattern(definition -> FactoryBlockPattern.start(definition)
+                    .aisle("BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB", "B      B      B B      B      B", "BG GG GBG GG GB BG GG GBG GG GB", "BG GG GBG GG GB BG GG GBG GG GB", "B      B      B B      B      B", "BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB", "B      B      B B      B      B", "BG GG GBG GG GB BG GG GBG GG GB", "BG GG GBG GG GB BG GG GBG GG GB", "B      B      B B      B      B", "BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB")
+                    .aisle("BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB", " G GG G G GG G   G GG G G GG G ", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", " G GG G G GG G   G GG G G GG G ", "BHHHHHHHHHHHHHB BHHHHHHHHHHHHHB", " G GG G G GG G   G GG G G GG G ", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", " G GG G G GG G   G GG G G GG G ", "B      B      B B      B      B")
+                    .aisle("BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB", " G GG G G GG G   G GG G G GG G ", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", " G GG G G GG G   G GG G G GG G ", "B             B B             B", " G GG G G GG G   G GG G G GG G ", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", " G GG G G GG G   G GG G G GG G ", "B      B      B B      B      B")
+                    .aisle("BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB", " G GG G G GG G   G GG G G GG G ", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", " G GG G G GG G   G GG G G GG G ", "B             B B             B", " G GG G G GG G   G GG G G GG G ", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", " G GG G G GG G   G GG G G GG G ", "B      B      B B      B      B")
+                    .aisle("BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB", " G GG G G GG G   G GG G G GG G ", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", " G GG G G GG G   G GG G G GG G ", "BHHHHHHHHHHHHHB BHHHHHHHHHHHHHB", " G GG G G GG G   G GG G G GG G ", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", "EEEEEEEEEEEEEEE EEEEEEEEEEEEEEE", " G GG G G GG G   G GG G G GG G ", "B      B      B B      B      B")
+                    .aisle("BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB", "B      B      B B      B      B", "BGIGG GBG GG GB BG GG GBG GGIGB", "BG GG GBG GG GB BG GG GBG GG GB", "B      B      B B      B      B", "BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB", "B      B      B B      B      B", "BG GG GBG GG GB BG GG GBG GG GB", "BG GG GBG GG GB BG GG GBG GG GB", "B      B      B B      B      B", "BBBBBBBBBBBBBBB BBBBBBBBBBBBBBB")
+                    .aisle("                               ", "                               ", "  I                         I  ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("                               ", "                               ", "  I                         I  ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("BBIBB                     BBIBB", "  I                         I  ", "  I                         I  ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("BBIBB                     BBIBB", " BBB                       BBB ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "                               ")
+                    .aisle("BBBBB                     BBBBB", "BDDDB                     BDDDB", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " BBB                       BBB ", "                               ")
+                    .aisle("BBBBB                     BBBBB", "DDDDD                     DDDDD", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "DD DD                     DD DD", "BDDDB                     BDDDB", "  B                         B  ")
+                    .aisle("BBBBB                     BBBBB", "DDDDD                     DDDDD", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "BDDDB                     BDDDB", " BBB                       BBB ")
+                    .aisle("BBBBB                     BBBBB", "DDDDD                     DDDDD", "D   D                     D   D", "D   D                     D   D", "D   MM                   MM   D", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "DD DD                     DD DD", "BDDDB                     BDDDB", "  B                         B  ")
+                    .aisle("BBBBB                     BBBBB", "BDDD                       DDDB", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", "B B B                     B B B", "                               ")
+                    .aisle("BBBBB                     BBBBB", "BBB B                       BB ", "B B B                       B  ", "B B B                       B  ", "B B B                       B  ", "B B B                       B  ", "B B B                       B  ", "B B B                       B  ", "B B B                       B  ", "B B B                     B B B", "                               ")
+                    .aisle("BBBBB                     BBBBB", "BDDD                       DDDB", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", "B B B                     B B B", "                               ")
+                    .aisle("BBBBB                     BBBBB", "DDDDD                     DDDDD", "D   D                     D   D", "D   D                     D   D", "D   MM                   MM   D", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "DD DD                     DD DD", "BDDDB                     BDDDB", "  B                         B  ")
+                    .aisle("BBBBB                     BBBBB", "DDDDD                     DDDDD", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "D L D                     D L D", "BDDDB                     BDDDB", " BBB                       BBB ")
+                    .aisle("BBBBB                     BBBBB", "DDDDD                     DDDDD", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "D   D                     D   D", "DD DD                     DD DD", "BDDDB                     BDDDB", "  B                         B  ")
+                    .aisle("BBBBB                     BBBBB", "BDDDB                     BDDDB", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " DDD                       DDD ", " BBB                       BBB ", "                               ")
+                    .aisle("BBIBB                     BBIBB", " BBB                       BBB ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "  B                         B  ", "                               ")
+                    .aisle("BBIBB                     BBIBB", "  I                         I  ", "  I                         I  ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("                               ", "                               ", "  I                         I  ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("                               ", "                               ", "  I                         I  ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("                               ", "                               ", "  I                         I  ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAAAAA               AAAAAAAA", "A   A                     A   A", "A I A                     A I A", "A   A                     A   A", "A   A                     A   A", "AAAAA                     AAAAA", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EIE                       EIE ", " EEE                       EEE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EJE                       EJE ", " EJE                       EJE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EJE                       EJE ", " EJE                       EJE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", "CEEEC                     CEEEC", "CEJEC                     CEJEC", "CEJEC                     CEJEC", "CEEEC                     CEEEC", "ACCCA                     ACCCA", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", "CEEEC                     CEEEC", "CEJEC                     CEJEC", "CEJEC                     CEJEC", "CEEEC                     CEEEC", "ACCCA                     ACCCA", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", "CEEEC                     CEEEC", "CEJEC                     CEJEC", "CEJEC                     CEJEC", "CEEEC                     CEEEC", "ACCCA                     ACCCA", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EJE                       EJE ", " EJE                       EJE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EJE                       EJE ", " EJE                       EJE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EKKKK                   KKKKE ", " EJE                       EJE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", "CEEEC                     CEEEC", "CEJEC                     CEJEC", "CEJEC                     CEJEC", "CEEEC                     CEEEC", "ACCCA                     ACCCA", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", "CEEEC                     CEEEC", "CEJEC                     CEJEC", "CEJEC                     CEJEC", "CEEEC                     CEEEC", "ACCCA                     ACCCA", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", "CEEEC                     CEEEC", "CEJEC                     CEJEC", "CEJEC                     CEJEC", "CEEEC                     CEEEC", "ACCCA                     ACCCA", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EJE                       EJE ", " EJE                       EJE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EJE                       EJE ", " EJE                       EJE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAA                     AAAAA", " EEE                       EEE ", " EEE                       EEE ", " EEE                       EEE ", " EEE                       EEE ", "A   A                     A   A", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("AAAAAAA                 AAAAAAA", "AFFFA                     AFFFA", "AFFFA                     AFFFA", "AFFFA                     AFFFA", "AFFFA                     AFFFA", "AAAAA                     AAAAA", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .aisle("                               ", "               N               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ", "                               ")
+                    .where('A', blocks(GCYMBlocks.CASING_NONCONDUCTING.get()))
+                    .where('B', blocks(GTOBlocks.HYPER_MECHANICAL_CASING.get()))
+                    .where('C', blocks(GCYMBlocks.CASING_VIBRATION_SAFE.get()))
+                    .where('D', blocks(GTOBlocks.PRESSURE_CONTAINMENT_CASING.get()))
+                    .where('E', blocks(GTOBlocks.INCONEL_625_CASING.get()))
+                    .where('F', blocks(GTOBlocks.NAQUADAH_REINFORCED_PLANT_CASING.get())
+                            .or(GTOPredicates.autoIOAbilities(definition.getRecipeTypes())))
+                    .where('G', blocks(GTOBlocks.ECHO_CASING.get()))
+                    .where('H', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Ultimet)))
+                    .where('I', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
+                    .where('J', blocks(GTOBlocks.INCONEL_625_GEARBOX.get()))
+                    .where('K', blocks(GTOBlocks.IRIDIUM_PIPE_CASING.get()))
+                    .where('L', blocks(GTOBlocks.AMPROSIUM_ACTIVE_CASING.get()))
+                    .where('M', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
+                    .where('N', controller(blocks(definition.get())))
+                    .where(' ', any())
+                    .build())
             .workableCasingRenderer(GTOCore.id("block/casings/naquadah_reinforced_plant_casing"), GTCEu.id("block/multiblock/fusion_reactor"))
             .register();
 
-    public static final MultiblockMachineDefinition SUPER_SPACE_ELEVATOR = multiblock("super_space_elevator", "超级太空电梯", SuperSpaceElevatorMachine::new)
+    public static final MultiblockMachineDefinition ROAD_OF_HEAVEN = multiblock("road_of_heaven", "通天之路", SuperSpaceElevatorMachine::new)
             .nonYAxisRotation()
             .recipeTypes(GTRecipeTypes.DUMMY_RECIPES)
-            .tooltips(NewDataAttributes.CAPACITY.create(c -> c.addLines("64个模块", "64 modules")))
-            .tooltips(ComponentBuilder.create().addStoryLine(
-                    """
-                            GTO寰宇格雷科技有限公司历经数代人的努力，终于建成了超级太空电梯。
-                            这座庞然大物不仅是工程奇迹，更是人类征服宇宙的终极象征。
-                            董事长站在控制室内，凝视着这个能同时运行64个模块的超级结构。
-                            "今天，我们不再仅仅是地球的居民，"他激动地对员工们说道。
-                            超级太空电梯的运转声如同宇宙的心跳，承载着公司最伟大的愿景。
-                            它几乎戳破了现实与理想的边界，让星辰大海不再是遥不可及的梦。
-                            从此，格雷科技的名字将与人类的星际征程永远联系在一起。
-                            """,
-                    """
-                            GTO Corporation, after generations of effort, finally completed the Super Space Elevator.
-                            This colossal structure is not just an engineering marvel, but humanity's ultimate symbol of cosmic conquest.
-                            The CEO stood in the control room, gazing at this super structure capable of running 64 modules simultaneously.
-                            "Today, we are no longer merely inhabitants of Earth," he excitedly told his employees.
-                            The hum of the Super Space Elevator resonated like the heartbeat of the universe, carrying the company's greatest vision.
-                            It almost pierced the boundary between reality and ideals, making the sea of stars no longer an unreachable dream.
-                            Henceforth, GregTech's name would be forever linked with humanity's interstellar journey.
-                            """).build())
-            .tooltips(NewDataAttributes.MAIN_FUNCTION.create(
-                    v -> v.addLines("模块运行优化系统", "Module Operation Optimization System"),
-                    p -> p.addCommentLines(
-                            """
-                                    提升电压等级可大幅减少模块的运行时间
-                                    额外提升为模块提供的并行数
-                                    运行前需提供128*(机器等级-7)的算力""",
-                            """
-                                    Increasing voltage tier can greatly reduce the duration for modules
-                                    Additional increase in the parallelism provided by the module
-                                    Requires 128*(Machine Tier - 7) of computing power before operation""")))
+            .tooltips(GTOMachineStories.INSTANCE.getRoadOfHeavenTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getRoadOfHeavenTooltips().getSupplier())
             .block(GTOBlocks.SPACE_ELEVATOR_MECHANICAL_CASING)
             .pattern(definition -> MultiBlockFileReader.start(definition)
-                    .where('~', controller(blocks(definition.get())))
-                    .where('A', blocks(GTOBlocks.HIGH_STRENGTH_CONCRETE.get()))
-                    .where('B', blocks(GTOBlocks.SPACE_ELEVATOR_INTERNAL_SUPPORT.get()))
-                    .where('C', blocks(GTOBlocks.MOLECULAR_CASING.get()))
-                    .where('D', blocks(GTOBlocks.HYPER_MECHANICAL_CASING.get()))
-                    .where('E', blocks(GTOBlocks.SPACE_ELEVATOR_MODULE_BASE.get()))
-                    .where('F', blocks(GTOBlocks.HIGH_STRENGTH_CONCRETE.get()).or(blocks(GTOBlocks.MODULE_CONNECTOR.get()).setPreviewCount(1)))
-                    .where('G', blocks(GTOBlocks.SPACE_ELEVATOR_SUPPORT.get()))
-                    .where('H', blocks(GTOBlocks.HSSS_BOROSILICATE_GLASS.get()))
-                    .where('I', blocks(GTBlocks.HIGH_POWER_CASING.get()))
-                    .where('J', blocks(GTOBlocks.SPACE_ELEVATOR_MECHANICAL_CASING.get()))
-                    .where('K', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Neutronium)))
-                    .where('M', GTOPredicates.tierBlock(SEPMMAP, POWER_MODULE_TIER))
-                    .where('N', blocks(GTOBlocks.SPACE_ELEVATOR_POWER_CORE.get()))
-                    .where('X', blocks(GTOBlocks.SPACE_ELEVATOR_MECHANICAL_CASING.get())
+                    .where('A', blocks(GTOBlocks.IRIDIUM_CASING.get()))
+                    .where('B', blocks(GTOBlocks.STRENGTHEN_THE_BASE_BLOCK.get()))
+                    .where('C', blocks(GTOBlocks.SPACE_ELEVATOR_SUPPORT.get()))
+                    .where('D', blocks(GTOBlocks.NAQUADAH_ALLOY_CASING.get()))
+                    .where('E', blocks(GTOBlocks.OXIDATION_RESISTANT_HASTELLOY_N_MECHANICAL_CASING.get()))
+                    .where('F', blocks(GTOBlocks.HIGH_STRENGTH_SUPPORT_SPINDLE.get()))
+                    .where('G', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.Amprosium)))
+                    .where('H', blocks(ChemicalHelper.getBlock(TagPrefix.block, GTOMaterials.Amprosium)))
+                    .where('I', blocks(GTOBlocks.HIGH_STRENGTH_SPACE_ELEVATOR_CABLE.get()))
+                    .where('J', blocks(GTOBlocks.AMPROSIUM_GEARBOX.get()))
+                    .where('K', blocks(GTOBlocks.SPACE_ELEVATOR_INTERNAL_SUPPORT.get()))
+                    .where('L', blocks(GTOBlocks.SPS_CASING.get()))
+                    .where('M', GTOPredicates.light())
+                    .where('N', blocks(GTOBlocks.LAW_FILTER_CASING.get()))
+                    .where('O', blocks(GTOBlocks.AMPROSIUM_CASING.get()))
+                    .where('P', blocks(GTBlocks.CASING_GRATE.get()))
+                    .where('Q', blocks(GTOBlocks.MODULE_CONNECTOR.get()))
+                    .where('R', blocks(GTOBlocks.SPACE_ELEVATOR_MODULE_BASE.get()))
+                    .where('S', blocks(GTOBlocks.ZIRCONIA_CERAMIC_HIGH_STRENGTH_BENDING_RESISTANCE_MECHANICAL_BLOCK.get()))
+                    .where('T', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Naquadria)))
+                    .where('U', blocks(GTOBlocks.HYPER_CORE.get()))
+                    .where('V', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.BlackSteel)))
+                    .where('W', blocks(GTOBlocks.RHENIUM_REINFORCED_ENERGY_GLASS.get()))
+                    .where('X', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
+                    .where('Y', blocks(GCYMBlocks.CASING_NONCONDUCTING.get()))
+                    .where('Z', blocks(GTOBlocks.SPACE_ELEVATOR_MECHANICAL_CASING.get()))
+                    .where('[', blocks(GTOBlocks.HIGH_STRENGTH_SUPPORT_MECHANICAL_CASING.get()))
+                    .where('*', blocks(GTOBlocks.HIGH_STRENGTH_CONCRETE.get()))
+                    .where(']', blocks(GTOBlocks.TITANIUM_NITRIDE_CERAMIC_IMPACT_RESISTANT_MECHANICAL_BLOCK.get()))
+                    .where('^', blocks(GTOBlocks.QUANTUM_GLASS.get()))
+                    .where('_', blocks(GTOBlocks.MOLECULAR_CASING.get()))
+                    .where('`', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Tungsten)))
+                    .where('a', blocks(GTBlocks.ADVANCED_COMPUTER_CASING.get()))
+                    .where('b', blocks(GTBlocks.HIGH_POWER_CASING.get()))
+                    .where('c', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.TungstenSteel)))
+                    .where('d', blocks(GTOBlocks.AMPROSIUM_ACTIVE_CASING.get()))
+                    .where('e', blocks(GTOBlocks.DYSON_CONTROL_CASING.get()))
+                    .where('f', blocks(GTOBlocks.COBALT_OXIDE_CERAMIC_STRONG_THERMALLY_CONDUCTIVE_MECHANICAL_BLOCK.get()))
+                    .where('g', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.HastelloyX)))
+                    .where('h', blocks(GTOBlocks.ANTIFREEZE_HEATPROOF_MACHINE_CASING.get()))
+                    .where('i', blocks(GTOBlocks.SPEEDING_PIPE.get()))
+                    .where('j', blocks(GCYMBlocks.ELECTROLYTIC_CELL.get()))
+                    .where('l', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.HastelloyN)))
+                    .where('m', blocks(GTOBlocks.NEUTRONIUM_STABLE_CASING.get()))
+                    .where('n', blocks(GTOBlocks.BORON_CARBIDE_CERAMIC_RADIATION_RESISTANT_MECHANICAL_CUBE.get()))
+                    .where('o', GTOPredicates.tierBlock(SEPMMAP, POWER_MODULE_TIER))
+                    .where('p', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Naquadah)))
+                    .where('q', blocks(GTBlocks.CASING_TUNGSTENSTEEL_PIPE.get()))
+                    .where('r', blocks(GTOBlocks.PRESSURE_CONTAINMENT_CASING.get()))
+                    .where('s', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
+                    .where('t', blocks(GTOBlocks.ENHANCE_HYPER_MECHANICAL_CASING.get()))
+                    .where('u', blocks(GTOBlocks.SPACE_ELEVATOR_MECHANICAL_CASING.get())
                             .or(abilities(GTOPartAbility.ITEMS_INPUT).setExactLimit(1))
                             .or(abilities(INPUT_ENERGY).setExactLimit(1))
                             .or(abilities(COMPUTATION_DATA_RECEPTION).setExactLimit(1)))
+                    .where('v', controller(blocks(definition.get())))
                     .where(' ', any())
                     .build())
             .renderer(SpaceElevatorRenderer::new)
@@ -645,6 +720,7 @@ public final class MultiBlockB {
             .nonYAxisRotation()
             .recipeTypes(GTRecipeTypes.CHEMICAL_BATH_RECIPES)
             .recipeTypes(GTRecipeTypes.ORE_WASHER_RECIPES)
+            .tooltips(GTOMachineStories.INSTANCE.getMegaBathTankTooltips().getSupplier())
             .parallelizableTooltips()
             .laserTooltips()
             .multipleRecipesTooltips()
@@ -669,19 +745,20 @@ public final class MultiBlockB {
                     .where('N', blocks(GTBlocks.FILTER_CASING.get()))
                     .where(' ', any())
                     .build())
-            .workableCasingRenderer(GTOCore.id("block/reinforced_sterile_water_plant_casing"), GTCEu.id("block/multiblock/fusion_reactor"))
+            .workableCasingRenderer(GTOCore.id("block/reinforced_sterile_water_plant_casing"), GTOCore.id("block/multiblock/general2"))
             .register();
 
     public static final MultiblockMachineDefinition MEGA_VACUUM_DRYING_FURNACE = multiblock("mega_vacuum_drying_furnace", "巨型真空干燥炉", CoilCrossRecipeMultiblockMachine::createCoilParallel)
             .nonYAxisRotation()
             .recipeTypes(GTORecipeTypes.VACUUM_DRYING_RECIPES)
+            .tooltips(GTOMachineStories.INSTANCE.getMegaVacuumDryingFurnaceTooltips().getSupplier())
             .parallelizableTooltips()
             .laserTooltips()
             .multipleRecipesTooltips()
             .block(GTBlocks.HIGH_POWER_CASING)
             .pattern(definition -> MultiBlockFileReader.start(definition, RelativeDirection.RIGHT, RelativeDirection.UP, RelativeDirection.BACK)
                     .where('~', controller(blocks(definition.get())))
-                    .where('A', blocks(GTBlocks.CASING_TUNGSTENSTEEL_TURBINE.get()))
+                    .where('A', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
                     .where('B', blocks(GTBlocks.CASING_STAINLESS_CLEAN.get()))
                     .where('C', blocks(GTOBlocks.IRIDIUM_CASING.get()))
                     .where('D', blocks(GTBlocks.CASING_GRATE.get()))
@@ -708,7 +785,7 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition MOLECULAR_OSCILLATION_DEHYDRATOR = multiblock("molecular_oscillation_dehydrator", "分子震荡脱水装置", CoilCrossRecipeMultiblockMachine::createCoilParallel)
             .nonYAxisRotation()
-            .tooltips(NewDataAttributes.MAIN_FUNCTION.create(v -> v.addLines("脱水！脱水！脱水！", "Dehydration! Dehydration! Dehydration!")))
+            .tooltips(GTOMachineStories.INSTANCE.getMolecularOscillationDehydratorTooltips().getSupplier())
             .recipeTypes(GTORecipeTypes.DEHYDRATOR_RECIPES)
             .coilParallelTooltips()
             .laserTooltips()
@@ -735,84 +812,47 @@ public final class MultiBlockB {
             .workableCasingRenderer(GTOCore.id("block/casings/iridium_casing"), GTCEu.id("block/multiblock/cleanroom"))
             .register();
 
-    public static final MultiblockMachineDefinition HORIZONTAL_COMPRESSOR = multiblock("horizontal_compressor", "卧式压缩机", CrossRecipeMultiblockMachine::createHatchParallel)
+    public static final MultiblockMachineDefinition HORIZONTAL_COMPRESSOR = multiblock("extreme_compressor", "极限压缩装置", CrossRecipeMultiblockMachine::createHatchParallel)
             .nonYAxisRotation()
-            .recipeTypes(GTORecipeTypes.COMPRESSOR_RECIPES)
-            .recipeTypes(GTORecipeTypes.GAS_COMPRESSOR_RECIPES)
+            .recipeTypes(GTORecipeTypes.EXTREME_COMPRESSOR)
+            .tooltips(GTOMachineStories.INSTANCE.getHorizontalCompressorTooltips().getSupplier())
             .parallelizableTooltips()
             .laserTooltips()
             .multipleRecipesTooltips()
-            .block(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST)
-            .pattern(definition -> MultiBlockFileReader.start(definition, RelativeDirection.RIGHT, RelativeDirection.UP, RelativeDirection.BACK)
-                    .where('~', controller(blocks(definition.get())))
-                    .where('A', blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get()))
-                    .where('B', blocks(GCYMBlocks.CASING_VIBRATION_SAFE.get()))
-                    .where('C', blocks(GTBlocks.HIGH_POWER_CASING.get()))
-                    .where('D', blocks(GTOBlocks.HIGH_PRESSURE_RESISTANT_CASING.get()))
-                    .where('E', blocks(GTBlocks.CASING_STAINLESS_TURBINE.get()))
-                    .where('F', blocks(ChemicalHelper.getBlock(TagPrefix.block, GTMaterials.Neutronium)))
-                    .where('G', blocks(GTBlocks.CASING_STEEL_SOLID.get()))
-                    .where('H', blocks(GCYMBlocks.CASING_REACTION_SAFE.get()))
-                    .where('I', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.HastelloyN)))
-                    .where('J', blocks(GTOBlocks.IRIDIUM_CASING.get()))
-                    .where('K', blocks(GTBlocks.HERMETIC_CASING_UV.get()))
-                    .where('L', blocks(GTOBlocks.PRESSURE_CONTAINMENT_CASING.get()))
-                    .where('a', blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get())
+            .combinedRecipeTooltips()
+            .block(GTOBlocks.IRIDIUM_CASING)
+            .pattern(definition -> MultiBlockFileReader.start(definition)
+                    .where('A', blocks(GCYMBlocks.CASING_STRESS_PROOF.get()))
+                    .where('B', blocks(GTOBlocks.NAQUADAH_ALLOY_CASING.get()))
+                    .where('C', blocks(GTOBlocks.IRIDIUM_CASING.get()))
+                    .where('D', blocks(GTOBlocks.PRESSURE_CONTAINMENT_CASING.get()))
+                    .where('E', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.IncoloyMA956)))
+                    .where('F', blocks(GTOBlocks.IRIDIUM_PIPE_CASING.get()))
+                    .where('G', abilities(MUFFLER))
+                    .where('H', blocks(GTBlocks.CASING_TUNGSTENSTEEL_PIPE.get()))
+                    .where('I', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.DepletedUraniumAlloy)))
+                    .where('J', blocks(GTOBlocks.HIGH_PRESSURE_RESISTANT_CASING.get()))
+                    .where('K', blocks(GTOBlocks.IRIDIUM_GEARBOX.get()))
+                    .where('L', blocks(GTOBlocks.INCONEL_625_PIPE.get()))
+                    .where('M', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
+                    .where('N', blocks(GTBlocks.HERMETIC_CASING_UV.get()))
+                    .where('O', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
+                    .where('P', blocks(GTOBlocks.HIGH_STRENGTH_SUPPORT_SPINDLE.get()))
+                    .where('Q', blocks(GTOBlocks.IRIDIUM_CASING.get())
                             .or(GTOPredicates.autoThreadLaserAbilities(definition.getRecipeTypes()))
                             .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
+                    .where('R', controller(blocks(definition.get())))
                     .where(' ', any())
                     .build())
-            .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_robust_tungstensteel"), GTCEu.id("block/multiblock/fusion_reactor"))
+            .workableCasingRenderer(GTOCore.id("block/casings/iridium_casing"), GTOCore.id("block/multiblock/general1"))
             .register();
 
     public static final MultiblockMachineDefinition WATER_PURIFICATION_PLANT = multiblock("water_purification_plant", "净化处理厂", WaterPurificationPlantMachine::new)
             .nonYAxisRotation()
-            .tooltips(NewDataAttributes.EMPTY_WITH_BAR.create(
-                    h -> h.addLines("处理单元链接系统", "Processing Unit Link System", StyleBuilder::setGold),
-                    c -> c.addLines(
-                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(
-                                    x -> x.addLines("可以在", "Processing unit controllers can be placed freely within a ")
-                                            .addLines("32", "32", StyleBuilder::setYellow)
-                                            .addLines("个方块半径内自由放置处理单元控制器", " block radius"),
-                                    p -> p,
-                                    StyleBuilder::setOneTab),
-                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(
-                                    x -> x.addLines("为链接的处理", "Provide power to the linked processing ")
-                                            .addLines("单元控制器", "unit controllers", StyleBuilder::setYellow)
-                                            .addLines("提供电力", " power"),
-                                    p -> p,
-                                    StyleBuilder::setOneTab),
-                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(
-                                    x -> x.addLines("该多方块结构接受激光仓，默认耗能=输出水量x2^(输出的净化水等级等级-2)", "This multi-block structure accepts laser chambers, default energy consumption = input water count x 2^(output purification water tier - 2)"),
-                                    p -> p,
-                                    StyleBuilder::setOneTab))))
-
-            .tooltips(NewDataAttributes.EMPTY_WITH_BAR.create(
-                    h -> h.addLines("处理周期系统", "Processing Cycle System", StyleBuilder::setGold),
-                    c -> c.addLines(
-                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(
-                                    x -> x.addLines("以固定的", "Operates with a fixed processing cycle of ")
-                                            .addLines("120", "120", StyleBuilder::setYellow)
-                                            .addLines("秒处理周期工作", " seconds"),
-                                    p -> p,
-                                    StyleBuilder::setOneTab),
-                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(
-                                    x -> x.addLines("所有链接的处理单元控制器都遵循这个周期，净化水输出量为输入水量x0.9mB", "All linked processing unit controllers follow this cycle; purified water output is the volume of input water x 0.9mB"),
-                                    p -> p,
-                                    StyleBuilder::setOneTab))))
-
-            .tooltips(NewDataAttributes.EMPTY_WITH_BAR.create(
-                    h -> h.addLines("技术说明", "Technical Description", StyleBuilder::setGreen),
-                    c -> c.addLines(
-                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(
-                                    x -> x.addLines("水中的污染物和离子颗粒会在硅片和芯片切割和雕刻的精密过程中造成显著的缺陷", "Pollutants and ionic particles in water can cause significant defects during the precise processes of wafer and chip cutting and engraving", StyleBuilder::setGreen),
-                                    p -> p,
-                                    StyleBuilder::setOneTab),
-                            NewDataAttributes.EMPTY_WITH_POINT.createBuilder(
-                                    x -> x.addLines("通过一系列越来越精确和复杂的净化过程系统地净化水是至关重要的，而这个多方块结构是操作的核心", "It is crucial to systematically purify the water through a series of increasingly precise and complex processes, and this multi-block structure is the core of the operation", StyleBuilder::setGreen),
-                                    p -> p,
-                                    StyleBuilder::setOneTab))))
+            .tooltips(GTOMachineStories.INSTANCE.getWaterPurificationPlantTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getWaterPurificationPlantTooltips().getSupplier())
+            .laserTooltips()
             .fromSourceTooltips("GTNH")
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.STERILE_WATER_PLANT_CASING)
@@ -842,12 +882,8 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition CLARIFIER_PURIFICATION_UNIT = multiblock("clarifier_purification_unit", "澄清器净化装置", ClarifierPurificationUnitMachine::new)
             .nonYAxisRotation()
-            .tooltipsText("§a净化水等级§r: §f1§r", "§aPurified Water Level§r: §f1§r")
-            .tooltipsText("在处理一定量的水后会堵塞过滤器方块，此时需要输入大量空气（1-8KB）与水（200-300B）进行反冲洗，冲洗时输出一定量的废料", "After processing a certain amount of water, the filter block will become clogged. At this point, a large amount of air (1-8KB) and water (200-300B) is required for backflushing. During backflushing, a certain amount of waste will be output.")
-            .tooltipsText("基础产出概率为70%，输入少量同等级净化水可提升15%，更高等级每级额外增加5%，最高4级达到100%", "Base output probability is 70%, inputting a small amount of the same level purified water increases the chance by 15%, and higher levels increase by an additional 5% per level, reaching 100% at the maximum of 4 levels.")
-            .tooltipsText("----------------------------------------------------------------", "----------------------------------------------------------------")
-            .tooltipsText("§a§o获得净化水的第一步是通过使用大型物理过滤器过滤掉宏观污染物", "§a§oThe first step to obtaining purified water is to filter out macro contaminants using large physical filters.")
-            .tooltipsText("§a§o通过快速沙滤进行初级水处理，移除水中85%的细菌与几乎所有浊度（泥土、粉砂、微细有机物、无机物、浮游生物等悬浮物和胶体物）", "§a§oAs through rapid sand filtration for primary water treatment, 85% of bacteria and almost all turbidity (including silt, fine sand, micro-organic matter, inorganic matter, and floating organisms etc. suspended particles and colloids) are removed.")
+            .tooltips(GTOMachineStories.INSTANCE.getClarifierPurificationUnitTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getClarifierPurificationUnitTooltips().getSupplier())
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.REINFORCED_STERILE_WATER_PLANT_CASING)
             .pattern(definition -> FactoryBlockPattern.start(definition)
@@ -879,13 +915,8 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition OZONATION_PURIFICATION_UNIT = multiblock("ozonation_purification_unit", "臭氧净化装置", OzonationPurificationUnitMachine::new)
             .nonYAxisRotation()
-            .tooltipsText("§a净化水等级§r: §f2§r", "§aPurified Water Level§r: §f2§r")
-            .tooltipsText("臭氧消耗量=输入水量/10000mB，如果输入口含有超过§61024B§r的§b臭氧气体§r，将发生爆炸", "Ozone consumption = input water amount / 10000mB. If the inlet contains more than §61024B§r of §bOzone Gas§r, an explosion will occur.")
-            .tooltipsText("§b臭氧气体§r在0-1024B范围内的产出概率为0-80%，输入少量同等级水可提升15%，更高一级额外提升5%", "The output probability of §bOzone Gas§r in the range of 0-1024B is 0-80%, inputting a small amount of the same level water can increase it by 15%, and higher levels increase by an additional 5%.")
-            .tooltipsKey("gtocore.machine.clarifier_purification_unit.tooltip.3")
-            .tooltipsText("§a§o净化水的第二步是偶氮化，这涉及到注入大量的小分子", "§a§oThe second step of water purification is azonation, which involves injecting a large amount of small molecules")
-            .tooltipsText("§a§o高反应性臭氧气体的气泡进入水中。这可以去除微量元素污染物，如", "§a§oThe bubbles of highly reactive ozone gas enter the water. This can remove trace element contaminants such as")
-            .tooltipsText("§a§o硫、铁和锰，产生不溶的氧化物化合物，然后被过滤掉", "§a§oSulfur, Iron, and Manganese, producing insoluble oxidized compounds, which are then filtered out.")
+            .tooltips(GTOMachineStories.INSTANCE.getOzonationPurificationUnitTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getOzonationPurificationUnitTooltips().getSupplier())
             .fromSourceTooltips("GTNH")
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.OZONE_CASING)
@@ -910,16 +941,8 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition FLOCCULATION_PURIFICATION_UNIT = multiblock("flocculation_purification_unit", "絮凝净化装置", FlocculationPurificationUnitMachine::new)
             .nonYAxisRotation()
-            .tooltipsText("§a净化水等级§r: §f3§r", "§aPurified Water Level§r: §f3§r")
-            .tooltipsText("提供§b聚合氯化铝§r以进行操作", "Provide §bPolymeric Aluminum Chloride§r for operation.")
-            .tooltipsText("输出可循环利用的§b絮凝废液§r", "Outputs recyclable §bFlocculent Waste Liquid§r.")
-            .tooltipsText("在操作过程中，将消耗输入仓中的所有§b聚合氯化铝§r", "During operation, all §bPolymeric Aluminum Chloride§r in the input chamber will be consumed.")
-            .tooltipsText("在配方结束时，每消耗§6100000mB§r§b聚合氯化铝§r，成功率会额外增加§410.0%§r", "At the end of the recipe, for every consumed §6100000mB§r of §bPolymeric Aluminum Chloride§r, the success rate will be further increased by §410.0%§r.")
-            .tooltipsText("如果提供的液体总量不是§6100000mB§r的倍数，则根据以下公式应用成功率惩罚", "If the total amount of liquid provided is not a multiple of §6100000mB§r, the following formula applies a success rate penalty:")
-            .tooltipsText("§9成功率 = 成功率 * 2 ^ (-10 * 溢出比率)", "§9Success Rate = Success Rate * 2 ^ (-10 * Overflow Ratio)")
-            .tooltipsKey("gtocore.machine.clarifier_purification_unit.tooltip.3")
-            .tooltipsText("§a§o净化水的第三步是使用澄清剂（在本例中为聚合氯化铝）去除微观污染物，", "§a§oThe third step of water purification uses a flocculent (in this case, Polymeric Aluminum Chloride) to remove microscopic contaminants,")
-            .tooltipsText("§a§o如灰尘、微塑料和其他污染物，通过絮凝使溶液中的分散悬浮颗粒聚集成更大的团块，以便进一步过滤", "§a§o such as dust, microplastics, and other pollutants, through flocculation that causes solution dispersed suspended particles to conglomerate into larger clumps for further filtering.")
+            .tooltips(GTOMachineStories.INSTANCE.getFlocculationPurificationUnitTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getFlocculationPurificationUnitTooltips().getSupplier())
             .fromSourceTooltips("GTNH")
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.FLOCCULATION_CASING)
@@ -950,18 +973,8 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition PH_NEUTRALIZATION_PURIFICATION_UNIT = multiblock("ph_neutralization_purification_unit", "pH中和净化装置", PHNeutralizationPurificationUnitMachine::new)
             .allRotation()
-            .tooltipsText("§a净化水等级§r: §f4§r", "§aPurified Water Level§r: §f4§r")
-            .tooltipsText("每个周期的初始pH值在§64.5§r至§69.5§r之间变化", "The initial pH value of each cycle varies between §64.5§r to §69.5§r.")
-            .tooltipsText("如果周期结束时pH值在§67.0 pH§r的§6±0.05 pH§r范围内，则配方总是成功", "If the pH value is within the §67.0 pH§r's §6±0.05 pH§r range at the end of the cycle, the recipe will always succeed.")
-            .tooltipsText("否则，配方总是失败", "Otherwise, the recipe will always fail.")
-            .tooltipsText("机器工作时可使用pH传感器读取当前pH值并输出红石信号", "The machine can read the current pH value and output a redstone signal using a pH sensor.")
-            .tooltipsText("每秒消耗所有输入的§b氢氧化钠§r和§b盐酸§r", "Consumes all input of §bSodium Hydroxide§r and §bHydrochloric Acid§r every second.")
-            .tooltipsText("每消耗1个§b氢氧化钠粉§r，pH值提高§60.01§r", "Each consumed §bSodium Hydroxide Powder§r raises the pH value by §60.01§r.")
-            .tooltipsText("每消耗§610§rmB§b盐酸§r，pH值降低§60.01§r", "Each consumed §610§rmB§bHydrochloric Acid§r lowers the pH value by §60.01§r.")
-            .tooltipsKey("gtocore.machine.clarifier_purification_unit.tooltip.3")
-            .tooltipsText("§a§o水净化的第四步是中和溶液并将其pH值精确调节到7，使溶液呈惰性，无水以外的氢离子活动", "§a§oThe fourth step of water purification is to neutralize the solution and adjust its pH value precisely to 7, making the solution inert with no hydrogen ion activity other than that of water.")
-            .tooltipsText("§a§o土壤和地质中的酸和碱会导致水的天然碱度变化，可能会与敏感材料发生腐蚀反应", "§a§oAcids and bases in soil and geology can cause natural alkalinity variations in water, possibly leading to corrosion reactions with sensitive materials.")
-            .tooltipsText("§a§o因此，需要使用相应的中和剂来平衡水的pH值", "§a§oThus, appropriate neutralizers need to be used to balance the pH value of the water.")
+            .tooltips(GTOMachineStories.INSTANCE.getPHNeutralizationPurificationUnitTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getPHNeutralizationPurificationUnitTooltips().getSupplier())
             .fromSourceTooltips("GTNH")
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.STABILIZED_NAQUADAH_WATER_PLANT_CASING)
@@ -988,17 +1001,8 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition EXTREME_TEMPERATURE_FLUCTUATION_PURIFICATION_UNIT = multiblock("extreme_temperature_fluctuation_purification_unit", "极端温度波动净化装置", ExtremeTemperatureFluctuationPurificationUnitMachine::new)
             .allRotation()
-            .tooltipsText("§a净化水等级§r: §f5§r", "§aPurified Water Level§r: §f5§r")
-            .tooltipsText("完成加热周期，先将§b水§r加热到§610000K§r以上，然后再冷却至低于§610K§r", "Complete the heating cycle by first heating the §bWater§r to above §610000K§r and then cooling it to below §610K§r.")
-            .tooltipsText("配方开始时初始温度重置为§6298K§r", "Initial temperature reset to §6298K§r at the start of the recipe.")
-            .tooltipsText("每完成一个加热周期，成功率增加§433%§r", "For each completed heating cycle, success rate increases by §433%§r.")
-            .tooltipsText("如果温度达到§612500K§r，配方将失败并输出§b超临界蒸汽§r", "If the temperature reaches §612500K§r, the recipe will fail and output §bSupercritical Steam§r.")
-            .tooltipsText("每秒最多消耗§610mB§r§b氦等离子体§r和§6100mB§r§b液氦§r", "Consumes up to §610mB§r of §bHelium Plasma§r and §6100mB§r of §bLiquid Helium§r per second.")
-            .tooltipsText("每消耗一mB§b氦等离子体§r，温度mB高§680-120K§r", "Each consumption of 1mB §bHelium Plasma§r raises the temperature by §680-120K§r.")
-            .tooltipsText("每消耗一mB§b液氦§r，温度降低§64-6K§r", "Each consumption of 1mB §bLiquid Helium§r lowers the temperature by §64-6K§r.")
-            .tooltipsKey("gtocore.machine.clarifier_purification_unit.tooltip.3")
-            .tooltipsText("§a§o水净化的第五步是蒸发复杂有机聚合物和可能对简单酸、澄清剂和过滤器有抵抗力的极端微生物", "§a§oThe fifth step of water purification evaporates complex organic polymers and extreme microorganisms that may resist simple acids, clarifiers, and filters.")
-            .tooltipsText("§a§o使用超高压腔室结合极端温度波动，可以使水保持超临界状态，同时蒸发任何残留的污染物，准备进行过滤", "§a§oUsing ultra-high pressure chambers combined with extreme temperature fluctuations allows the water to remain in a supercritical state while evaporating any remaining contaminants in preparation for filtering.")
+            .tooltips(GTOMachineStories.INSTANCE.getExtremeTemperatureFluctuationPurificationUnitTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getExtremeTemperatureFluctuationPurificationUnitTooltips().getSupplier())
             .fromSourceTooltips("GTNH")
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.PLASMA_HEATER_CASING)
@@ -1010,7 +1014,7 @@ public final class MultiBlockB {
                     .aisle("         AAAAAAAAAAAAA ", "         A           A ", "         A           A ", "          A         A  ", "          A         A  ", "          A         A  ", "          A         A  ", "           A       A   ", "           A       A   ", "           A       A   ", "           A       A   ", "           A       A   ", "          A         A  ", "         A           A ", "        A             A")
                     .aisle("CDEDC   AAAAAAAAAAAAAAA", "C   C   A             A", "C   C   A             A", "C   C    A           A ", "C   C    A           A ", "C   C    A           A ", "C   C    A           A ", "C   C     A         A  ", "C   C     A         A  ", "CBDBC     A         A  ", "          A         A  ", "          A         A  ", "         A           A ", "         A           A ", "        A             A")
                     .aisle("EFFFD   AAAAAAAAAAAAAAA", " GGGDDDDA             A", " GGG    A             A", " GGG     A           A ", " GGG     A           A ", " GGG     A           A ", " GGG     A           A ", " GGG      A         A  ", " GGG      A         A  ", "DDDDD     A         A  ", " DDD      A         A  ", "          A         A  ", "         A           A ", "         A           A ", "        A             A")
-                    .aisle("IFFFDDDDAAAAAAAAAAAAAAA", " GHG    A             A", " GHGDDDDA             A", " GHG     A           A ", " GHG     A           A ", " GHG     A           A ", " GHG     A           A ", " GHG      A         A  ", " GHG      A         A  ", "BDDDD     A         A  ", " DDD      A         A  ", "          A         A  ", "         A           A ", "         A           A ", "        A             A")
+                    .aisle("IFFFDDDDAAAAAAAAAAAAAAA", " GHG    A             A", " GHGDDDDA             A", " GHG     A           A ", " GHG     A           A ", " GHG     A           A ", " GHG     A           A ", " GHG      A         A  ", " GHG      A         A  ", "JDBDD     A         A  ", " DDD      A         A  ", "          A         A  ", "         A           A ", "         A           A ", "        A             A")
                     .aisle("EFFFD   AAAAAAAAAAAAAAA", " GGGDDDDA             A", " GGG    A             A", " GGG     A           A ", " GGG     A           A ", " GGG     A           A ", " GGG     A           A ", " GGG      A         A  ", " GGG      A         A  ", "DDDDD     A         A  ", " DDD      A         A  ", "          A         A  ", "         A           A ", "         A           A ", "        A             A")
                     .aisle("CD~DC   AAAAAAAAAAAAAAA", "C   C   A             A", "C   C   A             A", "C   C    A           A ", "C   C    A           A ", "C   C    A           A ", "C   C    A           A ", "C   C     A         A  ", "C   C     A         A  ", "CBDBC     A         A  ", "          A         A  ", "          A         A  ", "         A           A ", "         A           A ", "        A             A")
                     .aisle("         AAAAAAAAAAAAA ", "         A           A ", "         A           A ", "          A         A  ", "          A         A  ", "          A         A  ", "          A         A  ", "           A       A   ", "           A       A   ", "           A       A   ", "           A       A   ", "           A       A   ", "          A         A  ", "         A           A ", "        A             A")
@@ -1021,6 +1025,7 @@ public final class MultiBlockB {
                     .where('~', controller(blocks(definition.get())))
                     .where('H', blocks(GTOBlocks.SPEEDING_PIPE.get()))
                     .where('I', blocks(GTOMachines.HEAT_SENSOR.getBlock()))
+                    .where('J', blocks(GTOBlocks.PLASMA_HEATER_CASING.get()).or(blocks(GTOMachines.HEAT_SENSOR.getBlock())))
                     .where('B', blocks(GTOBlocks.PLASMA_HEATER_CASING.get()).or(abilities(IMPORT_FLUIDS).setPreviewCount(2)))
                     .where('E', blocks(GTOBlocks.PLASMA_HEATER_CASING.get()).or(abilities(EXPORT_FLUIDS).setPreviewCount(2)))
                     .where('F', blocks(GTOBlocks.IMPROVED_SUPERCONDUCTOR_COIL.get()))
@@ -1035,16 +1040,8 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition HIGH_ENERGY_LASER_PURIFICATION_UNIT = multiblock("high_energy_laser_purification_unit", "高能激光净化装置", HighEnergyLaserPurificationUnitMachine::new)
             .allRotation()
-            .tooltipsText("§a净化水等级§r: §f6§r", "§aPurified Water Level§r: §f6§r")
-            .tooltipsText("在操作过程中，更换透镜仓内的§b透镜§r", "During operation, replace the §bLens§r in the lens chamber.")
-            .tooltipsText("当当前§b透镜§r需要更换时，多方块结构将通过§b透镜§r指示仓输出信号", "When the current §bLens§r needs to be replaced, the multi-block structure will output a signal through the §bLens§r indicator chamber.")
-            .tooltipsText("§b透镜§r更换请求将在§66§r到12秒的随机间隔内出现", "§bLens§r replacement requests will occur at random intervals between §66§r and 12 seconds.")
-            .tooltipsText("需要在信号输出后的4秒内更换透镜", "The lens must be replaced within 4 seconds of the signal output.")
-            .tooltipsText("每次成功更换后运行4秒将成功率提高§410%§r", "Each successful replacement followed by 4 seconds of operation increases the success rate by §410%§r.")
-            .tooltipsText("§b透镜§r需求可在GUI内查看，顺序固定", "The requirements for §bLens§r can be viewed in the GUI, in a fixed order.")
-            .tooltipsKey("gtocore.machine.clarifier_purification_unit.tooltip.3")
-            .tooltipsText("§a§o水净化的第六步是识别水中任何残留的负离子，这些离子可能会在未来的晶圆制造中引起电气故障", "§a§oThe sixth step of water purification is identifying any residual anions in the water, which may cause electrical failures in future wafer manufacturing.")
-            .tooltipsText("§a§o用不同波长的光子束轰击水，将能量传递给外层电子，使它们从原子中脱离并通过水箱壁，确保水完全电极化", "§a§oBombarding the water with photons of different wavelengths transfers energy to the outer-layer electrons, causing them to detach from the atoms and through the water tank walls, ensuring the water is fully polarized.")
+            .tooltips(GTOMachineStories.INSTANCE.getHighEnergyLaserPurificationUnitTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getHighEnergyLaserPurificationUnitTooltips().getSupplier())
             .fromSourceTooltips("GTNH")
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.NAQUADAH_REINFORCED_PLANT_CASING)
@@ -1075,26 +1072,8 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition RESIDUAL_DECONTAMINANT_DEGASSER_PURIFICATION_UNIT = multiblock("residual_decontaminant_degasser_purification_unit", "残余污染物脱气净化装置", ResidualDecontaminantDegasserPurificationUnitMachine::new)
             .allRotation()
-            .tooltipsText("§a净化水等级§r: §f7§r", "§aPurified Water Level§r: §f7§r")
-            .tooltipsText("要成功完成配方，需要根据要求输入材料", "To successfully complete the recipe, materials must be inputted as required.")
-            .tooltipsText("操作开始时，脱气控制仓将输出红石信号，机器每秒将消耗全部输入的材料", "At the operation start, the degassing control chamber will output a redstone signal, and the machine will consume all input materials every second.")
-            .tooltipsText("红石信号与需求相对应", "The redstone signal corresponds to the demand.")
-            .tooltipsText("1, 3, 5, 7, 9：通过§b惰性气体§r进行臭氧曝气", "1, 3, 5, 7, 9: Ozone aeration via §bInert Gases§r")
-            .tooltipsText("§610000mB§r§b氦气§r / §68000mB§r§b氖气§r / §66000mB§r§b氩气§r / §64000mB§r§b氪气§r / §62000mB§r§b氙气§r", "§610000mB§r§bHelium§r / §68000mB§r§bNeon§r / §66000mB§r§bArgon§r / §64000mB§r§bKrypton§r / §62000mB§r§bXenon§r")
-            .tooltipsText("2, 4, 6, 8, 10：超导去离子", "2, 4, 6, 8, 10: Superconductive deionization")
-            .tooltipsText("需要输入1000mB对应IV，LuV，ZPM，UV，UHV的液态超导", "Needs input of 1000mB of liquid superconductors corresponding to IV, LuV, ZPM, UV, UHV.")
-            .tooltipsText("11, 13, 15：引力生成差异真空提取", "11, 13, 15: Gravitational Differential Vacuum Extraction")
-            .tooltipsText("需要输入§62000mB§r§b液态安普洛§r", "Requires input of §62000mB§r§bLiquid Amprosiums§r.")
-            .tooltipsText("12, 14：塞尔多尼安沉淀过程", "12, 14: Seldenian precipitation process")
-            .tooltipsText("不输入任何东西", "Do not input anything.")
-            .tooltipsText("0：机器过载", "0: Machine overload")
-            .tooltipsText("在罕见情况下，机器可能会过载并且不会输出任何控制信号", "In rare situations, the machine may overload and not output any control signals.")
-            .tooltipsText("为防止机器损坏，输入§610000mB§r§b液氦§r", "To prevent machine damage, input §610000mB§r§bLiquid Helium§r.")
-            .tooltipsText("输入信号未请求的任何流体将始终导致配方失败", "Any liquid not requested by the input signal will always cause the recipe to fail.")
-            .tooltipsKey("gtocore.machine.clarifier_purification_unit.tooltip.3")
-            .tooltipsText("§a§o水净化的倒数第二步，第七步，是一系列不规则的复杂过程，", "§a§oThe penultimate step of water purification, step seven, consists of a series of irregular complex processes,")
-            .tooltipsText("§a§o旨在去除前几个步骤的除污剂可能残留的任何残留物，", "§a§oaimed at removing any residues of decontaminants that may linger from the previous steps,")
-            .tooltipsText("§a§o根据脱气器检测到的水中物质，它会请求各种材料以完成上述过程", "§a§obased on the materials detected in the water by the degasser, it will request various materials to complete the above processes.")
+            .tooltips(GTOMachineStories.INSTANCE.getResidualDecontaminantDegasserPurificationUnitTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getResidualDecontaminantDegasserPurificationUnitTooltips().getSupplier())
             .fromSourceTooltips("GTNH")
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.PLASMA_HEATER_CASING)
@@ -1131,16 +1110,8 @@ public final class MultiBlockB {
 
     public static final MultiblockMachineDefinition ABSOLUTE_BARYONIC_PERFECTION_PURIFICATION_UNIT = multiblock("absolute_baryonic_perfection_purification_unit", "绝对重子完美净化装置", AbsoluteBaryonicPerfectionPurificationUnitMachine::new)
             .allRotation()
-            .tooltipsText("§a净化水等级§r: §f8§r", "§aPurified Water Level§r: §f8§r")
-            .tooltipsText("将§b夸克释放催化剂§r放入输入总线中运行", "Put §bQuark Releasing Catalyst§r into the input bus to operate.")
-            .tooltipsText("每个配方循环中，不同的两种§b夸克释放催化剂§r的组合将正确识别出§b孤立的夸克§r并完成配方", "Each recipe cycle, different combinations of two §bQuark Releasing Catalysts§r will correctly identify the §bIsolated Quarks§r and complete the recipe.")
-            .tooltipsText("每秒消耗输入槽中的所有§b催化剂§r，每消耗一个夸克催化剂还需额外消耗144mB夸克胶子等离子体", "Consumes all §bCatalysts§r in the input slot every second, and for each quark catalyst consumed, an additional 144mB of quark gluon plasma is required.")
-            .tooltipsText("如果最近插入的两种§b催化剂§r是正确的组合，则立即输出§b稳定重子物质§r", "If the last two inserted §bCatalysts§r are the correct combination, §bStable Baryonic Matter§r will be output immediately.")
-            .tooltipsText("在配方结束时，所有错误插入的§b催化剂§r将返回输出槽", "At the end of the recipe, all incorrectly inserted §bCatalysts§r will return to the output slot.")
-            .tooltipsKey("gtocore.machine.clarifier_purification_unit.tooltip.3")
-            .tooltipsText("§a§o净化水的最后阶段超越了亚原子粒子，识别出重子内最小的可能缺陷", "§a§oThe final stage of purification transcends subatomic particles, identifying the smallest possible defects within baryons.")
-            .tooltipsText("§a§o通过正确识别需要的夸克释放催化剂，装置将激活催化剂，稳定偏离的粒子", "§a§oBy correctly identifying the required Quark Releasing Catalysts, the device will activate the catalysts and stabilize off-kilter particles.")
-            .tooltipsText("§a§o这最终不仅会创造出稳定的重子物质，而且最重要的是，创造出绝对完美净化的水", "§a§oThis ultimately creates not just stable baryonic matter, but most importantly, absolutely purified water.")
+            .tooltips(GTOMachineStories.INSTANCE.getAbsoluteBaryonicPerfectionPurificationUnitTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getAbsoluteBaryonicPerfectionPurificationUnitTooltips().getSupplier())
             .fromSourceTooltips("GTNH")
             .recipeTypes(GTORecipeTypes.WATER_PURIFICATION_PLANT_RECIPES)
             .block(GTOBlocks.QUARK_EXCLUSION_CASING)

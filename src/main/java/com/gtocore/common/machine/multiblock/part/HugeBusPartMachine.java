@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -55,7 +54,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public final class HugeBusPartMachine extends TieredIOPartMachine implements IDistinctPart, IMachineLife {
+public final class HugeBusPartMachine extends TieredIOPartMachine implements IMachineLife {
 
     private static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(HugeBusPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
     @Persisted
@@ -94,21 +93,16 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
         }
     }
 
-    @Override
-    public boolean isDistinct() {
-        return inventory.isDistinct();
-    }
-
-    @Override
-    public void setDistinct(boolean isDistinct) {
-        inventory.setDistinct(isDistinct);
-    }
-
     private void refundAll(ClickData clickData) {
         if (ItemTransferHelper.getItemTransfer(getLevel(), getPos().relative(getFrontFacing()), getFrontFacing().getOpposite()) != null) {
             setWorkingEnabled(false);
             exportToNearby(inventory, getFrontFacing());
         }
+    }
+
+    @Override
+    public void onPaintingColorChanged(int color) {
+        getHandlerList().setColor(color, true);
     }
 
     @Override
@@ -163,7 +157,7 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
 
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        IDistinctPart.super.attachConfigurators(configuratorPanel);
+        super.attachConfigurators(configuratorPanel);
         configuratorPanel.attachConfigurators(new ButtonConfigurator(new GuiTextureGroup(GuiTextures.BUTTON, new TextTexture("\ud83d\udd19")), this::refundAll).setTooltips(List.of(Component.translatable("gtmthings.machine.huge_item_bus.tooltip.1"))));
     }
 
@@ -179,7 +173,7 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
     }
 
     private void addDisplayText(@NotNull List<Component> textList) {
-        var is = inventory.getStackInSlot();
+        var is = inventory.getStackInSlot(0);
         if (inventory.getCount() > 0 && !is.isEmpty()) {
             textList.add(is.getDisplayName().copy().setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)).append(NumberUtils.numberText(inventory.getCount()).setStyle(Style.EMPTY.withColor(ChatFormatting.AQUA))));
         }
@@ -198,7 +192,8 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
             return ((HugeCustomItemStackHandler) storage).count;
         }
 
-        private ItemStack getStackInSlot() {
+        @Override
+        public ItemStack getStackInSlot(int i) {
             return ((HugeCustomItemStackHandler) storage).stack;
         }
 
@@ -213,7 +208,7 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
             if (changed) {
                 changed = false;
                 itemMap.clear();
-                itemMap.put(getStackInSlot(), getCount());
+                itemMap.put(getStackInSlot(0), getCount());
             }
             return itemMap;
         }
@@ -227,7 +222,7 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
         @Nullable
         public List<Ingredient> handleRecipeInner(IO io, GTRecipe recipe, List<Ingredient> left, boolean simulate) {
             if (io != IO.IN && ((HugeCustomItemStackHandler) storage).count > 0) return left.isEmpty() ? null : left;
-            for (var it = left.iterator(); it.hasNext();) {
+            for (var it = left.listIterator(0); it.hasNext();) {
                 var ingredient = it.next();
                 if (ingredient.isEmpty()) {
                     it.remove();
@@ -242,10 +237,10 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IDi
                 }
                 long count = Math.min(amount, getCount());
                 if (count == 0) continue;
-                if (ingredient.test(getStackInSlot())) {
+                if (ingredient.test(getStackInSlot(0))) {
                     if (!simulate) {
                         ((HugeCustomItemStackHandler) storage).count -= count;
-                        getStackInSlot().setCount(MathUtil.saturatedCast(((HugeCustomItemStackHandler) storage).count));
+                        getStackInSlot(0).setCount(MathUtil.saturatedCast(((HugeCustomItemStackHandler) storage).count));
                         storage.onContentsChanged(0);
                     }
                     amount -= count;

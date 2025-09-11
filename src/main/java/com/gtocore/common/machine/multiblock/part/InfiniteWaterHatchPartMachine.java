@@ -21,10 +21,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class InfiniteWaterHatchPartMachine extends TieredIOPartMachine {
@@ -35,13 +35,18 @@ public final class InfiniteWaterHatchPartMachine extends TieredIOPartMachine {
     }
 
     @Override
+    public void onPaintingColorChanged(int color) {
+        getHandlerList().setColor(color, true);
+    }
+
+    @Override
     public boolean shouldOpenUI(Player player, InteractionHand hand, BlockHitResult hit) {
         return false;
     }
 
     private static final class FluidTank extends NotifiableRecipeHandlerTrait<FluidIngredient> {
 
-        private static final List<FluidStack> WATER = List.of(new FluidStack(Fluids.WATER, Integer.MAX_VALUE));
+        private static final FluidStack WATER = new FluidStack(Fluids.WATER, Integer.MAX_VALUE);
 
         private FluidTank(MetaMachine machine) {
             super(machine);
@@ -59,12 +64,21 @@ public final class InfiniteWaterHatchPartMachine extends TieredIOPartMachine {
 
         @Override
         public List<FluidIngredient> handleRecipeInner(IO io, GTRecipe recipe, List<FluidIngredient> left, boolean simulate) {
-            return handleRecipe(io, recipe, left, simulate);
+            if (io == IO.IN) {
+                for (var it = left.listIterator(0); it.hasNext();) {
+                    var f = FastFluidIngredient.getFluid(it.next());
+                    if (f == Fluids.WATER) {
+                        it.remove();
+                        break;
+                    }
+                }
+            }
+            return left.isEmpty() ? null : left;
         }
 
         @Override
-        public @NotNull List<Object> getContents() {
-            return new ArrayList<>(WATER);
+        public @NotNull Object[] getContents() {
+            return new Object[] { WATER };
         }
 
         @Override
@@ -79,17 +93,7 @@ public final class InfiniteWaterHatchPartMachine extends TieredIOPartMachine {
 
         @Override
         public List<FluidIngredient> handleRecipe(IO io, GTRecipe recipe, List<?> list, boolean simulate) {
-            var left = (List<FluidIngredient>) list;
-            if (io == IO.IN) {
-                for (var it = left.iterator(); it.hasNext();) {
-                    var f = FastFluidIngredient.getFluid(it.next());
-                    if (f == Fluids.WATER) {
-                        it.remove();
-                        break;
-                    }
-                }
-            }
-            return left.isEmpty() ? null : left;
+            return handleRecipeInner(io, recipe, new ObjectArrayList(list), simulate);
         }
 
         @Override
@@ -100,7 +104,7 @@ public final class InfiniteWaterHatchPartMachine extends TieredIOPartMachine {
         private static final Object2LongOpenHashMap<FluidStack> MAP = new Object2LongOpenHashMap<>(2, 0.99F);
 
         static {
-            MAP.put(WATER.get(0), Long.MAX_VALUE);
+            MAP.put(WATER, Long.MAX_VALUE);
         }
 
         @Override

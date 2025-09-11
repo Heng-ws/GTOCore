@@ -25,10 +25,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
@@ -46,7 +44,7 @@ import static com.gtolib.api.GTOValues.POWER_MODULE_TIER;
 
 public class SpaceElevatorMachine extends TierCasingMultiblockMachine implements IHighlightMachine {
 
-    private static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SpaceElevatorMachine.class, TierCasingMultiblockMachine.MANAGED_FIELD_HOLDER);
+    protected static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(SpaceElevatorMachine.class, TierCasingMultiblockMachine.MANAGED_FIELD_HOLDER);
 
     public SpaceElevatorMachine(MetaMachineBlockEntity holder) {
         super(holder, POWER_MODULE_TIER);
@@ -76,16 +74,16 @@ public class SpaceElevatorMachine extends TierCasingMultiblockMachine implements
     }
 
     @DescSynced
-    private double high;
+    protected double high;
     @Persisted
     @DescSynced
-    private int spoolCount;
-    private int moduleCount;
+    protected int spoolCount;
+    protected int moduleCount;
     @DescSynced
     final List<BlockPos> poss = new ArrayList<>();
     private ServerPlayer player;
 
-    private void update(boolean promptly) {
+    protected void update(boolean promptly) {
         if (promptly || getOffsetTimer() % 40 == 0) {
             moduleCount = 0;
             if (spoolCount < getMaxSpoolCount()) {
@@ -138,15 +136,18 @@ public class SpaceElevatorMachine extends TierCasingMultiblockMachine implements
     public boolean onWorking() {
         if (!super.onWorking()) return false;
         update(false);
+        if (getRecipeLogic().getProgress() > 190) {
+            getRecipeLogic().setProgress(1);
+        }
         return true;
     }
 
     @Override
-    public InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public boolean shouldOpenUI(Player player, InteractionHand hand, BlockHitResult hit) {
         if (player instanceof ServerPlayer serverPlayer) {
             this.player = serverPlayer;
         }
-        return super.onUse(state, level, pos, player, hand, hit);
+        return super.shouldOpenUI(player, hand, hit);
     }
 
     @Override

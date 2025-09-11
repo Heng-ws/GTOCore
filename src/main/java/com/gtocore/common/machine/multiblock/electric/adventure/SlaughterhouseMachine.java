@@ -181,14 +181,15 @@ public final class SlaughterhouseMachine extends StorageMultiblockMachine {
             long xp = 0;
             for (Entity entity : entities) {
                 if (entity instanceof LivingEntity) {
+                    if (CommonProxy.isBoss(entity)) continue;
                     entity.hurt(getDamageSource(serverLevel), attackDamage);
                 } else if (entity instanceof ItemEntity itemEntity) {
                     itemStacks.add(itemEntity.getItem());
                     itemEntity.discard();
                 } else if (entity instanceof ExperienceOrb experienceOrb) {
                     xp += experienceOrb.value;
+                    experienceOrb.discard();
                 }
-                entity.discard();
             }
 
             if (xp > 0) outputFluid(EIOFluids.XP_JUICE.getSource(), xp);

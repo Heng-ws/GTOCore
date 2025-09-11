@@ -71,7 +71,7 @@ public final class SensorPartMachine extends MultiblockPartMachine {
         if (value > maxValue) {
             return isInverted ? 15 : 0;
         }
-        return Math.round(15 * (isInverted ? (maxValue - value) : (value - minValue)) / (maxValue - minValue));
+        return (int) Math.ceil(15 * (isInverted ? (maxValue - value) : (value - minValue)) / (maxValue - minValue));
     }
 
     @Override

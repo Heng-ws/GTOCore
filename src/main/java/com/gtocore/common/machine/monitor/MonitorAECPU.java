@@ -1,8 +1,7 @@
 package com.gtocore.common.machine.monitor;
 
 import com.gtocore.api.gui.helper.ProgressBarColorStyle;
-
-import com.gtolib.mixin.ae2.gui.CraftingStatusMenuAccessor;
+import com.gtocore.mixin.ae2.menu.CraftingStatusMenuAccessor;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
@@ -28,6 +27,7 @@ import com.hepdd.gtmthings.utils.FormatUtil;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -286,7 +286,7 @@ public class MonitorAECPU extends AbstractAEInfoMonitor {
 
         private static final int PACKET_ID = 0x01;
         private DraggableScrollableWidgetGroup scrollArea;
-        private final Map<Integer, SerialWidget> serialWidgets = new HashMap<>();
+        private final Int2ObjectOpenHashMap<SerialWidget> serialWidgets = new Int2ObjectOpenHashMap<>();
 
         private CPUListGui(int x, int y, int width, int height) {
             super(x, y, width, height);

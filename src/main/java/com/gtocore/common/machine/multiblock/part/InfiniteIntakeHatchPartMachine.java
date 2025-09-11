@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -33,19 +32,18 @@ import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.annotation.RequireRerender;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public final class InfiniteIntakeHatchPartMachine extends TieredIOPartMachine {
 
     private static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(
             InfiniteIntakeHatchPartMachine.class, TieredIOPartMachine.MANAGED_FIELD_HOLDER);
 
-    public static final Map<ResourceLocation, Fluid> AIR_MAP = new HashMap<>();
+    public static final Map<ResourceLocation, Fluid> AIR_MAP = new Object2ObjectOpenHashMap<>();
 
     private TickableSubscription intakeSubs;
 
@@ -62,7 +60,7 @@ public final class InfiniteIntakeHatchPartMachine extends TieredIOPartMachine {
         tank.addChangedListener(this::updateTankSubscription);
     }
 
-    public static void init(GTRecipeBuilder recipeBuilder, Consumer<FinishedRecipe> consumer) {
+    public static void init(GTRecipeBuilder recipeBuilder) {
         for (var condition : recipeBuilder.conditions) {
             if (condition instanceof DimensionCondition dimensionCondition) {
                 var dim = dimensionCondition.getDimension();
@@ -93,6 +91,11 @@ public final class InfiniteIntakeHatchPartMachine extends TieredIOPartMachine {
     public void onUnload() {
         super.onUnload();
         unsubscribe();
+    }
+
+    @Override
+    public void onPaintingColorChanged(int color) {
+        getHandlerList().setColor(color, true);
     }
 
     @Override

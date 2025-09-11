@@ -4,9 +4,9 @@ import com.gtocore.integration.chisel.ChiselRecipe;
 import com.gtocore.integration.emi.oreprocessing.OreProcessingEmiCategory;
 import com.gtocore.integration.emi.satellite.SatelliteEmiCategory;
 
-import com.gtolib.ae2.me2in1.Me2in1Menu;
-import com.gtolib.ae2.me2in1.UtilsMiscs;
-import com.gtolib.ae2.me2in1.Wireless;
+import com.gtolib.api.ae2.me2in1.Me2in1Menu;
+import com.gtolib.api.ae2.me2in1.UtilsMiscs;
+import com.gtolib.api.ae2.me2in1.Wireless;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
@@ -36,7 +36,7 @@ import com.hollingsworth.arsnouveau.client.jei.JEIArsNouveauPlugin;
 import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.emi.EMIPlugin;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIContainer;
-import committee.nova.mods.avaritia.Static;
+import committee.nova.mods.avaritia.Const;
 import committee.nova.mods.avaritia.init.compat.emi.AvaritiaEmiPlugin;
 import de.mari_023.ae2wtlib.wct.WCTMenu;
 import de.mari_023.ae2wtlib.wet.WETMenu;
@@ -86,7 +86,7 @@ public final class GTEMIPlugin implements EmiPlugin {
             list.add(new EmiPluginContainer(new EMITradesPlugin(), "emitrades"));
             list.add(new EmiPluginContainer(new BackpackEmiPlugin(), "backpack"));
         }
-        list.add(new EmiPluginContainer(new AvaritiaEmiPlugin(), Static.MOD_ID));
+        list.add(new EmiPluginContainer(new AvaritiaEmiPlugin(), Const.MOD_ID));
         list.add(new EmiPluginContainer(new BotaniaEmiPlugin(), BotaniaAPI.MODID));
         list.add(new EmiPluginContainer(new EmiExtrabotanyPlugin(), ExtraBotanyAPI.MODID));
         list.add(new EmiPluginContainer(new EMIPlugin(), LDLib.MOD_ID));

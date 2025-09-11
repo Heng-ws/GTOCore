@@ -12,21 +12,22 @@ import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.IMachineModifyDrops;
+import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.*;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -37,7 +38,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public final class RadiationHatchPartMachine extends MultiblockPartMachine implements IMachineModifyDrops, IRecipeCapabilityHolder {
+public final class RadiationHatchPartMachine extends MultiblockPartMachine implements IMachineLife, IRecipeCapabilityHolder {
 
     private static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(RadiationHatchPartMachine.class, MultiblockPartMachine.MANAGED_FIELD_HOLDER);
 
@@ -63,14 +64,30 @@ public final class RadiationHatchPartMachine extends MultiblockPartMachine imple
     private final Map<IO, List<RecipeHandlerList>> capabilitiesProxy;
     private final Map<IO, Map<RecipeCapability<?>, List<IRecipeHandler<?>>>> capabilitiesFlat;
     private TickableSubscription radiationSubs;
+    private final RecipeHandlerList currentHandlerList;
 
     public RadiationHatchPartMachine(MetaMachineBlockEntity holder) {
         super(holder);
         inventory = new NotifiableItemStackHandler(this, 1, IO.IN, IO.BOTH);
         this.capabilitiesProxy = new EnumMap<>(IO.class);
         this.capabilitiesFlat = new EnumMap<>(IO.class);
-        addHandlerList(RecipeHandlerList.of(IO.IN, inventory));
+        currentHandlerList = RecipeHandlerList.of(IO.IN, inventory);
+        addHandlerList(currentHandlerList);
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
         radiationSubs = subscribeServerTick(radiationSubs, this::checkRadiation);
+    }
+
+    @Override
+    public void onUnload() {
+        super.onUnload();
+        if (radiationSubs != null) {
+            radiationSubs.unsubscribe();
+            radiationSubs = null;
+        }
     }
 
     private void checkRadiation() {
@@ -119,7 +136,7 @@ public final class RadiationHatchPartMachine extends MultiblockPartMachine imple
     }
 
     @Override
-    public void onDrops(List<ItemStack> drops) {
+    public void onMachineRemoved() {
         clearInventory(inventory.storage);
     }
 
@@ -131,6 +148,14 @@ public final class RadiationHatchPartMachine extends MultiblockPartMachine imple
     public int getRadioactivity() {
         return this.radioactivity;
     }
+
+    @Override
+    public @Nullable RecipeHandlerList getCurrentHandlerList() {
+        return currentHandlerList;
+    }
+
+    @Override
+    public void setCurrentHandlerList(RecipeHandlerList list, GTRecipe recipe) {}
 
     @Override
     public Map<IO, List<RecipeHandlerList>> getCapabilitiesProxy() {
