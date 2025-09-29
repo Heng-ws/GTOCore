@@ -6,6 +6,7 @@ import com.gtocore.common.data.GTOMaterials;
 import com.gtocore.common.recipe.condition.GravityCondition;
 
 import com.gtolib.GTOCore;
+import com.gtolib.utils.RegistriesUtils;
 import com.gtolib.utils.TagUtils;
 
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
@@ -21,6 +22,8 @@ import appeng.core.definitions.AEItems;
 import com.enderio.base.common.init.EIOFluids;
 import earth.terrarium.adastra.common.registry.ModFluids;
 
+import static com.gregtechceu.gtceu.api.GTValues.UEV;
+import static com.gregtechceu.gtceu.api.GTValues.VA;
 import static com.gtocore.common.data.GTORecipeTypes.INCUBATOR_RECIPES;
 
 final class Incubator {
@@ -86,6 +89,20 @@ final class Incubator {
                 .duration(2400)
                 .addData("filter_casing", 3)
                 .addData("radioactivity", 440)
+                .save();
+
+        INCUBATOR_RECIPES.builder("barnarda_c_log_from_echo")
+                .inputItems("deeperdarker:echo_sapling", 4)
+                .inputItems("deeperdarker:echo_log", 32)
+                .inputItems(GTOBlocks.BARNARDA_C_LOG.asStack(32))
+                .inputItems(TagPrefix.dust, GTOMaterials.StreptococcusPyogenes, 16)
+                .inputItems(TagPrefix.dust, GTOMaterials.Shewanella, 16)
+                .outputItems(GTOBlocks.BARNARDA_C_LOG.asStack(64))
+                .inputFluids(GTOMaterials.BarnardaAir, 10000)
+                .EUt(VA[UEV])
+                .addData("filter_casing", 3)
+                .addData("radioactivity", 440)
+                .duration(1200)
                 .save();
 
         INCUBATOR_RECIPES.recipeBuilder("lubricant_vein_essence")
@@ -699,6 +716,29 @@ final class Incubator {
                 .inputFluids(GTMaterials.Bacteria.getFluid(100))
                 .EUt(480)
                 .duration(200)
+                .addData("filter_casing", 2)
+                .save();
+        INCUBATOR_RECIPES.builder("spider_eye")
+                .chancedInput(new ItemStack(Items.SPIDER_EYE.asItem()), 4000, 100)
+                .inputItems(GTItems.STEM_CELLS.asStack())
+                .inputItems("botania:mutated_seeds", 4)
+                .outputItems(new ItemStack(Items.SPIDER_EYE.asItem(), 64))
+                .inputFluids(GTOMaterials.BiohmediumSterilized, 50)
+                .inputFluids(GTOMaterials.BloodCells, 100)
+                .outputFluids(GTOMaterials.AnimalCells, 400)
+                .EUt(1920)
+                .duration(400)
+                .save();
+        INCUBATOR_RECIPES.builder("dopamine")
+                .chancedInput(GTOItems.CEREBRUM.asStack(32), 2000, 100)
+                .chancedInput(RegistriesUtils.getItemStack("enderio:zombie_electrode", 32), 100, 0)
+                .inputItems(TagPrefix.dustTiny, GTMaterials.RockSalt)
+                .inputItems(TagPrefix.dustTiny, GTMaterials.Salt)
+                .chancedInput(GTOMaterials.Perfluorobenzene.getFluid(1000), 1000, 0)
+                .inputFluids(GTOMaterials.BiohmediumSterilized, 400)
+                .outputFluids(GTOMaterials.Dopamine, 1000)
+                .EUt(7200)
+                .duration(1440)
                 .addData("filter_casing", 2)
                 .save();
     }

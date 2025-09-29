@@ -17,6 +17,7 @@ final class DimensionalFocusEngravingArray {
                 .inputItems(TagPrefix.dust, GTOMaterials.UnfoldedFullerene)
                 .notConsumable(TagPrefix.lens, GTMaterials.Ruby)
                 .outputItems(TagPrefix.dust, GTOMaterials.Fullerene)
+                .outputFluids(GTMaterials.Ammonia.getFluid(10000))
                 .EUt(8000000)
                 .duration(100)
                 .save();
@@ -91,6 +92,16 @@ final class DimensionalFocusEngravingArray {
                 .scanner(b -> b.researchStack(GTOItems.FM_WAFER.asStack())
                         .dataStack(GTOItems.OPTICAL_DATA_STICK.asStack())
                         .EUt(7864320).duration(2400))
+                .save();
+
+        DIMENSIONAL_FOCUS_ENGRAVING_ARRAY_RECIPES.builder("lanthanum_embedded_fullerene_dust")
+                .notConsumable(TagPrefix.lens, GTMaterials.Sapphire)
+                .inputItems(TagPrefix.dust, GTOMaterials.LanthanumFullereneMix, 2)
+                .outputItems(TagPrefix.dust, GTOMaterials.LanthanumEmbeddedFullerene, 2)
+                .inputFluids(GTMaterials.Nitrogen, 10000)
+                .outputFluids(GTMaterials.Ammonia, 10000)
+                .EUt(1966080)
+                .duration(320)
                 .save();
     }
 }

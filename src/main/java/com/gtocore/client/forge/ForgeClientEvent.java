@@ -17,6 +17,7 @@ import com.gtolib.utils.ItemUtils;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -40,7 +41,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import com.hepdd.gtmthings.common.block.machine.electric.WirelessEnergyMonitor;
 import com.hepdd.gtmthings.data.CustomItems;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
+import snownee.jade.util.Color;
 
 import java.util.Set;
 
@@ -51,6 +53,7 @@ public final class ForgeClientEvent {
     public static int highlightingRadius;
     public static BlockPos highlightingPos;
     private static boolean lastShiftState = false;
+    public static final O2IOpenCacheHashMap<HighlightNeed> CUstomHighlightNeeds = new O2IOpenCacheHashMap<>();
 
     private static final String ITEM_PREFIX = "item." + GTOCore.MOD_ID;
     private static final String BLOCK_PREFIX = "block." + GTOCore.MOD_ID;
@@ -64,6 +67,15 @@ public final class ForgeClientEvent {
             if (ClientCache.highlightTime > 0) {
                 ClientCache.highlightTime--;
             }
+            CUstomHighlightNeeds.object2IntEntrySet().fastForEach(
+                    entry -> {
+                        int time = entry.getIntValue();
+                        if (time > 0) {
+                            CUstomHighlightNeeds.put(entry.getKey(), --time);
+                        } else {
+                            CUstomHighlightNeeds.removeInt(entry.getKey());
+                        }
+                    });
         }
     }
 
@@ -147,11 +159,9 @@ public final class ForgeClientEvent {
                 } else if (StructureDetectBehavior.isItem(itemStack)) {
                     poses = StructureDetectBehavior.getPos(itemStack);
                     if (poses != null && poses.length >= 1) {
-                        if (poses[0] != null) {
-                            RenderHelper.highlightBlock(camera, poseStack, 0, 0, 1, poses[0], poses[0]);
-                        }
-                        if (poses.length == 2 && poses[1] != null) {
-                            RenderHelper.highlightBlock(camera, poseStack, 0, 0, 1, poses[1], poses[1]);
+                        for (var pos : poses) {
+                            if (pos == null) continue;
+                            RenderHelper.highlightBlock(camera, poseStack, 0, 0, 1, pos, pos);
                         }
                     }
                 } else if (Highlighting.HIGHLIGHTING_ITEM.contains(item)) {
@@ -160,6 +170,11 @@ public final class ForgeClientEvent {
                     RenderHelper.highlightBlock(camera, poseStack, 0, 0, 1, blockPos, blockPos);
                 }
             }
+            CUstomHighlightNeeds.object2IntEntrySet().fastForEach(
+                    entry -> {
+                        Color color = Color.rgb(entry.getKey().color);
+                        RenderHelper.highlightBlock(camera, poseStack, color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, entry.getKey().start, entry.getKey().end);
+                    });
             if (ClientCache.machineNotFormedHighlight) {
                 MultiblockControllerMachine.HIGHLIGHT_CACHE.forEach(p -> {
                     var pos = BlockPos.of(p);
@@ -183,4 +198,6 @@ public final class ForgeClientEvent {
                 CustomItems.ADVANCED_WIRELESS_FLUID_TRANSFER_COVER.asItem(),
                 GTOItems.COORDINATE_CARD.asItem());
     }
+
+    public record HighlightNeed(BlockPos start, BlockPos end, int color) {}
 }

@@ -33,7 +33,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.gregtechceu.gtceu.api.machine.multiblock.PartAbility.*;
+import static com.gregtechceu.gtceu.api.machine.multiblock.PartAbility.EXPORT_FLUIDS_1X;
+import static com.gregtechceu.gtceu.api.machine.multiblock.PartAbility.IMPORT_FLUIDS_1X;
 import static com.gregtechceu.gtceu.api.pattern.Predicates.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.Steam;
 
@@ -59,7 +60,7 @@ public class LargeSteamSolarBoilerMachine extends WorkableMultiblockMachine impl
         }
     };
 
-    @DynamicInitialValue(key = "gtocore.machine.large_steam_solar_boiler", typeKey = DynamicInitialValueTypes.KEY_MULTIPLY, simpleValue = "30", normalValue = "18", expertValue = "10", cn = "基础蒸汽产率 : %s / t", en = "Basic steam production : %s / t")
+    @DynamicInitialValue(key = "gtocore.machine.large_steam_solar_boiler", typeKey = DynamicInitialValueTypes.KEY_MULTIPLY, simpleValue = "30", normalValue = "18", expertValue = "12", cn = "基础蒸汽产率 : %s / t", en = "Basic steam production : %s / t")
     private static int basicSteamProduction = 10;
 
     private static final int MAX_LR_DIST = 5, MAX_B_DIST = 11;

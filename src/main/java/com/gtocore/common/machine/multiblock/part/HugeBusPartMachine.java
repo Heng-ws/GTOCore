@@ -15,8 +15,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
+import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
+import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -44,7 +46,6 @@ import com.lowdragmc.lowdraglib.side.item.ItemTransferHelper;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,10 +95,9 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IMa
     }
 
     private void refundAll(ClickData clickData) {
-        if (ItemTransferHelper.getItemTransfer(getLevel(), getPos().relative(getFrontFacing()), getFrontFacing().getOpposite()) != null) {
-            setWorkingEnabled(false);
-            exportToNearby(inventory, getFrontFacing());
-        }
+        if (clickData.isRemote) return;
+        setWorkingEnabled(false);
+        exportToNearby(inventory, getFrontFacing());
     }
 
     @Override
@@ -119,7 +119,7 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IMa
 
     @Override
     public void onMachineRemoved() {
-        clearInventory(inventory);
+        clearInventory(inventory.storage);
     }
 
     private void updateInventorySubscription() {
@@ -140,13 +140,11 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IMa
         }
     }
 
-    private void exportToNearby(NotifiableItemStackHandler handler, @NotNull Direction... facings) {
-        if (handler.isEmpty()) return;
+    private void exportToNearby(HugeNotifiableItemStackHandler handler, @NotNull Direction facing) {
+        if (handler.getCount() < 1) return;
         var level = getLevel();
         var pos = getPos();
-        for (Direction facing : facings) {
-            UnlimitItemTransferHelper.exportToTarget(handler, Integer.MAX_VALUE, f -> true, level, pos.relative(facing), facing.getOpposite());
-        }
+        UnlimitItemTransferHelper.exportToTarget(handler.storage, Integer.MAX_VALUE, f -> true, level, pos.relative(facing), facing.getOpposite());
     }
 
     @Override
@@ -198,19 +196,33 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IMa
         }
 
         @Override
-        @Nullable
-        public Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
-            long c = getCount();
-            if (c < 1) return null;
-            if (itemMap == null) {
-                itemMap = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM);
+        public boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
+            var amount = ((HugeCustomItemStackHandler) storage).count;
+            if (amount > 0) {
+                return function.test(getStackInSlot(0), amount);
             }
+            return false;
+        }
+
+        @Override
+        public void fastForEachItems(ObjectLongConsumer<ItemStack> function) {
+            var amount = ((HugeCustomItemStackHandler) storage).count;
+            if (amount > 0) {
+                function.accept(getStackInSlot(0), amount);
+            }
+        }
+
+        @Override
+        public IntIngredientMap getIngredientMap() {
             if (changed) {
                 changed = false;
-                itemMap.clear();
-                itemMap.put(getStackInSlot(0), getCount());
+                intIngredientMap.clear();
+                var amount = ((HugeCustomItemStackHandler) storage).count;
+                if (amount > 0) {
+                    IntIngredientMap.ITEM_CONVERSION.convert(getStackInSlot(0), amount, intIngredientMap);
+                }
             }
-            return itemMap;
+            return intIngredientMap;
         }
 
         @Override
@@ -274,7 +286,7 @@ public final class HugeBusPartMachine extends TieredIOPartMachine implements IMa
 
         @Override
         public void setStackInSlot(int index, @NotNull ItemStack stack) {
-            this.stack = stack.copy();
+            this.stack = stack;
             count = stack.getCount();
             onContentsChanged(index);
         }

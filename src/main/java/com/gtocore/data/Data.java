@@ -1,6 +1,5 @@
 package com.gtocore.data;
 
-import com.gtocore.common.CommonProxy;
 import com.gtocore.common.data.GTOLoots;
 import com.gtocore.common.data.GTOOres;
 import com.gtocore.common.data.GTORecipeTypes;
@@ -15,12 +14,16 @@ import com.gtocore.data.recipe.magic.ArsNouveauRecipes;
 import com.gtocore.data.recipe.magic.BotaniaRecipes;
 import com.gtocore.data.recipe.magic.MagicRecipesA;
 import com.gtocore.data.recipe.magic.MagicRecipesB;
-import com.gtocore.data.recipe.misc.*;
+import com.gtocore.data.recipe.misc.Ae2wtlibRecipes;
+import com.gtocore.data.recipe.misc.ComponentRecipes;
 import com.gtocore.data.recipe.mod.FunctionalStorage;
 import com.gtocore.data.recipe.mod.ImmersiveAircraft;
 import com.gtocore.data.recipe.mod.MeteoriteRecipe;
 import com.gtocore.data.recipe.processing.*;
-import com.gtocore.data.recipe.research.*;
+import com.gtocore.data.recipe.research.AnalyzeData;
+import com.gtocore.data.recipe.research.AnalyzeRecipes;
+import com.gtocore.data.recipe.research.DataGenerateRecipe;
+import com.gtocore.data.recipe.research.ScanningRecipes;
 import com.gtocore.integration.emi.GTEMIRecipe;
 import com.gtocore.integration.emi.multipage.MultiblockInfoEmiRecipe;
 
@@ -49,6 +52,7 @@ import com.gregtechceu.gtceu.data.recipe.misc.StoneMachineRecipes;
 import com.gregtechceu.gtceu.data.recipe.misc.WoodMachineRecipes;
 import com.gregtechceu.gtceu.integration.emi.recipe.GTRecipeEMICategory;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.block.Block;
 
 import com.google.common.collect.ImmutableSet;
@@ -59,6 +63,7 @@ import dev.emi.emi.config.SidebarSide;
 import dev.emi.emi.recipe.special.EmiRepairItemRecipe;
 import dev.shadowsoffire.placebo.loot.LootSystem;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import me.jellysquid.mods.sodium.mixin.core.render.MinecraftAccessor;
 
 import java.util.Collections;
 
@@ -199,7 +204,14 @@ public final class Data {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            CommonProxy.setException(e);
+            Client.interrupt();
+        }
+    }
+
+    private static class Client {
+
+        private static void interrupt() {
+            ((MinecraftAccessor) Minecraft.getInstance()).embeddium$getGameThread().interrupt();
         }
     }
 }

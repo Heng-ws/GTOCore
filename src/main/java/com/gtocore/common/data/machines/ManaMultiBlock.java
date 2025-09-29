@@ -1,7 +1,6 @@
 package com.gtocore.common.data.machines;
 
 import com.gtocore.api.machine.part.GTOPartAbility;
-import com.gtocore.api.pattern.GTOPredicates;
 import com.gtocore.common.data.GTOBlocks;
 import com.gtocore.common.data.GTOMaterials;
 import com.gtocore.common.data.GTORecipeTypes;
@@ -26,9 +25,9 @@ import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.common.data.GCYMBlocks;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
 import vazkii.botania.common.block.BotaniaBlocks;
@@ -46,6 +45,8 @@ import static com.gtocore.utils.register.MachineRegisterUtils.multiblock;
 public final class ManaMultiBlock {
 
     public static void init() {}
+
+    private static ItemStack[] manaAlloyRewardPool;
 
     public static final MultiblockMachineDefinition MANA_ALLOY_BLAST_SMELTER = multiblock("mana_alloy_blast_smelter", "魔力合金炉", ManaAlloyBlastSmelterMachine::new)
             .nonYAxisRotation()
@@ -89,6 +90,21 @@ public final class ManaMultiBlock {
                     .where(' ', any())
                     .build())
             .workableCasingRenderer(GTOCore.id("block/casings/manasteel_casing"), GTCEu.id("block/multiblock/gcym/blast_alloy_smelter"))
+            .recoveryStacks((m, r) -> {
+                if (manaAlloyRewardPool == null) {
+                    manaAlloyRewardPool = new ItemStack[] {
+                            ChemicalHelper.get(TagPrefix.dustTiny, GTOMaterials.Salamander),
+                            ChemicalHelper.get(TagPrefix.dustTiny, GTOMaterials.Undine),
+                            ChemicalHelper.get(TagPrefix.dustTiny, GTOMaterials.Sylph),
+                            ChemicalHelper.get(TagPrefix.dustTiny, GTOMaterials.Gnome),
+                            ChemicalHelper.get(TagPrefix.dustTiny, Runerock)
+                    };
+                }
+                if (m.getLevel() != null) {
+                    return manaAlloyRewardPool[m.getLevel().random.nextInt(manaAlloyRewardPool.length)];
+                }
+                return manaAlloyRewardPool[0];
+            })
             .register();
 
     public static final MultiblockMachineDefinition BASE_MANA_DISTRIBUTOR = multiblock("base_mana_distributor", "基础魔力分配器", ManaDistributorMachine.create(16, 32))
@@ -107,7 +123,9 @@ public final class ManaMultiBlock {
                     .where('~', controller(blocks(definition.get())))
                     .where('A', blocks(RegistriesUtils.getBlock("botania:livingrock_bricks_wall")))
                     .where('B', blocks(RegistriesUtils.getBlock("botania:livingrock_bricks")))
-                    .where('b', blocks(RegistriesUtils.getBlock("botania:livingrock_bricks")).or(abilities(GTOPartAbility.INPUT_MANA)).or(abilities(GTOPartAbility.EXTRACT_MANA)))
+                    .where('b', blocks(RegistriesUtils.getBlock("botania:livingrock_bricks"))
+                            .or(abilities(GTOPartAbility.INPUT_MANA))
+                            .or(abilities(GTOPartAbility.EXTRACT_MANA)))
                     .where('C', blocks(Blocks.BIRCH_FENCE_GATE))
                     .where('D', blocks(RegistriesUtils.getBlock("botania:livingrock")))
                     .where('E', blocks(RegistriesUtils.getBlock("botania:chiseled_livingrock_bricks")))
@@ -141,7 +159,9 @@ public final class ManaMultiBlock {
                     .where('A', blocks(RegistriesUtils.getBlock("botania:livingrock")))
                     .where('B', blocks(RegistriesUtils.getBlock("botania:livingrock_bricks_wall")))
                     .where('C', blocks(RegistriesUtils.getBlock("botania:livingrock_bricks")))
-                    .where('c', blocks(RegistriesUtils.getBlock("botania:livingrock_bricks")).or(abilities(GTOPartAbility.INPUT_MANA)).or(abilities(GTOPartAbility.EXTRACT_MANA)))
+                    .where('c', blocks(RegistriesUtils.getBlock("botania:livingrock_bricks"))
+                            .or(abilities(GTOPartAbility.INPUT_MANA))
+                            .or(abilities(GTOPartAbility.EXTRACT_MANA)))
                     .where('D', blocks(RegistriesUtils.getBlock("botania:apothecary_livingrock")))
                     .where('E', blocks(RegistriesUtils.getBlock("botania:mana_pylon")))
                     .where('F', blocks(RegistriesUtils.getBlock("botania:chiseled_livingrock_bricks")))
@@ -176,8 +196,8 @@ public final class ManaMultiBlock {
                     .where('F', blocks(GTOBlocks.MANASTEEL_CASING.get())
                             .or(abilities(GTOPartAbility.INPUT_MANA).setMaxGlobalLimited(16, 1))
                             .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
-                            .or(abilities(EXPORT_ITEMS).setPreviewCount(1))
-                            .or(abilities(IMPORT_ITEMS).setPreviewCount(1)))
+                            .or(abilities(EXPORT_ITEMS).setMaxGlobalLimited(16, 1))
+                            .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(16, 1)))
                     .where('G', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.Manasteel)))
                     .where('H', blocks(RegistriesUtils.getBlock("botania:glimmering_livingwood")))
                     .where('I', blocks(RegistriesUtils.getBlock("botania:mana_glass")))
@@ -230,8 +250,8 @@ public final class ManaMultiBlock {
                     .where('B', blocks(GTOBlocks.MANASTEEL_CASING.get())
                             .or(abilities(GTOPartAbility.INPUT_MANA).setMaxGlobalLimited(2, 1))
                             .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
-                            .or(abilities(EXPORT_ITEMS).setPreviewCount(1))
-                            .or(abilities(IMPORT_ITEMS).setPreviewCount(1)))
+                            .or(abilities(EXPORT_ITEMS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(4, 1)))
                     .where('C', controller(blocks(definition.get())))
                     .where('D', blocks(RegistriesUtils.getBlock("botania:polished_livingrock")))
                     .where('E', blocks(GTOBlocks.MANASTEEL_CASING.get()))
@@ -263,9 +283,9 @@ public final class ManaMultiBlock {
                     .where('A', blocks(GTOBlocks.MANASTEEL_CASING.get())
                             .or(abilities(GTOPartAbility.INPUT_MANA).setMaxGlobalLimited(16, 1))
                             .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
-                            .or(abilities(IMPORT_FLUIDS).setPreviewCount(1))
-                            .or(abilities(EXPORT_ITEMS).setPreviewCount(1))
-                            .or(abilities(IMPORT_ITEMS).setPreviewCount(1)))
+                            .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(16, 1))
+                            .or(abilities(EXPORT_ITEMS).setMaxGlobalLimited(16, 1))
+                            .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(16, 1)))
                     .where('B', blocks(RegistriesUtils.getBlock("botania:livingwood_wall")))
                     .where('C', blocks(RegistriesUtils.getBlock("botania:apothecary_livingrock")))
                     .where('D', blocks(Blocks.LANTERN))
@@ -316,9 +336,9 @@ public final class ManaMultiBlock {
                     .where('K', blocks(GTOBlocks.MANASTEEL_CASING.get())
                             .or(abilities(GTOPartAbility.INPUT_MANA).setMaxGlobalLimited(16, 1))
                             .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
-                            .or(abilities(IMPORT_FLUIDS).setPreviewCount(1))
-                            .or(abilities(EXPORT_ITEMS).setPreviewCount(1))
-                            .or(abilities(IMPORT_ITEMS).setPreviewCount(1)))
+                            .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(EXPORT_ITEMS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(4, 1)))
                     .where('L', controller(blocks(definition.get())))
                     .where(' ', any())
                     .build())
@@ -352,12 +372,12 @@ public final class ManaMultiBlock {
                     .where('E', air())
                     .where('F', blocks(RegistriesUtils.getBlock("botania:livingrock"))
                             .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
-                            .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(2, 1)
-                                    .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(2, 1))
-                                    .or(abilities(INPUT_ENERGY))
-                                    .or(abilities(OUTPUT_MANA))
-                                    .or(abilities(MAINTENANCE).setExactLimit(1))
-                                    .or(abilities(EXPORT_FLUIDS).setMaxGlobalLimited(2, 1))))
+                            .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(EXPORT_FLUIDS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(INPUT_ENERGY))
+                            .or(abilities(OUTPUT_MANA))
+                            .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where('G', blocks(RegistriesUtils.getBlock("botania:livingrock_wall")))
                     .where('H', blocks(RegistriesUtils.getBlock("botania:elf_glass")))
                     .where('I', blocks(RegistriesUtils.getBlock("botania:mana_spreader")))
@@ -415,7 +435,11 @@ public final class ManaMultiBlock {
                     .where('A', blocks(GTOBlocks.ALFSTEEL_CASING.get()))
                     .where('B', blocks(GTOBlocks.SPELL_PRISM_CASING.get()))
                     .where('C', blocks(GTOBlocks.SPELL_PRISM_CASING.get())
-                            .or(autoAbilities(definition.getRecipeTypes()))
+                            .or(abilities(EXPORT_ITEMS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(GTOPartAbility.INPUT_MANA).setMaxGlobalLimited(16, 1))
+                            .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
                     .where('D', blocks(GTOBlocks.ORIGINAL_BRONZE_CASING.get()))
                     .where('E', blocks(RegistriesUtils.getBlock("botania:corporea_block")))
@@ -436,33 +460,56 @@ public final class ManaMultiBlock {
     public static final MultiblockMachineDefinition LARGE_ALCHEMICAL_DEVICE = multiblock("large_alchemical_device", "大型炼金装置", LargeAlchemicalDeviceMachine::new)
             .nonYAxisRotation()
             .parallelizableTooltips()
-            .tooltipsText("§7炼金是一个神秘的过程", "§7Alchemy is a mysterious process")
-            .tooltipsText("§7部分配方产出概率随运行次数增长", "§7The probability of partial recipe output increases with the number of runs")
-            .tooltipsText("§7放入七个嬗变催化器激活完美嬗变模式", "§7Place seven Transmutation Catalysts to activate Perfect Transmutation Mode")
+            .tooltipsSupplier(GTOMachineTooltips.INSTANCE.getAlchemicalDeviceTooltips().getSupplier())
+            .tooltipsSupplier(GTOMachineTooltips.INSTANCE.getLargeAlchemicalDeviceTooltips().getSupplier())
+            .moduleTooltips()
             .recipeModifiers(RecipeModifierFunction.HATCH_PARALLEL)
             .recipeTypes(GTORecipeTypes.ALCHEMY_CAULDRON_RECIPES)
             .block(GCYMBlocks.CASING_CORROSION_PROOF)
             .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("     AAA     ", "     ABA     ", "     ABA     ", "     AAA     ", "             ")
-                    .aisle("CCC ACCCA CCC", "CCC AD DA CCC", "CCC AD DA CCC", " C  AD DA  C ", "     EEE     ")
-                    .aisle("CCC ACCCA CCC", "CGHHH G A CGC", "CGC A G HHHGC", "CCC A G A CCC", "     EEE     ")
-                    .aisle("CCC ACCCA CCC", "CCC AD DA CCC", "CCC AD DA CCC", " C  AD DA  C ", "     EEE     ")
-                    .aisle("    AAAAA    ", "    AIHIA    ", "    AIHIA    ", "     AAA     ", "             ")
-                    .aisle("     AAA     ", "     AJA     ", "     AAA     ", "             ", "             ")
-                    .where('A', blocks(GCYMBlocks.CASING_CORROSION_PROOF.get())
-                            .or(autoAbilities(definition.getRecipeTypes()))
+                    .aisle(" AAAAA ", "  BBB  ", "  CCC  ", "  CCC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CCC  ", "  CCC  ", "       ")
+                    .aisle("A  B  A", " BEEEB ", " CEEEC ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " CEEEC ", "  BBB  ")
+                    .aisle("A EEEAA", "BE   EB", "CE   EC", "C     C", "C     C", "C     C", "C     C", "C     C", "C     C", "C     C", "C     C", "C     C", "CE   EC", " BFFFB ")
+                    .aisle("ABEEEBA", "BE G EB", "CE G EC", "C  G  C", "D  G  D", "D  G  D", "D  G  D", "D  G  D", "D  G  D", "D  G  D", "D  G  D", "C  G  C", "CE G EC", " BFIFB ")
+                    .aisle("A EEEAA", "BE   EB", "CE   EC", "C     C", "C     C", "C     C", "C     C", "C     C", "C     C", "C     C", "C     C", "C     C", "CE   EC", " BFFFB ")
+                    .aisle("A  B  A", " BEEEB ", " CEEEC ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " C   C ", " CEEEC ", "  BBB  ")
+                    .aisle(" AAAAA ", "  BBB  ", "  CHC  ", "  CCC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CDC  ", "  CCC  ", "  CCC  ", "       ")
+                    .where('A', blocks(GTOBlocks.PPS_CORROSION_RESISTANT_MECHANICAL_HOUSING.get()))
+                    .where('B', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTOMaterials.Herbs)))
+                    .where('C', blocks(GCYMBlocks.CASING_CORROSION_PROOF.get())
+                            .or(abilities(EXPORT_ITEMS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(EXPORT_FLUIDS).setMaxGlobalLimited(4, 1))
+                            .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(4, 1))
                             .or(abilities(PARALLEL_HATCH).setMaxGlobalLimited(1))
                             .or(abilities(GTOPartAbility.INPUT_MANA).setMaxGlobalLimited(16, 1))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
-                    .where('B', blocks(GTBlocks.CASING_TEMPERED_GLASS.get()))
-                    .where('C', blocks(GTBlocks.CASING_INVAR_HEATPROOF.get()))
-                    .where('D', air())
-                    .where('E', blocks(GTOBlocks.STAINLESS_EVAPORATION_CASING.get()))
-                    .where('G', blocks(GTBlocks.HERMETIC_CASING_IV.get())
-                            .or(GTOPredicates.countBlock("transmutation_catalyst", GTOBlocks.TRANSMUTATION_CATALYST.get())))
-                    .where('H', blocks(GTBlocks.CASING_STEEL_PIPE.get()))
-                    .where('I', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Aluminium)))
-                    .where('J', controller(blocks(definition.get())))
+                    .where('D', blocks(GTOBlocks.CHEMICAL_GRADE_GLASS.get()))
+                    .where('E', blocks(GCYMBlocks.CASING_CORROSION_PROOF.get()))
+                    .where('F', blocks(GTBlocks.FILTER_CASING.get()))
+                    .where('G', blocks(GTBlocks.HERMETIC_CASING_IV.get()))
+                    .where('H', controller(blocks(definition.get())))
+                    .where('I', blocks(GTOBlocks.IRIDIUM_PIPE_CASING.get()))
+                    .where(' ', any())
+                    .build())
+            .addSubPattern(definition -> FactoryBlockPattern.start(definition)
+                    .aisle("      AAA    ", "      CCC    ", "      CEC    ", "      CEC    ", "      CCC    ", "             ", "             ", "             ", "             ", "             ", "      FFF    ", "      FEF    ", "      FEF    ", "      FFF    ", "      AAA    ", "             ")
+                    .aisle("     AAAAAAA ", "     CCDCC A ", "     C   C A ", "     C   C A ", "     CCICC A ", "       I   A ", "       I   A ", "       I   A ", "       I   A ", "       I   A ", "     FFIFF A ", "     FF FF A ", "     FF FF A ", "     FFDFF A ", "AAAAAAAAAAAA ", "             ")
+                    .aisle("     AAAAAAAA", "     CDGDDBAA", "     E H EBAA", "     E H EBAA", "     CGHGCBAA", "      GJG BAA", "      GJG BAA", "      GJG BAA", "      GJG BAA", "      GJG BAA", "     FGHGFBAA", "     E H EBAA", "     E H EBAA", "     FDGDDBAA", "ADDAAAAAAAAAA", " AAAAAAAAAAA ")
+                    .aisle("     AAAAAAA ", "     CCDCC A ", "     C   C A ", "     C   C A ", "     CCICC A ", "       I   A ", "       I   A ", "       I   A ", "       I   A ", "       I   A ", "     FFIFF A ", "     FF FF A ", "     FF FF A ", "     FFDFF A ", "AAAAAAAAAAAA ", "             ")
+                    .aisle("      AAA    ", "      CCC    ", "      CEC    ", "      CEC    ", "      CCC    ", "             ", "             ", "             ", "             ", "             ", "      FFF    ", "      FEF    ", "      FEF    ", "      FFF    ", "      AAA    ", "             ")
+                    .aisle("             ", "             ", " K           ", "             ", "             ", "             ", "             ", "             ", "             ", "             ", "             ", "             ", "             ", "             ", "             ", "             ")
+                    .where('A', blocks(GTOBlocks.PPS_CORROSION_RESISTANT_MECHANICAL_HOUSING.get()))
+                    .where('B', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
+                    .where('C', blocks(GTOBlocks.MANASTEEL_CASING.get()))
+                    .where('D', blocks(GTOBlocks.IRIDIUM_PIPE_CASING.get()))
+                    .where('E', blocks(RegistriesUtils.getBlock("botania:mana_glass")))
+                    .where('F', blocks(GTOBlocks.ELEMENTIUM_CASING.get()))
+                    .where('G', blocks(GTOBlocks.SOURCE_FIBER_MECHANICAL_CASING.get()))
+                    .where('H', blocks(GTOBlocks.TRANSMUTATION_CATALYST.get()))
+                    .where('I', blocks(GTOBlocks.HERETICAL_MECHANICAL_CASING.get()))
+                    .where('J', blocks(GTOBlocks.AMPROSIUM_ACTIVE_CASING.get()))
+                    .where('K', controller(blocks(definition.get())))
                     .where(' ', any())
                     .build())
             .workableCasingRenderer(GTCEu.id("block/casings/gcym/corrosion_proof_casing"), GTCEu.id("block/multiblock/gcym/large_centrifuge"))
@@ -507,8 +554,8 @@ public final class ManaMultiBlock {
                     .where('A', blocks(GTOBlocks.HERETICAL_MECHANICAL_CASING.get()).setMinGlobalLimited(16)
                             .or(abilities(INPUT_ENERGY))
                             .or(abilities(GTOPartAbility.INPUT_MANA))
-                            .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(1))
-                            .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(1))
+                            .or(abilities(IMPORT_FLUIDS))
+                            .or(abilities(IMPORT_ITEMS))
                             .or(abilities(EXPORT_FLUIDS))
                             .or(abilities(EXPORT_ITEMS)))
                     .where('~', controller(blocks(definition.get())))

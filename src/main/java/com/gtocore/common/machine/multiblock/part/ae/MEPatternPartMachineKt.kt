@@ -47,11 +47,11 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler
 import com.gtolib.api.ae2.MyPatternDetailsHelper
 import com.gtolib.api.ae2.pattern.IParallelPatternDetails
-import com.gtolib.api.annotation.Scanned
+import com.gtolib.api.annotation.DataGeneratorScanned
 import com.gtolib.api.annotation.language.RegisterLanguage
 import com.gtolib.api.capability.ISync
 import com.gtolib.api.gui.ktflexible.*
-import com.gtolib.syncdata.SyncManagedFieldHolder
+import com.gtolib.api.network.SyncManagedFieldHolder
 import com.lowdragmc.lowdraglib.gui.widget.Widget
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup
 import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware
@@ -65,7 +65,7 @@ import javax.annotation.ParametersAreNonnullByDefault
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@Scanned
+@DataGeneratorScanned
 internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.AbstractInternalSlot>(holder: MetaMachineBlockEntity, val maxPatternCount: Int) :
     MEPartMachine(holder, IO.IN),
     ICraftingProvider,
@@ -82,7 +82,7 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
     }
 
     // ==================== 常量和静态成员 ====================
-    @Scanned
+    @DataGeneratorScanned
     companion object {
         @JvmStatic
         val MANAGED_FIELD_HOLDER = ManagedFieldHolder(MEPatternPartMachineKt::class.java, MEPartMachine.MANAGED_FIELD_HOLDER)
@@ -149,7 +149,7 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
     @Suppress("UNCHECKED_CAST")
     fun getInternalInventory(): Array<T> = internalInventory as Array<T>
 
-    fun onPatternChange(index: Int) {
+    open fun onPatternChange(index: Int) {
         if (isRemote) return
 
         val internalInv = getInternalInventory()[index]
@@ -177,24 +177,6 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
 
     // ==================== 生命周期方法 ====================
     val newPageField = ISync.createIntField(this).set(0)
-    override fun onLoad() {
-        super.onLoad()
-        when (val level = getLevel()) {
-            is ServerLevel -> {
-                level.server.tell(
-                    TickTask(1) {
-                        (0 until patternInventory.slots).forEach { i ->
-                            val pattern = patternInventory.getStackInSlot(i)
-                            decodePattern(pattern, i)?.let { patternDetails ->
-                                detailsSlotMap[patternDetails] = getInternalInventory()[i]
-                            }
-                        }
-                        updatePatterns()
-                    },
-                )
-            }
-        }
-    }
 
     override fun onMachinePlaced(player: LivingEntity?, stack: ItemStack?) {
         super<MEPartMachine>.onMachinePlaced(player, stack)
@@ -211,6 +193,21 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
     override fun onMainNodeStateChanged(reason: IGridNodeListener.State) {
         super<MEPartMachine>.onMainNodeStateChanged(reason)
         updateSubscription()
+        when (val level = getLevel()) {
+            is ServerLevel -> {
+                level.server.tell(
+                    TickTask(0) {
+                        (0 until patternInventory.slots).forEach { i ->
+                            val pattern = patternInventory.getStackInSlot(i)
+                            decodePattern(pattern, i)?.let { patternDetails ->
+                                detailsSlotMap[patternDetails] = getInternalInventory()[i]
+                            }
+                        }
+                        updatePatterns()
+                    },
+                )
+            }
+        }
     }
 
     override fun getFieldHolder(): ManagedFieldHolder = MANAGED_FIELD_HOLDER
@@ -349,7 +346,7 @@ internal abstract class MEPatternPartMachineKt<T : MEPatternPartMachineKt.Abstra
 
     open fun convertPattern(pattern: IPatternDetails, index: Int): IPatternDetails = pattern
 
-    private fun decodePattern(stack: ItemStack, index: Int): IPatternDetails? {
+    open fun decodePattern(stack: ItemStack, index: Int): IPatternDetails? {
         val pattern = MyPatternDetailsHelper.decodePattern(stack, holder.self, getGrid())
         if (pattern == null) return null
         return IParallelPatternDetails.of(convertPattern(pattern, index), level, 1)

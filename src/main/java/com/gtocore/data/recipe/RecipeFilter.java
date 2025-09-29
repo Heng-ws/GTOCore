@@ -10,6 +10,7 @@ import com.gtolib.GTOCore;
 import com.gtolib.utils.RLUtils;
 
 import com.gregtechceu.gtceu.data.recipe.configurable.RecipeRemoval;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.resources.ResourceLocation;
 
@@ -53,11 +54,11 @@ public final class RecipeFilter {
     }
 
     private static void addFilter(List<Predicate<ResourceLocation>> filters) {
-        ObjectOpenHashSet<ResourceLocation> ids = new ObjectOpenHashSet<>(2048);
+        ObjectOpenHashSet<ResourceLocation> ids = new OpenCacheHashSet<>(2048);
         initIdFilter(ids);
         RecipeRemoval.init(ids::add);
         filters.add(ids::contains);
-        ObjectOpenHashSet<String> mods = new ObjectOpenHashSet<>();
+        ObjectOpenHashSet<String> mods = new OpenCacheHashSet<>();
         initModFilter(mods);
         filters.add(rl -> mods.contains(rl.getNamespace()));
     }
@@ -342,6 +343,13 @@ public final class RecipeFilter {
         filters.add(RLUtils.avaritia("eio_creative_power"));
         filters.add(RLUtils.avaritia("botania_creative_pool"));
         filters.add(RLUtils.avaritia("compressed_chest"));
+        filters.add(RLUtils.avaritia("infinity_catalyst_eternal"));
+        filters.add(RLUtils.avaritia("ae2_creative_energy_cell"));
+        filters.add(RLUtils.mc("dragon_egg"));
+        filters.add(RLUtils.mc("crying_obsidian"));
+        filters.add(RLUtils.mc("echo_shard"));
+        filters.add(RLUtils.mc("dragon_breath"));
+        filters.add(RLUtils.mc("end_portal_frame"));
 
         filters.add(RLUtils.ad("refining/fuel_from_refining_oil"));
         filters.add(RLUtils.ad("oxygen_loading/oxygen_from_oxygen_loading_oxygen"));
@@ -536,13 +544,20 @@ public final class RecipeFilter {
         filters.add(RLUtils.fd("straw"));
         filters.add(RLUtils.fd("paper_from_tree_bark"));
         filters.add(RLUtils.fd("cooking_pot"));
+        filters.add(RLUtils.fd("book_from_canvas"));
+        filters.add(RLUtils.fd("scaffolding_from_canvas"));
+        filters.add(RLUtils.fd("painting_from_canvas"));
         filters.add(RLUtils.mc("red_dye"));
+        filters.add(RLUtils.mc("book_from_canvas"));
+        filters.add(RLUtils.mc("painting_from_canvas"));
+        filters.add(RLUtils.mc("scaffolding_from_canvas"));
 
         filters.add(RLUtils.fromNamespaceAndPath("farmersrespite", "green_tea_leaves_sack"));
         filters.add(RLUtils.fromNamespaceAndPath("farmersrespite", "yellow_tea_leaves_sack"));
         filters.add(RLUtils.fromNamespaceAndPath("farmersrespite", "black_tea_leaves_sack"));
         filters.add(RLUtils.fromNamespaceAndPath("farmersrespite", "coffee_beans_sack"));
 
+        filters.add(RLUtils.fromNamespaceAndPath("avaritia", "neutron_gear"));
         if (Mods.biomeswevegone()) {
             DyeRecipes.BWG.forEach((k, v) -> {
                 filters.add(RLUtils.fromNamespaceAndPath("minecraft", k + "_dye_from_bwg_dye_tag"));

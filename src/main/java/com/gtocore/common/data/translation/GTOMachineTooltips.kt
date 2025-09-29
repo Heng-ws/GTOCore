@@ -31,6 +31,7 @@ object GTOMachineTooltips {
         danger("一键清空方块！！！" translatedTo "One click to clear the blocks!!!")
         danger("无视一切条件！！！" translatedTo "Ignore all conditions!!!")
         danger("注意爆破安全！！！" translatedTo "Pay attention to blasting safety!!!")
+        highlight("多人游戏请务必提醒其他成员！" translatedTo "Be sure to remind other players in the multiplayer game! ")
 
         section("可用模式" translatedTo "Available Modes")
         function("向库存放入物品以切换模式" translatedTo "Add items to inventory to switch modes")
@@ -39,11 +40,43 @@ object GTOMachineTooltips {
         command("放入§b模具(块)§r为§6区块模式§r" translatedTo "Put §bCasting Mold (Block)§r for §6Chunk mode§r")
         command("放入§b奇点§r为§6指定区域模式§r" translatedTo "Put §bSingularity§r for §6Designated Area mode§r")
         info("此时用两个§9坐标信息卡§r来确定区域" translatedTo "Now use two §9Coordinate Cards§r to determine the area")
-        important("爆破时请保持机器加载" translatedTo "Keep the machine loaded while blasting")
 
         section("爆炸当量" translatedTo "Explosive Yield")
         increase("向库存添加以下物品以提高爆炸当量：" translatedTo "Add the following items to inventory to increase explosive yield:")
         info("§c工业TNT§r/§c核弹§r/§c超能硅岩爆弹§r/§c轻子爆弹§r/§c量子色动力学爆弹§r" translatedTo "§cIndustrial TNT§r/§cNuke Bomb§r/§cNaquadria Charge§r/§cLeptonic Charge§r/§cQuantum Chromodynamic Charge§r")
+    }
+
+    // 魔力增幅仓
+    val ManaAmplifierHatchTooltips = ComponentListSupplier {
+        setTranslationPrefix("mana_amplifier_hatch")
+
+        section(ComponentSlang.MainFunction)
+        content("如果运行前输入了等同机器最大功率的魔力" translatedTo "If mana equivalent to the machine's maximum power is input prior to operation")
+        increase("则将本次配方改为无损超频" translatedTo "The current recipe will switch to perfect overclocking.")
+        decrease("否则，机器不执行配方" translatedTo "Otherwise, the machine will not execute the recipe.")
+    }
+
+    // 魔力加热器
+    val ManaHeaterTooltips = ComponentListSupplier {
+        setTranslationPrefix("mana_heater")
+
+        section(ComponentSlang.RunningRequirements)
+        command("输入魔力加热" translatedTo "Input mana to heat")
+        increase("如果输入§c火元素蒸汽§r，则加热速度翻5倍" translatedTo "If §cfire element gas§r is input, the heating speed will be 5 times faster")
+        command(ComponentSlang.TemperatureMax(2400))
+    }
+
+    // 苍穹凝聚器
+    val CelestialCondenserTooltips = ComponentListSupplier {
+        setTranslationPrefix("celestial_condenser")
+
+        content("凝聚苍穹之上的能量" translatedTo "Condenses the energy from beyond the firmament")
+        section(ComponentSlang.RunningRequirements)
+        command("暴露于天空之下，不可有遮挡" translatedTo "Must be exposed directly to the sky with no obstructions")
+        increase("在主世界白天可以凝聚 - 曦煌" translatedTo "Can be condensed in the Overworld during daytime - Solaris")
+        increase("在主世界夜晚可以凝聚 - 胧华" translatedTo "Can be condensed in the Overworld during nighttime - Lunara")
+        increase("在末地可以凝聚 - 虚湮" translatedTo "Can be condensed in the End - Voidflux")
+        command("运行配方时需要消耗这些能量" translatedTo "This energy is consumed when running recipes")
     }
 
     // 转子仓
@@ -125,18 +158,9 @@ object GTOMachineTooltips {
         setTranslationPrefix("me_craft_pattern_part_machine")
 
         section(ComponentSlang.MainFunction)
-        function("合成样板仓用于存储合成样板" translatedTo "Craft Pattern Hatch is used to store synthesis templates")
+        function("合成样板仓用于存储合成样板" translatedTo "Craft Pattern Hatch is used to store crafting patterns")
         function("配合超级分子装配室使用" translatedTo "Use it with Super Molecular Assembler")
         info(ComponentSlang.Capacity(72.toString()))
-    }
-
-    // ME可编程样板总成
-    val MeProgrammablePatternBufferTooltips = ComponentListSupplier {
-        setTranslationPrefix("me_programmable_pattern_buffer")
-
-        section(ComponentSlang.MainFunction)
-        function("可以使用虚拟物品提供器进行编程" translatedTo "Can be programmed using virtual item provider")
-        content("一台机器，一个总成搞定所有样板" translatedTo "One machine, one pattern hatch ,finished.")
     }
 
     // ME样板总成
@@ -180,6 +204,16 @@ object GTOMachineTooltips {
         info(ComponentSlang.Capacity(MultiblockCrateMachine.Capacity.toString()))
     }
 
+    val fishingFarmTooltips: ComponentListSupplier = ComponentListSupplier {
+        setTranslationPrefix("fishing_farm")
+
+        section(("设置电路以启用" translatedTo "Set the circuit to enable").gold() + ("自动钓鱼" translatedTo "automatic fishing").scrollOptical())
+        content(("1号电路：" translatedTo "Circuit 1:").gold() + ("随机垂钓" translatedTo "random fishing").aqua())
+        content(("2号电路：" translatedTo "Circuit 2:").gold() + ("捕捉鱼类" translatedTo "catch fish").aqua())
+        content(("3号电路：" translatedTo "Circuit 3:").gold() + ("捕捉垃圾" translatedTo "catch junk").aqua())
+        content(("4号电路：" translatedTo "Circuit 4:").gold() + ("捕捉宝藏" translatedTo "catch treasure").aqua())
+    }
+
     // 外置热源锅炉
     val BoilWaterMachineTooltips = ComponentListSupplier {
         setTranslationPrefix("boil_water_machine")
@@ -196,7 +230,7 @@ object GTOMachineTooltips {
         setTranslationPrefix("performance_monitor_machine")
 
         section(ComponentSlang.MainFunction)
-        function("能监测全部机器2秒内的平均延迟" translatedTo "Can monitor all machines' average delay within 2 seconds and support highlighting")
+        function("能监测全部机器或AE网络3.2秒内的平均延迟" translatedTo "Can monitor all machines or AE grids' average delay within 3.2 seconds and support highlighting")
         guide("右键点击机器以打开性能监测界面" translatedTo "Right click on the machine to open performance monitoring interface")
     }
 
@@ -254,7 +288,7 @@ object GTOMachineTooltips {
     // 监控器合成处理单元组件
     val MonitorCraftingComponentTooltips = monitor {
         section(ComponentSlang.MainFunction)
-        function("显示§6ME合成处理单元§r的合成数据" translatedTo "Display the synthesis data of §6crafting unit§r")
+        function("显示§6ME合成处理单元§r的合成数据" translatedTo "Display the crafting data of §6crafting unit§r")
     }
 
     // 监控器自定义文本组件
@@ -267,9 +301,9 @@ object GTOMachineTooltips {
     // 超立方体
     val HyperCubeMachineTooltips = ComponentListSupplier {
         setTranslationPrefix("hyper_cube_machine")
-        highlight("可以代理一个流体或物品存储器" translatedTo "Can proxy a fluid or item or both storage")
 
-        section(ComponentSlang.MainFunction)
+        highlight("代理一个流体或物品存储器" translatedTo "Proxy a fluid or item or both storage")
+        command("使用§b坐标信息卡§r绑定方块" translatedTo "Use the §bCordinate Card§r to bind a storage block")
         function("绑定某方块后，对此机器进行物品或流体操作视同对被绑定的方块操作" translatedTo "Bind a storage to this machine to operate it as if it were the bound storage")
         guide("右键点击以打开界面" translatedTo "Right click to open the interface")
         increase("此方块有升级版本" translatedTo "Has upgrade version")
@@ -278,8 +312,9 @@ object GTOMachineTooltips {
     // 进阶超立方体
     val AdvancedHyperCubeMachineTooltips = ComponentListSupplier {
         setTranslationPrefix("advanced_hyper_cube_machine")
-        highlight("可以代理多个流体或物品存储器" translatedTo "Can proxy (a or multi) (fluid or item or both)storage")
 
+        highlight("代理多个流体或物品存储器" translatedTo "Proxy (a or multi) (fluid or item or both)storage")
+        command("使用§b坐标信息卡§r绑定方块" translatedTo "Use the §bCordinate Card§r to bind a storage block")
         function("绑定某方块后，对此机器进行物品或流体操作视同对被绑定的方块操作" translatedTo "Bind a storage to this machine to operate it as if it were the bound storage")
         function("若绑定多个方块，则依序对他们操作" translatedTo "Operate them in order if bind multiple storages")
         guide("右键点击以打开界面" translatedTo "Right click to open the interface")
@@ -305,7 +340,7 @@ object GTOMachineTooltips {
         section("通过燃烧对四周机器进行加热" translatedTo "Burning to heat up around machines")
         content("前方被阻挡后停止加热" translatedTo "Stop heating after front side is blocked.")
         content("根据温度发出红石信号" translatedTo "Emits redstone signal according to the temperature.")
-        content(ComponentSlang.TemperatureMax(HeaterMachine.MaxTemperature))
+        command(ComponentSlang.TemperatureMax(HeaterMachine.MaxTemperature))
         error(("机器过热会" translatedTo "When machine is too hot, it will ") + ComponentSlang.Explosion)
         danger(ComponentSlang.BeAwareOfBurn)
     }
@@ -315,7 +350,7 @@ object GTOMachineTooltips {
         setTranslationPrefix("electric_heater_machine")
 
         section("使用电力对四周机器进行加热" translatedTo "Use electricity to heat up around machines")
-        content(ComponentSlang.TemperatureMax(ElectricHeaterMachine.MaxTemperature))
+        command(ComponentSlang.TemperatureMax(ElectricHeaterMachine.MaxTemperature))
         ok("此机器不会爆炸" translatedTo "This machine will not explode")
         danger(ComponentSlang.BeAwareOfBurn)
     }
@@ -367,7 +402,6 @@ object GTOMachineTooltips {
         content(
             "将多台计算机集成在一起，提供大规模并行计算能力" translatedTo "Integrates multiple computers together to provide massive parallel computing power",
             { lightPurple() },
-            ComponentSlang.Bar(1),
         )
 
         section("等级系统" translatedTo "Level System")
@@ -394,16 +428,19 @@ object GTOMachineTooltips {
         section("Tier 1 : 支持HPCA系列组件" translatedTo "Tier 1 : Supports HPCA Series Components", { blue() })
         content("槽位需求: 无" translatedTo "Slot requirement: None")
         content("结构材料需求: 钨强化硼玻璃 + 计算机外壳 + 计算机散热口" translatedTo "Structure material requirements: Tungsten Borosilicate Glass + Computer Casing + Computer Heat Vent")
+        content("使用冷却剂: 多氯联苯冷却剂" translatedTo "Coolant used: PCB coolant")
 
         // Tier 2 组件支持
         section("Tier 2 : 支持NICH系列组件" translatedTo "Tier 2 : Supports NICH Series Components", { blue() })
-        content("槽位需求: 放入§a生物主机" translatedTo "Slot requirement: Place §abiological host")
+        content(("槽位需求: 放入" translatedTo "Slot requirement: Place ") + ("生物活性主机" translatedTo "Biological Mainframe").scrollBioware())
         content("结构材料需求: 安普洛强化硼玻璃 + 生物计算机外壳 + 相变计算机散热口" translatedTo "Structure material requirements: Neutronium Borosilicate Glass + Biocomputer Casing + Phase Change Biocomputer Cooling Vents")
+        content("使用冷却剂: 液态氦(会输出气态氦)" translatedTo "Coolant: Liquid helium (will output gaseous helium)")
 
         // Tier 3 组件支持
         section("Tier 3 : 支持GWCA系列组件" translatedTo "Tier 3 : Supports GWCA Series Components", { blue() })
-        content("槽位需求: 放入§5超因果主机" translatedTo "Slot requirement: Place §5Hyper-Causal Host")
+        content(("槽位需求: 放入" translatedTo "Slot requirement: Place ") + ("超因果主机" translatedTo "Supracausal Mainframe").rainbowGradient())
         content("结构材料需求: 塔兰强化硼玻璃 + 引力子计算机外壳 + 逆熵计算机冷凝矩阵" translatedTo "Structure material requirements: Taranium Borosilicate Glass + Graviton Computer Casing + Anti Entropy Computer Condensation Matrix")
+        content("使用冷却剂: 液态氦(会输出气态氦)" translatedTo "Coolant: Liquid helium (will output gaseous helium)")
         ok("自带跨维度桥接功能" translatedTo "Built-in cross-dimensional bridging capability")
     }
 
@@ -511,6 +548,9 @@ object GTOMachineTooltips {
             increase("获得3倍速度" translatedTo "Gains 3x speed")
             increase("获得额外130%涡轮效率" translatedTo "Gains additional 130% turbine efficiency")
             decrease("转子损耗速度变为3倍" translatedTo "Rotor wear rate becomes 3x")
+
+            section(ComponentSlang.CoilEfficiencyBonus)
+            increase("线圈等级每高出白铜一级，转子启动速度增加20%" translatedTo "Each coil tier above Cupronickel increases rotor startup speed by 20%")
         }
     }
 
@@ -638,6 +678,11 @@ object GTOMachineTooltips {
         content("如果在机器GUI内放置了电动刷怪笼则只会刷出刷怪笼里的内容" translatedTo "If an electric spawner is placed in the machine GUI, only the contents of the spawner will spawn")
         info("实体生成模式为玩家击杀的实际掉落，性能较差，可获取经验" translatedTo "Entity generation mode is based on actual drops from player kills, performance is lower, can gain experience")
         info("非实体生成模式为虚拟掉落，如果存在刷怪笼则使用并行处理" translatedTo "Non-entity generation mode is virtual drops; if a spawner exists, it uses parallel processing")
+
+        increase("当设置电路为3号电路时，启用专业屠宰模式" translatedTo "When the circuit is set to circuit 3, the professional slaughter mode is enabled")
+        command("此时将不会继续生成生物，你或许需要自己将生物送进去" translatedTo "No more creatures will be spawned at this time, you may need to send the creatures in yourself")
+        content("只会使用检测到的第一把武器去尝试击杀其中的生物" translatedTo "Will only use the first weapon detected to try to kill the creature inside")
+        info("每次最多能击杀20个生物" translatedTo "A maximum of 20 creatures can be killed each time")
     }
 
     // 溶解罐
@@ -1258,8 +1303,8 @@ object GTOMachineTooltips {
 
         section(ComponentSlang.OutputProbability)
         info("基础概率: 70%" translatedTo "Base probability: 70%")
-        increase("同等级净化水可提升15%" translatedTo "Same-tier purified water can improve 15%")
-        increase("更高等级每级额外增加5%，最高4级达到100%" translatedTo "Higher levels increase by an additional 5% per level, reaching 100% at the maximum of 4 levels")
+        increase("输入少量同等级净化水可提升15%" translatedTo "Adding a small amount of purified water of the same grade increases probability by 15%")
+        increase("输入更高等级净化水每级额外增加5%，最高4级达到100%" translatedTo "Each higher grade of purified water adds 5% per level, up to 4 levels maximum for 100% probability")
     }
 
     // 臭氧净化装置
@@ -1269,13 +1314,13 @@ object GTOMachineTooltips {
         highlight(ComponentSlang.PurifyLevel(2))
 
         section(ComponentSlang.RunningRequirements)
-        content("臭氧消耗量=输入水量/10000mB" translatedTo "Ozone consumption = input water amount / 10000mB")
-        error(("如果输入口含有超过1024B的臭氧气体，将发生" translatedTo "If the inlet contains more than 1024B of Ozone Gas, there will occur an ") + ComponentSlang.Explosion)
+        content("臭氧消耗量=输入水量/10,000mB" translatedTo "Ozone consumption = input water amount / 10,000mB")
+        error(("如果输入口含有超过1,024B的臭氧气体，将发生" translatedTo "If the input contains more than 1,024B of ozone gas, it will cause an ") + ComponentSlang.Explosion)
 
         section(ComponentSlang.OutputProbability)
-        info("臭氧气体在0-1024B范围内的产出概率为0-80%" translatedTo "The output probability of Ozone Gas in the range of 0-1024B is 0-80%")
-        increase("输入少量同等级水可提升15%" translatedTo "Inputting a small amount of the same level water can increase it by 15%")
-        increase("更高一级额外提升5%" translatedTo "Higher levels increase by an additional 5%")
+        info("臭氧气体在0-1,024B范围内的产出概率为0-80%" translatedTo "Output probability ranges from 0-80% based on ozone gas amount (0-1,024B)")
+        increase("输入少量同等级净化水可提升15%" translatedTo "Adding a small amount of purified water of the same grade increases probability by 15%")
+        increase("输入更高一级净化水可额外提升5%" translatedTo "Adding a higher grade of purified water provides an additional 5% increase")
     }
 
     // 絮凝净化装置
@@ -1290,8 +1335,8 @@ object GTOMachineTooltips {
         content("在操作过程中，将消耗输入仓中的所有聚合氯化铝" translatedTo "During operation, all Polymeric Aluminum Chloride in the input chamber will be consumed.")
 
         section(ComponentSlang.OutputProbability)
-        increase("每消耗100000mB聚合氯化铝，成功率额外增加10.0%" translatedTo "For every 100000mB of Polymeric Aluminum Chloride consumed, success rate increases by 10.0%.")
-        decrease("如果提供的液体总量不是100000mB的倍数，则应用成功率惩罚：" translatedTo "If total liquid provided is not a multiple of 100000mB, apply success rate penalty:")
+        increase("每消耗100,000mB聚合氯化铝，成功率额外增加10.0%" translatedTo "For every 100,000mB of Polymeric Aluminum Chloride consumed, success rate increases by 10.0%.")
+        decrease("如果提供的液体总量不是100,000mB的倍数，则应用成功率惩罚：" translatedTo "If total liquid provided is not a multiple of 100,000mB, apply success rate penalty:")
         info("成功率 = 成功率 * 2 ^ (-10 * 溢出比率)" translatedTo "Success Rate = Success Rate * 2 ^ (-10 * Overflow Ratio)")
     }
 
@@ -1322,7 +1367,7 @@ object GTOMachineTooltips {
         highlight(ComponentSlang.PurifyLevel(5))
 
         section(ComponentSlang.RunningRequirements)
-        command("完成加热周期：先加热水至10000K以上，再冷却至10K以下" translatedTo "Complete heating cycle: first heat Water above 10000K, then cool below 10K.")
+        command("完成加热周期：先加热水至10,000K以上，再冷却至10K以下" translatedTo "Complete heating cycle: first heat Water above 10,000K, then cool below 10K.")
         content("配方开始时初始温度重置为298K" translatedTo "Initial temperature reset to 298K at recipe start.")
         content("每秒最多消耗10mB氦等离子体和100mB液氦" translatedTo "Consumes up to 10mB Helium Plasma and 100mB Liquid Helium per second.")
 
@@ -1332,7 +1377,7 @@ object GTOMachineTooltips {
         section("温度调节" translatedTo "Temperature Regulation Mechanism")
         command("每消耗1mB氦等离子体：温度升高80-120K" translatedTo "Each 1mB Helium Plasma consumed: temperature +80-120K")
         command("每消耗1mB液氦：温度降低4-6K" translatedTo "Each 1mB Liquid Helium consumed: temperature -4-6K")
-        error("温度达到12500K：配方失败并输出超临界蒸汽" translatedTo "If temperature reaches 12500K: recipe fails and outputs Supercritical Steam")
+        error("温度达到12,500K：配方失败并输出超临界蒸汽" translatedTo "If temperature reaches 12,500K: recipe fails and outputs Supercritical Steam")
     }
 
     // 高能激光净化装置
@@ -1366,16 +1411,16 @@ object GTOMachineTooltips {
 
         section("信号需求" translatedTo "Signal Requirement")
         command("1, 3, 5, 7, 9：通过惰性气体进行臭氧曝气" translatedTo "1, 3, 5, 7, 9: Ozone aeration via Inert Gases")
-        info("对应 10000mB氦气 / 8000mB氖气 / 6000mB氩气 / 4000mB氪气 / 2000mB氙气" translatedTo "Which is 10000mB Helium / 8000mB Neon / 6000mB Argon / 4000mB Krypton / 2000mB Xenon")
+        info("对应 10,000mB氦气 / 8,000mB氖气 / 6,000mB氩气 / 4,000mB氪气 / 2,000mB氙气" translatedTo "Which is 10,000mB Helium / 8,000mB Neon / 6,000mB Argon / 4,000mB Krypton / 2,000mB Xenon")
         command("2, 4, 6, 8, 10：超导去离子" translatedTo "2, 4, 6, 8, 10: Superconductive deionization")
-        info("需要输入1000mB对应IV，LuV，ZPM，UV，UHV的液态超导" translatedTo "Needs input of 1000mB of liquid superconductors corresponding to IV, LuV, ZPM, UV, UHV.")
+        info("需要输入1,000mB对应IV，LuV，ZPM，UV，UHV的液态超导" translatedTo "Needs input of 1,000mB of liquid superconductors corresponding to IV, LuV, ZPM, UV, UHV.")
         command("11, 13, 15：引力生成差异真空提取" translatedTo "11, 13, 15: Gravitational Differential Vacuum Extraction")
-        info("需要输入2000mB液态安普洛" translatedTo "Requires input of 2000mB Liquid Amprosiums.")
+        info("需要输入2,000mB液态安普洛" translatedTo "Requires input of 2,000mB Liquid Amprosiums.")
         command("12, 14：塞尔多尼安沉淀过程" translatedTo "12, 14: Seldenian precipitation process")
         info("不输入任何东西" translatedTo "Do not input anything.")
         command("0：机器过载" translatedTo "0: Machine overload")
         info("在罕见情况下，机器可能会过载并且不会输出任何控制信号" translatedTo "In rare situations, the machine may overload and not output any control signals.")
-        info("为防止机器损坏，输入10000mB液氦" translatedTo "To prevent machine damage, input 10000mB Liquid Helium.")
+        info("为防止机器损坏，输入10,000mB液氦" translatedTo "To prevent machine damage, input 10,000mB Liquid Helium.")
         error("输入信号未请求的任何流体将始终导致配方失败" translatedTo "Any liquid not requested by the input signal will always cause the recipe to fail.")
     }
 
@@ -1409,8 +1454,8 @@ object GTOMachineTooltips {
         info("需要输入 书 摘抄符石" translatedTo "Requires input Book  Sigil of Withdrawal")
         command("电路 4：物品 + 附魔 + 刻印 解构" translatedTo "Circuit 4: Item + Enchantments + Affixes Deconstruction")
         info("需要输入 摘抄符石" translatedTo "Requires input Sigil of Withdrawal")
-        command("电路 5：附魔精粹合成附魔书" translatedTo "Circuit 5: Essence synthesis Enchanted Book")
-        info("需要输入一本书，消耗附魔精粹和魔力合成" translatedTo "Need to input a book, consume enchantment essence and magic synthesis")
+        command("电路 5：附魔精粹合成附魔书" translatedTo "Circuit 5: Essence crafting Enchanted Book")
+        info("需要输入一本书，消耗附魔精粹和魔力合成" translatedTo "Need to input a book, consume enchantment essence and magic to craft")
         command("电路 6：附魔书合并" translatedTo "Circuit 6: Enchantment Enchanted Book Merge")
         info("消耗魔力合成，会输出额外的书" translatedTo "Consume magic power to synthesize, and output additional books")
         command("电路 7：刻印精粹合成铭刻之布" translatedTo "Circuit 7: Affix Enchanted Book Merge")
@@ -1427,5 +1472,88 @@ object GTOMachineTooltips {
         info("消耗魔力，镶孔符文强行添加镶孔" translatedTo "Consume magic power and enter sigil of socketing to forcibly addition of sockets")
         command("电路 13：强行镶嵌宝石" translatedTo "Circuit 13: Forced gem inlay")
         info("消耗魔力，强行将宝石镶嵌到物品上" translatedTo "Consume magic power to forcibly inserting gems into items")
+    }
+
+    // 炼金装置
+    val AlchemicalDeviceTooltips = ComponentListSupplier {
+        setTranslationPrefix("alchemical_device")
+        add("炼金是一个神秘的过程" translatedTo "Alchemy is a mysterious process") { gold() }
+        add("物质在连续不断的转换中获得升华" translatedTo "Matter attains sublimation through continuous transformation") { gold() }
+        add("部分配方产出概率随运行次数增长" translatedTo "§7The probability of partial recipe output increases with the number of runs") { gray().italic() }
+    }
+
+    // 炼金锅
+    val AlchemyCauldronTooltips = ComponentListSupplier {
+        setTranslationPrefix("alchemy_cauldron")
+
+        command(ComponentSlang.TemperatureMax(1600))
+        important("不要用它来做饭" translatedTo "Do not use it for cooking food")
+    }
+
+    // 大型炼金装置补充
+    val LargeAlchemicalDeviceTooltips = ComponentListSupplier {
+        setTranslationPrefix("large_alchemical_device")
+
+        section(ComponentSlang.AfterModuleInstallation)
+        increase("激活完美嬗变模式" translatedTo "Activate perfect transmutation mode")
+        increase("获得0.01x耗时减免" translatedTo "Gain 0.01x Duration reduction")
+    }
+
+    // 快中子增殖堆
+    val FastNeutronBreederTooltips = ComponentListSupplier {
+        setTranslationPrefix("fast_neutron_breeder")
+
+        section("运行机制" translatedTo "Operating Mechanism")
+        command("最高支持2048并行，无法通过其他方式加速" translatedTo "Supports up to 2048 parallel, cannot be accelerated by other means")
+        command("配方需满足最低中子通量" translatedTo "Recipe requires minimum neutron flux")
+        content("中子通量可通过输入中子源或配方运行时增加" translatedTo "Neutron flux can be increased by inputting neutron sources or during recipe operation")
+        command("中子通量越高，堆升温速率越大" translatedTo "The higher the neutron flux, the faster the pile heats up")
+        info("输入石墨粉可吸收中子通量" translatedTo "Inputting Graphite Dust can absorb neutron flux")
+        info("输入冷却剂可降低温度" translatedTo "Inputting coolant can lower the temperature")
+        error("温度超过2098K时配方失败，输出(一点可怜的)核废料，燃料组件方块全部融毁" translatedTo "If the temperature exceeds 2098K, the recipe fails, outputs waste, and all fuel component blocks melt.")
+
+        section("配方相关" translatedTo "Recipe Related")
+        command("输入：增殖棒与对应元素粉，不同配方需不同中子通量" translatedTo "Input: Breeding Rods and corresponding Element Dust, different recipes require different neutron flux")
+        content("输出：枯竭增殖棒" translatedTo "Output: Depleted Breeding Rods")
+        info("实际并行越大，运行时间越短，公式：T = t * (0.9 - (当前中子通量 - 需要的中子通量) / 10MeV)^0.5" translatedTo "The larger the actual parallelism, the shorter the running time, formula: T = t * (0.9 - (current neutron flux - required neutron flux) / 10MeV)^0.5")
+
+        section("数值机制" translatedTo "Numerical Mechanism")
+        function("消耗中子源提供初始通量：锑-铍10keV，钚-铍100keV，锎-252 1MeV" translatedTo "Consume neutron sources to provide initial flux: Sb-Be 10keV, Pu-Be 100keV, Cf-252 1MeV")
+        function("中子通量每秒减少10keV" translatedTo "Neutron flux decreases by 10keV per second")
+        function("小撮/小堆/石墨粉分别降低0.1/0.25/1MeV" translatedTo "Small Pile/Big Pile/Graphite Dust reduce by 0.1/0.25/1MeV respectively")
+        function("中子通量为E（keV）时，在主机内放入N个铱中子反射板后，中子通量每秒增加 (EN)^0.5 keV" translatedTo "When neutron flux is E (keV), after placing N Iridium Neutron Reflectors in the mainframe, neutron flux increases by (EN)^0.5 keV per second")
+        info("初始温度298K，临界点2098K" translatedTo "Initial temperature 298K, critical point 2098K")
+        error("经过计算，当中子动能在7MeV以上时，堆温每秒将上升超过1800K，足以在一秒内达到临界点" translatedTo "According to calculations, when neutron kinetic energy is above 4.5keV, the pile temperature will rise by 1800K per second, enough to reach the critical point in one second")
+        function("每秒产热公式：H=K×1.27×(E×10)^1.88，结果向上取整" translatedTo "Heat generation formula per second: H=K×1.27×(E×10)^1.88, result rounded up")
+        function("冷却液系数(K/mB/s)：蒸馏水1，液氮4，液氦80" translatedTo "Coolant coefficients(K/mB/s): Distilled Water 1, Liquid Nitrogen 4, Liquid Helium 80")
+        content("冷却后分别输出蒸汽、气态氮、气态氦" translatedTo "Outputs Steam, Gaseous Nitrogen, Gaseous Helium respectively after cooling")
+        command("每秒将消耗全部输入的中子调节剂/冷却剂" translatedTo "Will consume all neutron moderators/coolants input per second")
+        function("每秒温度变化：ΔT=H-C×M，结果向下取整" translatedTo "Temperature change per second: ΔT=H-C×M, result rounded down")
+    }
+
+    // 燃料电池发电机
+    val FuelCellGeneratorTooltips = ComponentListSupplier {
+        setTranslationPrefix("fuel_cell_generator")
+
+        info("将燃料在专用电解液中‘燃烧’以转移获取400%燃料效率级别的能量" translatedTo "‘Burn’ fuel in a special electrolyte to transfer and obtain energy at 400% fuel efficiency level")
+        info("或者将储存在电解液中的能量释放出来" translatedTo "Or release the energy stored in the electrolyte")
+
+        section("工作模式" translatedTo "Operating Modes")
+        function("模式一：输入燃料，消耗少量电能将释能电解液转化为同数量的储能电解液" translatedTo "Mode 1: Input fuel, consume a small amount of EU to convert Discharged Electrolyte into the same amount of Charged Electrolyte")
+        command("需要等量的阴极液与阳极液来吸收燃料中的能量" translatedTo "Requires equal amounts of Catholyte and Anolyte to absorb the energy from the fuel")
+        ok("使用的电极膜每高一级，燃料效率额外×1.25" translatedTo "Each higher tier of Electrode Membrane used multiplies fuel efficiency by an additional ×1.25")
+        info("并行数 = min(输入的电解液数量, 当前燃料可转化的电解液数量)" translatedTo "Parallel = min(input electrolyte amount, amount of electrolyte convertible by current fuel)")
+        info("耗能 = 1EU × 并行数" translatedTo "EU cost = 1EU × parallel")
+        function("模式二：能量交换，将A类储能电解液的能量转移给B类释能电解液" translatedTo "Mode 2: Energy Exchange, transfers the energy from Type A Charged Electrolyte to Type B Discharged Electrolyte")
+        command("对于输入的两种电解液，均需要等量的阴极液与阳极液" translatedTo "Both input electrolytes require equal amounts of Catholyte and Anolyte")
+        info("产物为两种电解液交换能量状态后的结果" translatedTo "The output is the result of the two electrolytes swapping their energy states")
+        info("并行数仅受限于输入流体的最低储量" translatedTo "Parallelism is only limited by the lowest amount of input fluid")
+        info("此过程有能量损耗，具体效率由配方决定" translatedTo "This process involves energy loss; the specific efficiency is determined by the recipe")
+        function("模式三：发电，将储能电解液转化为95%总量的释能电解液，并释放100%总量的能量" translatedTo "Mode 3: Power generation, convert Charged Electrolyte into 95% Discharged Electrolyte and release 100% of the energy")
+        info("最大并行数 = 50, 即每秒最多消耗1B储能电解液" translatedTo "Max parallel = 50, i.e. up to 1B Charged Electrolyte can be consumed per second")
+        info("每次发电输出的能量等于储能电解液储存的能量" translatedTo "Each operation outputs energy equal to the energy stored in the Charged Electrolyte")
+        error("在该模式下， 不能安装能源仓" translatedTo "In this mode, Energy Input Hatches cannot be installed")
+        command("所有工作模式均需要输入电极膜才可工作" translatedTo "All operating modes require input of Electrode Membranes to operate")
+        command("且发电模式仅可使用特定电极膜" translatedTo "And the power generation mode can only use specific Electrode Membranes")
     }
 }

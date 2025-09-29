@@ -4,10 +4,13 @@ import com.gtocore.client.gui.PatternPreview;
 
 import com.gtolib.api.machine.MultiblockDefinition;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
-import com.gregtechceu.gtceu.integration.emi.multipage.MultiblockInfoEmiCategory;
+import com.gregtechceu.gtceu.common.data.machines.GTMultiMachines;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +25,6 @@ import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.stack.ListEmiIngredient;
 import dev.emi.emi.api.widget.WidgetHolder;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -31,6 +33,14 @@ import java.util.List;
 import java.util.Set;
 
 public final class MultiblockInfoEmiRecipe extends ModularEmiRecipe<Widget> {
+
+    public static final EmiRecipeCategory CATEGORY = new EmiRecipeCategory(GTCEu.id("multiblock_info"), EmiStack.of(GTMultiMachines.ELECTRIC_BLAST_FURNACE.getItem())) {
+
+        @Override
+        public Component getName() {
+            return Component.translatable("gtceu.jei.multiblock_info");
+        }
+    };
 
     private static final Widget MULTIBLOCK = new Widget(0, 0, 160, 160);
 
@@ -43,13 +53,13 @@ public final class MultiblockInfoEmiRecipe extends ModularEmiRecipe<Widget> {
         widget = () -> PatternPreview.getPatternWidget(this, definition);
         var pattern = definition.getPatternFactory().get();
         if (pattern != null && pattern.predicates != null) {
-            Set<Set<Item>> parts = new ObjectOpenHashSet<>();
+            Set<Set<Item>> parts = new OpenCacheHashSet<>();
             for (var predicate : pattern.predicates) {
                 ArrayList<SimplePredicate> predicates = new ArrayList<>(predicate.common);
                 predicates.addAll(predicate.limited);
                 for (SimplePredicate simplePredicate : predicates) {
                     if (simplePredicate == null || simplePredicate.candidates == null) continue;
-                    Set<Item> items = new ObjectOpenHashSet<>();
+                    Set<Item> items = new OpenCacheHashSet<>();
                     for (var itemStack : simplePredicate.getCandidates()) {
                         var item = itemStack.getItem();
                         if (item == Items.AIR) continue;
@@ -79,7 +89,7 @@ public final class MultiblockInfoEmiRecipe extends ModularEmiRecipe<Widget> {
 
     @Override
     public EmiRecipeCategory getCategory() {
-        return MultiblockInfoEmiCategory.CATEGORY;
+        return CATEGORY;
     }
 
     @Override

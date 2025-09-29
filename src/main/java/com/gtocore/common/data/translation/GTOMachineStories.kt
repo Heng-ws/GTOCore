@@ -256,6 +256,7 @@ object GTOMachineStories : AutoInitialize<GTOMachineStories>() {
         story("可惜Mojang的代码并不允许这么做，厂内时常陷入凋灵骷髅头急缺" translatedTo "Unfortunately Mojang's code doesn't allow this, often causing Wither Skeleton skull shortages")
         story("更严重的是因凋零笼故障，去年厂房遭到了凋零的大规模破坏" translatedTo "Worse, last year a faulty Wither cage caused massive facility damage from escaped Withers")
         story("为此，这款自动屠宰场作为黑客出现，它成功绕过了游戏的玩家检查" translatedTo "Thus this automated slaughterhouse emerged as a hack successfully bypassing game player checks")
+        story("某些时候它甚至能盗用玩家身份来进行更加专业的工作" translatedTo "Sometimes it can even steal the player's identity to perform more professional work")
     }
 
     // 大型方块转换室
@@ -718,6 +719,14 @@ object GTOMachineStories : AutoInitialize<GTOMachineStories>() {
         add("「小心烫伤」的警告在这里显得过于轻描淡写" translatedTo "'Caution: Hot' warnings seem like understatements here") { yellow() }
         add("等离子体模式下可产生超过太阳表面的温度" translatedTo "Plasma mode can generate temperatures exceeding the solar surface") { aqua() }
         highlight("让任何流体都达到理论温度极限" translatedTo "Push any fluid to theoretical temperature limits")
+    }
+
+    val smartSifteringHubTooltips = ComponentListSupplier {
+        setTranslationPrefix("smart_siftering_hub")
+
+        add("智能筛分中心，矿物处理的未来" translatedTo "Smart Sifting Hub, the future of mineral processing") { gold() }
+        add("集成多种筛分技术，实现高效精准的矿物分离" translatedTo "Integrates multiple sifting technologies for efficient and precise mineral separation") { gray() }
+        highlight(("物质筛分的智能革命" translatedTo "Intelligent revolution in material sifting")) { gold() }
     }
 
     // 复合式蒸馏分馏塔
@@ -1210,7 +1219,7 @@ object GTOMachineStories : AutoInitialize<GTOMachineStories>() {
     val AdvancedSpsCraftingTooltips = ComponentListSupplier {
         setTranslationPrefix("advanced_sps_crafting")
         add("纯白超临界外壳下的超维度合成奇迹" translatedTo "Transdimensional synthesis miracle within pure white sps casing") { white() }
-        add("同时维持多个超临界相，在多重现实中并行合成" translatedTo "Maintaining multiple supercritical phases simultaneously, parallel synthesis across multiverse") { gray() }
+        add("同时维持多个超临界相，在多重现实中并行合成" translatedTo "Maintaining multiple supercritical phases simultaneously, parallel crafting across multiverse") { gray() }
         add("量子纠缠协调系统，确保每个临界点完美同步" translatedTo "Quantum entanglement coordination system ensures perfect synchronization of every critical point") { aqua() }
         add("外壳呈现珍珠般的光泽流动，美得令人窒息" translatedTo "Casing displays pearl-like luminous flows, breathtakingly beautiful") { yellow() }
         add("突破单一时空限制，现在可以在不同维度同时进行合成" translatedTo "Breaking single spacetime limits, now capable of simultaneous synthesis across dimensions") { aqua() }
@@ -1282,5 +1291,14 @@ object GTOMachineStories : AutoInitialize<GTOMachineStories>() {
         add("相传技艺来自景德镇，烧结一切材料于炉中" translatedTo "Legendary techniques from Jingdezhen, sintering all materials in the furnace") { gold() }
         add("用高温与压力将粉末烧结成坚固的块体" translatedTo "Using high temperature and pressure to sinter powders into solid blocks") { gray() }
         highlight("非遗技艺的工业化传承" translatedTo "Industrial inheritance of intangible cultural heritage")
+    }
+
+    val giantElectrochemicalWorkstationTooltips = ComponentListSupplier {
+        setTranslationPrefix("giant_electrochemical_workstation")
+        story("GTO集团的化工技术一直走在世界前列" translatedTo "GTO Group's chemical technology has always been at the forefront of the world")
+        story("这台巨型电化学工作站是公司最新的研发成果" translatedTo "This giant electrochemical workstation is the company's latest research and development achievement")
+        story("它集成了多种先进的化学处理技术" translatedTo "It integrates multiple advanced chemical processing technologies")
+        story("能够高效地进行复杂的化学反应和物质分离" translatedTo "Capable of efficiently performing complex chemical reactions and material separations")
+        highlight("工业化学的未来已然到来" translatedTo "The future of industrial chemistry is here")
     }
 }

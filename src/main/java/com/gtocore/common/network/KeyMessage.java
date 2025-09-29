@@ -15,7 +15,7 @@ import net.minecraft.world.level.Level;
 
 final class KeyMessage {
 
-    public static void pressAction(ServerPlayer player, int type) {
+    static void pressAction(ServerPlayer player, int type) {
         Level level = player.level();
         if (!level.hasChunkAt(player.blockPosition())) {
             return;
@@ -29,15 +29,8 @@ final class KeyMessage {
     }
 
     private static void handleFlightSpeed(Player player) {
-        float speed;
-        String armorSlots = player.getArmorSlots().toString();
-        if (armorSlots.contains("warden_")) {
-            speed = 0.2F;
-        } else if (armorSlots.contains("infinity_")) {
-            speed = 0.3F;
-        } else {
-            return;
-        }
+        float speed = IEnhancedPlayer.of(player).getPlayerData().flySpeedAble;
+        if (speed == 0F) return;
         CompoundTag data = player.getPersistentData();
         int speedFactor = data.getInt("fly_speed");
         if (player.isShiftKeyDown()) {
@@ -59,41 +52,44 @@ final class KeyMessage {
     }
 
     private static void toggleNightVision(Player player) {
-        if (IEnhancedPlayer.of(player).getPlayerData().wardenState) {
-            CompoundTag data = player.getPersistentData();
-            boolean nightVisionEnabled = data.getBoolean("night_vision");
-            data.putBoolean("night_vision", !nightVisionEnabled);
+        CompoundTag data = player.getPersistentData();
+        boolean nightVisionEnabled = data.getBoolean("night_vision");
+        data.putBoolean("night_vision", !nightVisionEnabled);
 
-            if (nightVisionEnabled) {
-                player.removeEffect(MobEffects.NIGHT_VISION);
-                player.displayClientMessage(Component.translatable("metaarmor.message.nightvision.disabled"), true);
-            } else {
-                player.displayClientMessage(Component.translatable("metaarmor.message.nightvision.enabled"), true);
-            }
+        if (nightVisionEnabled) {
+            player.removeEffect(MobEffects.NIGHT_VISION);
+            player.displayClientMessage(Component.translatable("metaarmor.message.nightvision.disabled"), true);
+        } else {
+            player.displayClientMessage(Component.translatable("metaarmor.message.nightvision.enabled"), true);
         }
     }
 
     private static void upgradeToolSpeed(Player player) {
         ItemStack itemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
         if (itemStack.getItem() instanceof IGTTool gtTool && gtTool.getToolType().name.contains("_vajra")) {
-            int value = player.isShiftKeyDown() ? 10 : 1;
-            float speed = itemStack.getOrCreateTag().getCompound("GT.Tool").getFloat("ToolSpeed");
-            float newSpeed = adjustToolSpeed(speed, value, (int) gtTool.getMaterialToolSpeed(itemStack));
-            itemStack.getOrCreateTag().getCompound("GT.Tool").putFloat("ToolSpeed", newSpeed);
+            if (player.isShiftKeyDown()) {
+                itemStack.getOrCreateTag().putBoolean("MinersFervor", !itemStack.getOrCreateTag().getBoolean("MinersFervor"));
+                player.displayClientMessage(Component.translatable(itemStack.getOrCreateTag().getBoolean("MinersFervor") ?
+                        "tooltip.avaritia.active" : "tooltip.avaritia.inactive",
+                        Component.translatable("enchantment.apotheosis.miners_fervor")), true);
+                return;
+            }
+            float speed = itemStack.getOrCreateTag().getFloat("ToolSpeed");
+            float newSpeed = adjustToolSpeed(speed, 4, (int) gtTool.getMaterialToolSpeed(itemStack));
+            itemStack.getOrCreateTag().putFloat("ToolSpeed", newSpeed);
             player.displayClientMessage(Component.translatable("jade.horseStat.speed", newSpeed), true);
         }
     }
 
-    private static float adjustToolSpeed(float speed, int value, int max) {
-        if (speed < max) {
-            if (speed < 100) {
-                return speed + value;
-            } else {
-                return speed + value * 10;
+    private static float adjustToolSpeed(float speed, int fallback, int max) {
+        if (speed > 0.0F) {
+            if (speed * 2 < max) {
+                return speed * 2;
+            } else if (speed < max) {
+                return max;
             }
-        } else {
-            return 10;
         }
+        return fallback;
     }
 
     private static void drift(ServerPlayer player) {

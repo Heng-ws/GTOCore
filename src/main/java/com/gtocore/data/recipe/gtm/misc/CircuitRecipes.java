@@ -14,6 +14,7 @@ import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 import static com.gregtechceu.gtceu.common.data.GTItems.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
+import static com.gtocore.common.data.GTOMaterials.TitaniumDioxideNanotubes;
 import static com.gtocore.common.data.GTORecipeTypes.*;
 
 public final class CircuitRecipes {
@@ -253,8 +254,8 @@ public final class CircuitRecipes {
                 .duration(200).EUt(24).save();
 
         FORMING_PRESS_RECIPES.recipeBuilder("press_glass_tube")
-                .inputItems(dust, Glass)
                 .notConsumable(SHAPE_MOLD_BALL)
+                .inputItems(dust, Glass)
                 .outputItems(GLASS_TUBE)
                 .duration(80).EUt(VA[ULV]).save();
 
@@ -449,7 +450,7 @@ public final class CircuitRecipes {
         // Advanced SMD Capacitor
         ASSEMBLER_RECIPES.recipeBuilder("asmd_capacitor")
                 .inputItems(foil, Polybenzimidazole, 2)
-                .inputItems(foil, HSSS)
+                .inputItems(foil, TitaniumDioxideNanotubes)
                 .inputFluids(Polybenzimidazole.getFluid(L / 4))
                 .outputItems(ADVANCED_SMD_CAPACITOR, 16)
                 .EUt(3840).duration(80).save();

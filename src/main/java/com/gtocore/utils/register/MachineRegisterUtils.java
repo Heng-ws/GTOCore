@@ -36,12 +36,14 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.registry.registrate.MultiblockMachineBuilder;
 import com.gregtechceu.gtceu.client.renderer.machine.OverlayTieredMachineRenderer;
 import com.gregtechceu.gtceu.client.renderer.machine.SimpleGeneratorMachineRenderer;
 import com.gregtechceu.gtceu.common.data.GCYMBlocks;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
+import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.LaserHatchPartMachine;
@@ -120,7 +122,7 @@ public final class MachineRegisterUtils {
         else if (amperage > 64) t = IV;
         return registerTieredMachines("wireless_" + id + "_hatch" + (amperage > 2 ? "_" + amperage + "a" : ""), tier -> (amperage > 2 ? amperage + (amperage > 64 ? "§e安§r" : "安") : "") + GTOValues.VNFR[tier] + "无线" + (io == IO.IN ? "能源" : "动力") + "仓",
                 (holder, tier) -> new WirelessEnergyHatchPartMachine(holder, tier, io, amperage), (tier, builder) -> builder
-                        .langValue(VNF[tier] + " " + (amperage > 2 ? FormattingUtil.formatNumbers(amperage) + "A " : "") + "Wireless" + (io == IO.IN ? "Energy" : "Dynamo") + " Hatch")
+                        .langValue(GTOValues.VNFR[tier] + " " + (amperage > 2 ? FormattingUtil.formatNumbers(amperage) + (amperage > 64 ? "§eA§r " : "A ") : "") + "Wireless " + (io == IO.IN ? "Energy" : "Dynamo") + " Hatch")
                         .allRotation()
                         .abilities(ability)
                         .tooltips(Component.translatable("gtceu.universal.tooltip.voltage_" + iao, FormattingUtil.formatNumbers(V[tier]), VNF[tier]),
@@ -136,7 +138,7 @@ public final class MachineRegisterUtils {
         String name = io == IO.IN ? "target" : "source";
         return registerTieredMachines(amperage + "a_laser_" + name + "_hatch", tier -> amperage + "§e安§r" + GTOValues.VNFR[tier] + "激光" + (io == IO.IN ? "靶" : "源") + "仓",
                 (holder, tier) -> new LaserHatchPartMachine(holder, io, tier, amperage), (tier, builder) -> builder
-                        .langValue(VNF[tier] + " " + FormattingUtil.formatNumbers(amperage) + "A Laser " + FormattingUtil.toEnglishName(name) + " Hatch")
+                        .langValue(GTOValues.VNFR[tier] + " " + FormattingUtil.formatNumbers(amperage) + "§eA§r Laser " + FormattingUtil.toEnglishName(name) + " Hatch")
                         .allRotation()
                         .tooltips(Component.translatable("gtceu.machine.laser_hatch." + name + ".tooltip"),
                                 Component.translatable("gtceu.machine.laser_hatch.both.tooltip"))
@@ -466,7 +468,7 @@ public final class MachineRegisterUtils {
     public static MultiblockMachineDefinition registerMegaTurbine(String name, String cn, int tier, boolean special, GTRecipeType recipeType,
                                                                   Supplier<Block> casing, Supplier<Block> gear, ResourceLocation baseCasing,
                                                                   ResourceLocation overlayModel, Function<MultiblockMachineDefinition, BlockPattern> subPattern) {
-        return multiblock(name, cn, holder -> new TurbineMachine(holder, tier, special, true))
+        return multiblock(name, cn, holder -> new TurbineMachine.MegaTurbine(holder, tier, special))
                 .nonYAxisRotation()
                 .recipeTypes(recipeType)
                 .generator()
@@ -523,6 +525,7 @@ public final class MachineRegisterUtils {
                         .where('A', blocks(GTBlocks.CASING_STAINLESS_CLEAN.get()))
                         .where('B', blocks(casing.get()))
                         .where('C', blocks(casing.get())
+                                .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                                 .or(abilities(MAINTENANCE).setExactLimit(1))
                                 .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(8))
                                 .or(abilities(EXPORT_FLUIDS).setMaxGlobalLimited(2))

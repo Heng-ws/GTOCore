@@ -1,5 +1,6 @@
 package com.gtocore.common.machine.multiblock.electric.voidseries;
 
+import com.gtocore.common.data.GTOMaterials;
 import com.gtocore.common.machine.trait.AdvancedInfiniteDrillLogic;
 
 import com.gtolib.api.machine.multiblock.StorageMultiblockMachine;
@@ -38,7 +39,7 @@ public final class AdvancedInfiniteDrillMachine extends StorageMultiblockMachine
     private static final FluidStack DISTILLED_WATER = GTMaterials.DistilledWater.getFluid(20000);
     private static final FluidStack OXYGEN = GTMaterials.Oxygen.getFluid(FluidStorageKeys.LIQUID, 20000);
     private static final FluidStack HELIUM = GTMaterials.Helium.getFluid(FluidStorageKeys.LIQUID, 20000);
-    private static final Map<Material, Integer> HEAT_MAP = Map.of(GTMaterials.Neutronium, 1);
+    private static final Map<Material, Integer> HEAT_MAP = Map.of(GTOMaterials.Neutron, 1);
 
     @Override
     @NotNull
@@ -67,25 +68,34 @@ public final class AdvancedInfiniteDrillMachine extends StorageMultiblockMachine
     private void heatUpdate() {
         if (getOffsetTimer() % 5 != 0) return;
         heatSubs.updateSubscription();
-        if (!getRecipeLogic().isWorking()) currentHeat = Math.max(300, currentHeat - 1);
-        if (isEmpty()) return;
-        int heat = 0;
-        if (getRecipeLogic().isWorking()) {
-            if (process <= 0) {
-                heat += (int) Math.floor(Math.abs(currentHeat - RUNNING_HEAT) / 2000.0);
-            }
+
+        boolean isWorking = getRecipeLogic().isWorking();
+        boolean playerWantsToHeat = !isEmpty() && inputBlast();
+
+        if (playerWantsToHeat && currentHeat < MAX_HEAT) {
+            currentHeat++;
+        }
+
+        if (isWorking && process <= 0) {
+            currentHeat += (int) Math.floor(Math.abs(currentHeat - RUNNING_HEAT) / 2000.0);
+        }
+
+        if (isWorking) {
             if (inputFluid(DISTILLED_WATER)) {
-                heat--;
+                currentHeat--;
             } else if (inputFluid(OXYGEN)) {
-                heat -= 2;
+                currentHeat -= 2;
             } else if (inputFluid(HELIUM)) {
-                heat -= 4;
+                currentHeat -= 4;
             }
         }
-        if (inputBlast()) {
-            heat++;
+
+        if (!isWorking && !playerWantsToHeat) {
+            currentHeat = Math.max(300, currentHeat - 1);
         }
-        currentHeat = Math.max(4, heat + currentHeat);
+
+        currentHeat = Math.max(4, currentHeat);
+
         if (currentHeat > MAX_HEAT) {
             process++;
             if (process >= 200) {

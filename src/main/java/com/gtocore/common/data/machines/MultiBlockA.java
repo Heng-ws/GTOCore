@@ -2,10 +2,7 @@ package com.gtocore.common.data.machines;
 
 import com.gtocore.api.machine.part.GTOPartAbility;
 import com.gtocore.api.pattern.GTOPredicates;
-import com.gtocore.common.data.GTOBlocks;
-import com.gtocore.common.data.GTOMachines;
-import com.gtocore.common.data.GTOMaterials;
-import com.gtocore.common.data.GTORecipeTypes;
+import com.gtocore.common.data.*;
 import com.gtocore.common.data.translation.GTOMachineStories;
 import com.gtocore.common.data.translation.GTOMachineTooltips;
 import com.gtocore.common.machine.multiblock.electric.FishingGroundMachine;
@@ -34,9 +31,11 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.ICoilMachine;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.common.data.*;
 
 import net.minecraft.core.Direction;
@@ -75,6 +74,7 @@ public final class MultiBlockA {
                     .aisle(" Z ", "ZZZ", " Z ")
                     .where('S', controller(blocks(definition.getBlock())))
                     .where('Y', blocks(GTOBlocks.STAINLESS_EVAPORATION_CASING.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(INPUT_ENERGY).setMinGlobalLimited(1)
                                     .setMaxGlobalLimited(2))
                             .or(abilities(IMPORT_FLUIDS).setExactLimit(1))
@@ -380,7 +380,7 @@ public final class MultiBlockA {
             .tooltips(GTOMachineTooltips.INSTANCE.getLargeVoidMinerTooltips().getSupplier())
             .recipeModifier((machine, recipe) -> {
                 if (((ElectricMultiblockMachine) machine).getRecipeType() == GTORecipeTypes.RANDOM_ORE_RECIPES) {
-                    return RecipeModifierFunction.overclocking(machine, ParallelLogic.accurateParallel(machine, recipe, 1 << ((((ElectricMultiblockMachine) machine).getTier() - GTValues.ZPM) << 1)));
+                    return RecipeModifierFunction.overclocking(machine, ParallelLogic.accurateParallel(machine, recipe, 1L << ((((ElectricMultiblockMachine) machine).getTier() - GTValues.ZPM) << 1)));
                 }
                 return RecipeModifierFunction.overclocking(machine, recipe);
             })
@@ -612,6 +612,7 @@ public final class MultiBlockA {
     public static final MultiblockMachineDefinition FISHING_GROUND = multiblock("fishing_ground", "渔场", FishingGroundMachine::new)
             .nonYAxisRotation()
             .tooltips(GTOMachineStories.INSTANCE.getFishingFarmTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getFishingFarmTooltips().getSupplier())
             .recipeTypes(GTORecipeTypes.FISHING_GROUND_RECIPES)
             .parallelizableTooltips()
             .parallelizableOverclock()
@@ -663,6 +664,7 @@ public final class MultiBlockA {
                     .where(' ', air())
                     .build())
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"), GTCEu.id("block/multiblock/steam_oven"))
+            .recoveryStaticItems(() -> ChemicalHelper.get(TagPrefix.dustTiny, GTMaterials.Obsidian).getItem())
             .register();
 
     public static final MultiblockMachineDefinition LARGE_GAS_COLLECTOR = multiblock("large_gas_collector", "大型集气室", CustomParallelMultiblockMachine.createParallel(m -> 100000, true))
@@ -915,11 +917,11 @@ public final class MultiBlockA {
                     .where('R', blocks(GTBlocks.HERMETIC_CASING_UV.get()))
                     .where('S', controller(blocks(definition.get())))
                     .where('T', blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
-                            .or(autoAbilities(definition.getRecipeTypes()))
-                            .or(abilities(MAINTENANCE).setExactLimit(1)))
+                            .or(GTOPredicates.autoIOAbilities(definition.getRecipeTypes())))
                     .where(' ', any())
                     .build())
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_clean_stainless_steel"), GTCEu.id("block/multiblock/gcym/large_maceration_tower"))
+            .recoveryStacks(GTMachineModify::tinydustFromDustOutput)
             .register();
 
     public static final MultiblockMachineDefinition DRAGON_EGG_COPIER = multiblock("dragon_egg_copier", "龙蛋复制机", ElectricMultiblockMachine::new)
@@ -943,6 +945,7 @@ public final class MultiBlockA {
                     .where('d', abilities(MUFFLER))
                     .build())
             .workableCasingRenderer(GTOCore.id("block/casings/extreme_strength_tritanium_casing"), GTCEu.id("block/multiblock/fusion_reactor"))
+            .recoveryStaticItems(GTOItems.DRACONIUM_DIRT)
             .register();
 
     public static final MultiblockMachineDefinition LARGE_CRACKER = multiblock("large_cracker", "大型裂化机", CoilMultiblockMachine.createCoilMachine(false, false))
@@ -1564,6 +1567,7 @@ public final class MultiBlockA {
                 }
             })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_clean_stainless_steel"), GTCEu.id("block/multiblock/pyrolyse_oven"))
+            .recoveryStacks(GTMachineModify::tinydustFromDustOutput)
             .register();
 
     public static final MultiblockMachineDefinition MEGA_WIREMILL = multiblock("mega_wiremill", "特大线材轧机", CoilCrossRecipeMultiblockMachine::createCoilParallel)
@@ -1922,6 +1926,11 @@ public final class MultiBlockA {
                     .where(' ', air())
                     .build())
             .workableCasingRenderer(GTOCore.id("block/casings/red_steel_casing"), GTCEu.id("block/multiblock/fusion_reactor"))
+            .recoveryStacks((m, r) -> {
+                if (m instanceof IRecipeLogicMachine lm && lm.getRecipeTypes()[lm.getActiveRecipeType()] == GTORecipeTypes.VACUUM_DRYING_RECIPES)
+                    return GTMachineModify.tinydustFromDustOutput(m, r);
+                return ChemicalHelper.get(TagPrefix.dustTiny, GTMaterials.Salt);
+            })
             .register();
 
     public static final MultiblockMachineDefinition MOLTEN_CORE = multiblock("molten_core", "熔火之心", MoltenCoreMachine::new)

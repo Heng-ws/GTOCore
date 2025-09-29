@@ -38,6 +38,7 @@ import com.gtolib.utils.*;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.capability.recipe.ItemRecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
@@ -55,14 +56,18 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
+
+import earth.terrarium.adastra.common.registry.ModItems;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -378,11 +383,11 @@ public final class MultiBlockD {
             .pattern(definition -> FactoryBlockPattern.start(definition, RelativeDirection.RIGHT, RelativeDirection.UP, RelativeDirection.BACK)
                     .aisle("AAAAA", " BBB ", " BGB ", " BBB ", "AAAAA")
                     .aisle("AAAAA", "BE EB", "BE EB", "BE EB", "AAAAA")
-                    .aisle("AAAAA", " F F ", " F F ", " F F ", "ABHBA")
+                    .aisle("AAAAA", " F F ", " F F ", " F F ", "ACHCA")
                     .aisle("AAAAA", "BE EB", "BE EB", "BE EB", "ACCCA")
                     .aisle("AAAAA", "D   D", "D   D", "D   D", "ACCCA")
-                    .aisle("AAAAA", "CE EC", "CE EC", "CE EC", "ACCCA")
-                    .aisle("AAAAA", " F F ", " F F ", " F F ", "ABHBA")
+                    .aisle("AAAAA", "BE EB", "BE EB", "BE EB", "ACCCA")
+                    .aisle("AAAAA", " F F ", " F F ", " F F ", "ACHCA")
                     .aisle("AAAAA", "BE EB", "BE EB", "BE EB", "AAAAA")
                     .aisle("AAAAA", " BBB ", " BBB ", " BBB ", "AAAAA")
                     .where('A', blocks(GTBlocks.CASING_ALUMINIUM_FROSTPROOF.get()))
@@ -398,6 +403,9 @@ public final class MultiBlockD {
                     .where(' ', any())
                     .build())
             .workableCasingRenderer(GTOCore.id("block/casings/cold_ice_casing"), GTCEu.id("block/multiblock/vacuum_freezer"))
+            .recoveryStacks((machine, recipe) -> machine.getLevel() instanceof ServerLevel l && l.random.nextFloat() < 0.1f ?
+                    ModItems.ICE_SHARD.get().getDefaultInstance() :
+                    ChemicalHelper.get(TagPrefix.dust, GTMaterials.Ice))
             .register();
 
     public static final MultiblockMachineDefinition DOOR_OF_CREATE = multiblock("door_of_create", "创造之门", ElectricMultiblockMachine::new)
@@ -607,6 +615,7 @@ public final class MultiBlockD {
                     .where('a', controller(blocks(definition.get())))
                     .where('b', blocks(GTOBlocks.MULTI_FUNCTIONAL_CASING.get())
                             .setMinGlobalLimited(14)
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(GTOPartAbility.ACCELERATE_HATCH).setMaxGlobalLimited(1))
                             .or(abilities(IMPORT_ITEMS))
                             .or(abilities(EXPORT_ITEMS))
@@ -674,6 +683,7 @@ public final class MultiBlockD {
                     .aisle("AAA", "ADA", "AAA")
                     .where('~', controller(blocks(definition.get())))
                     .where('B', blocks(GTOBlocks.INCONEL_625_CASING.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(INPUT_ENERGY).setMaxGlobalLimited(2).setPreviewCount(1))
                             .or(abilities(IMPORT_ITEMS).setMaxGlobalLimited(4).setPreviewCount(1))
                             .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(1).setPreviewCount(1))
@@ -685,6 +695,10 @@ public final class MultiBlockD {
                     .where('D', blocks(GTOMachines.GRIND_BALL_HATCH.getBlock()))
                     .build())
             .workableCasingRenderer(GTOCore.id("block/casings/inconel_625_casing"), GTCEu.id("block/multiblock/gcym/large_maceration_tower"))
+            .recoveryStacks((m, r) -> {
+                if (r == null) return ItemStack.EMPTY;
+                return ((Ingredient) r.outputs.get(ItemRecipeCapability.CAP).get(0).content).getItems()[0].copyWithCount(1);
+            })
             .register();
 
     public static final MultiblockMachineDefinition NEUTRON_ACTIVATOR = multiblock("neutron_activator", "中子活化器", NeutronActivatorMachine::new)
@@ -701,6 +715,7 @@ public final class MultiBlockD {
                     .aisle("CCCCC", "CDDDC", "CDDDC", "CDDDC", "CCCCC")
                     .where('G', controller(blocks(definition.getBlock())))
                     .where('A', blocks(GTBlocks.CASING_STAINLESS_CLEAN.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(blocks(GTOMachines.NEUTRON_SENSOR.get()).setMaxGlobalLimited(1).setPreviewCount(1))
                             .or(abilities(EXPORT_FLUIDS).setMaxGlobalLimited(1).setPreviewCount(1))
                             .or(abilities(EXPORT_ITEMS).setMaxGlobalLimited(2).setPreviewCount(1))
@@ -826,6 +841,7 @@ public final class MultiBlockD {
                     .aisle("AAAA~AAAA", "ABBBBBBBA", "ABBBBBBBA", "ABBBBBBBA", "ABBBBBBBA", "ABBBBBBBA", "ABBBBBBBA", "ABBBBBBBA", "AAAAAAAAA")
                     .where('~', controller(blocks(definition.get())))
                     .where('A', blocks(GTOBlocks.FISSION_REACTOR_CASING.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(blocks(GTOMachines.HEAT_SENSOR.getBlock()).setMaxGlobalLimited(1).setPreviewCount(1))
                             .or(abilities(INPUT_ENERGY).setMaxGlobalLimited(2).setPreviewCount(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1))
@@ -870,8 +886,8 @@ public final class MultiBlockD {
 
     public static final MultiblockMachineDefinition SLAUGHTERHOUSE = multiblock("slaughterhouse", "工业屠宰场", SlaughterhouseMachine::new)
             .nonYAxisRotation()
-            .tooltips(GTOMachineStories.INSTANCE.getSlaughterhouseTooltips().getSupplier())
-            .tooltips(GTOMachineTooltips.INSTANCE.getSlaughterhouseTooltips().getSupplier())
+            .tooltipsSupplier(GTOMachineStories.INSTANCE.getSlaughterhouseTooltips().getSupplier())
+            .tooltipsSupplier(GTOMachineTooltips.INSTANCE.getSlaughterhouseTooltips().getSupplier())
             .recipeTypes(GTRecipeTypes.DUMMY_RECIPES)
             .block(GTBlocks.CASING_STEEL_SOLID)
             .pattern(definition -> FactoryBlockPattern.start(definition)
@@ -884,6 +900,7 @@ public final class MultiBlockD {
                     .aisle("AAAAAAA", "AAA~AAA", "ABBBBBA", "ABBBBBA", "ABBBBBA", "ABBBBBA", "ABBBBBA", "ABBBBBA", "ABBBBBA", "AAAAAAA")
                     .where('~', controller(blocks(definition.get())))
                     .where('A', blocks(GTBlocks.CASING_STEEL_SOLID.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(INPUT_ENERGY).setMaxGlobalLimited(2).setPreviewCount(1))
                             .or(abilities(EXPORT_ITEMS).setMaxGlobalLimited(4).setPreviewCount(1))
                             .or(abilities(EXPORT_FLUIDS).setMaxGlobalLimited(1).setPreviewCount(1))

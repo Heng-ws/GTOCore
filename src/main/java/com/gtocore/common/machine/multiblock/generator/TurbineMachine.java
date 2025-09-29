@@ -3,26 +3,30 @@ package com.gtocore.common.machine.multiblock.generator;
 import com.gtolib.api.annotation.Scanned;
 import com.gtolib.api.annotation.dynamic.DynamicInitialValue;
 import com.gtolib.api.annotation.dynamic.DynamicInitialValueTypes;
+import com.gtolib.api.annotation.language.RegisterLanguage;
 import com.gtolib.api.gui.GTOGuiTextures;
 import com.gtolib.api.machine.multiblock.ElectricMultiblockMachine;
 import com.gtolib.api.machine.part.ItemHatchPartMachine;
+import com.gtolib.api.machine.trait.CoilTrait;
 import com.gtolib.api.recipe.Recipe;
 import com.gtolib.api.recipe.modifier.ParallelLogic;
 
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.ICoilMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.RotorHolderPartMachine;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -33,7 +37,6 @@ import net.minecraft.world.item.ItemStack;
 import com.lowdragmc.lowdraglib.syncdata.annotation.Persisted;
 import com.lowdragmc.lowdraglib.syncdata.field.ManagedFieldHolder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -44,7 +47,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 @Scanned
-public final class TurbineMachine extends ElectricMultiblockMachine {
+public class TurbineMachine extends ElectricMultiblockMachine {
 
     private static final ManagedFieldHolder MANAGED_FIELD_HOLDER = new ManagedFieldHolder(TurbineMachine.class, ElectricMultiblockMachine.MANAGED_FIELD_HOLDER);
     @DynamicInitialValue(key = "gtocore.machine.mega_turbine.high_speed_mode_output_multiplier", typeKey = DynamicInitialValueTypes.KEY_MULTIPLY, simpleValue = "4.0F", normalValue = "3.0F", expertValue = "2.5F", cn = "高速模式输出倍率 : %s 倍", en = "High Speed Mode Output Multiplier : %s Multiplier")
@@ -65,7 +68,7 @@ public final class TurbineMachine extends ElectricMultiblockMachine {
     private long energyPerTick;
     @Persisted
     private boolean highSpeedMode;
-    private final List<RotorHolderPartMachine> rotorHolderMachines = new ObjectArrayList<>();
+    final List<RotorHolderPartMachine> rotorHolderMachines = new ObjectArrayList<>();
     private ItemHatchPartMachine rotorHatchPartMachine;
     private final ConditionalSubscriptionHandler rotorSubs;
 
@@ -181,7 +184,7 @@ public final class TurbineMachine extends ElectricMultiblockMachine {
 
     private int getRotorSpeed() {
         if (mega) {
-            Set<Material> material = new ObjectOpenHashSet<>(2, 0.9F);
+            Set<Material> material = new OpenCacheHashSet<>(2);
             int speed = 0;
             for (RotorHolderPartMachine part : rotorHolderMachines) {
                 ItemStack stack = part.getRotorStack();
@@ -220,7 +223,7 @@ public final class TurbineMachine extends ElectricMultiblockMachine {
         if (rotorSpeed < 0) return null;
         int maxSpeed = rotorHolder.getMaxRotorHolderSpeed();
         long turbineMaxVoltage = (long) (getVoltage() * Math.pow((double) Math.min(maxSpeed, rotorSpeed) / maxSpeed, 2) * extraOutput);
-        recipe = ParallelLogic.accurateParallel(this, recipe, (int) (turbineMaxVoltage / EUt));
+        recipe = ParallelLogic.accurateParallel(this, recipe, turbineMaxVoltage / EUt);
         if (recipe == null) return null;
         long eut = Math.min(turbineMaxVoltage, recipe.parallels * EUt);
         energyPerTick = eut;
@@ -231,7 +234,7 @@ public final class TurbineMachine extends ElectricMultiblockMachine {
 
     @Override
     public boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
-        return capability != EURecipeCapability.CAP;
+        return true;
     }
 
     //////////////////////////////////////
@@ -274,4 +277,42 @@ public final class TurbineMachine extends ElectricMultiblockMachine {
     public int getTier() {
         return this.tier;
     }
+
+    public static class MegaTurbine extends TurbineMachine implements ICoilMachine {
+
+        private final CoilTrait coilTrait;
+        private float workAccumulation = 0;
+
+        public MegaTurbine(MetaMachineBlockEntity holder, int tier, boolean special) {
+            super(holder, tier, special, true);
+            coilTrait = new CoilTrait(this, false, false);
+        }
+
+        @Override
+        public boolean onWorking() {
+            if (getCoilTier() > 0) {
+                this.workAccumulation += getCoilTier() / 5.0f;
+                int addition = (int) Math.floor(this.workAccumulation);
+                this.workAccumulation -= addition;
+                for (var part : this.rotorHolderMachines) {
+                    part.setRotorSpeed(Math.min(part.getRotorSpeed() + addition, part.getMaxRotorHolderSpeed()));
+                }
+            }
+            return super.onWorking();
+        }
+
+        @Override
+        public ICoilType getCoilType() {
+            return coilTrait.getCoilType();
+        }
+
+        @Override
+        public void customText(List<Component> textList) {
+            super.customText(textList);
+            textList.add(Component.translatable(COIL_BONUS, getCoilTier(), getCoilTier() * 20));
+        }
+    }
+
+    @RegisterLanguage(cn = "线圈等级: %s，转子启动增速 %s%%", en = "Coil Tier: %s, Rotor Launch Speed Bonus %s%%")
+    public static final String COIL_BONUS = "gtocore.machine.mega_turbine.coil_tier";
 }

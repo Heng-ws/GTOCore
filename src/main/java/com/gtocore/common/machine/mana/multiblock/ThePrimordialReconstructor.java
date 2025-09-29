@@ -15,6 +15,9 @@ import com.gtolib.utils.holder.ObjectHolder;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.utils.collection.O2IOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.OpenCacheHashSet;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -100,14 +103,18 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         List<ItemStack> inputsItems = new ObjectArrayList<>();
         List<ItemStack> outputsItems = new ObjectArrayList<>();
         IntHolder count = new IntHolder(0);
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             CompoundTag nbt = stack.getTag();
             if (nbt != null) {
-                if (nbt.contains("affix_data") || nbt.contains("Enchantments"))
+                if (nbt.contains("affix_data") || nbt.contains("Enchantments")) {
                     if (disassembleEquipment(nbt, inputsItems, outputsItems)) {
                         inputsItems.add(stack);
                         count.value++;
                     }
+                } else if (circuit == 4 && nbt.contains("Damage")) {
+                    inputsItems.add(stack);
+                    count.value++;
+                }
                 if (circuit == 2 || circuit == 4)
                     if (stack.getItem().equals(Items.ENCHANTED_BOOK.asItem()))
                         if (disassembleEnchantments(nbt, outputsItems)) {
@@ -125,10 +132,10 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
             }
             return false;
         });
-        if (!outputsItems.isEmpty()) {
+        if (!inputsItems.isEmpty() || !outputsItems.isEmpty()) {
             inputsItems.forEach(disassembleRecipeBuilder::inputItems);
             outputsItems.forEach(disassembleRecipeBuilder::outputItems);
-            disassembleRecipeBuilder.duration(20 * count.value);
+            disassembleRecipeBuilder.duration(count.value);
             return disassembleRecipeBuilder.buildRawRecipe();
         }
         return null;
@@ -171,6 +178,9 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
             inputsItems.add(new ItemStack(Adventure.Items.SIGIL_OF_WITHDRAWAL.get()));
             find = true;
         }
+
+        // 电路4强行粉碎
+        if (circuit == 4) find = true;
 
         return generateMaterials(nbt, outputsItems) || find;
     }
@@ -395,13 +405,13 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         ObjectHolder<Item> essence = new ObjectHolder<>(null);
         LongHolder count = new LongHolder(0);
 
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             Item stackItem = stack.getItem();
             if (essence.value == null)
                 if (getPrefix(stackItem.toString()).equals("enchantment_essence"))
                     essence.value = stackItem;
             if (essence.value != null && essence.value.equals(stackItem))
-                count.value += stack.getCount();
+                count.value += amount;
             return false;
         });
 
@@ -412,7 +422,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
             enchantmentsLoadRecipeBuilder.inputItems(Items.BOOK);
             enchantmentsLoadRecipeBuilder.inputItems(essence.value, 1 << (lvl - 1));
             enchantmentsLoadRecipeBuilder.outputItems(Enchantment.getEnchantedBookByEnchantmentId(enchantment, (short) lvl));
-            enchantmentsLoadRecipeBuilder.duration(5 * lvl);
+            enchantmentsLoadRecipeBuilder.duration(lvl);
             enchantmentsLoadRecipeBuilder.MANAt(256);
             return enchantmentsLoadRecipeBuilder.buildRawRecipe();
         }
@@ -429,7 +439,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         List<Object2IntMap.Entry<String>> allEnchantments = new ArrayList<>();
         IntHolder totalBooks = new IntHolder(0);
         // 遍历输入物品，收集所有附魔书中的附魔信息
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             if (stack.getItem() == Items.ENCHANTED_BOOK) {
                 totalBooks.value++;
                 CompoundTag tag = stack.getTag();
@@ -452,7 +462,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         boolean changed;
         do {
             changed = false;
-            Object2ObjectOpenHashMap<String, Int2IntMap> enchantmentLevelCounts = new Object2ObjectOpenHashMap<>();
+            Object2ObjectOpenHashMap<String, Int2IntMap> enchantmentLevelCounts = new O2OOpenCacheHashMap<>();
             // 统计每种附魔每个等级的数量
             for (Object2IntMap.Entry<String> entry : allEnchantments) {
                 String enchantId = entry.getKey();
@@ -500,7 +510,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
             ItemStack outputBook = new ItemStack(Items.ENCHANTED_BOOK);
             CompoundTag bookTag = outputBook.getOrCreateTag();
             ListTag storedEnchantments = new ListTag();
-            Set<String> addedEnchantments = new ObjectOpenHashSet<>();
+            Set<String> addedEnchantments = new OpenCacheHashSet<>();
             // 遍历剩余附魔，添加到当前书中
             Iterator<Object2IntMap.Entry<String>> iterator = remainingEnchantments.iterator();
             while (iterator.hasNext()) {
@@ -532,7 +542,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
             mergeRecipeBuilder.inputItems(Items.BOOK, -remainingBooks);
         }
 
-        mergeRecipeBuilder.duration(5 * totalBooks.value);
+        mergeRecipeBuilder.duration(totalBooks.value);
         mergeRecipeBuilder.MANAt(512);
 
         return mergeRecipeBuilder.buildRawRecipe();
@@ -545,7 +555,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         RecipeBuilder affixCanvasLoadRecipeBuilder = getRecipeBuilder();
 
         Set<Item> uniqueItems = new HashSet<>();
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             Item stackItem = stack.getItem();
             if (getPrefix(stackItem.toString()).equals("affix_essence")) uniqueItems.add(stackItem);
             return false;
@@ -566,7 +576,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         affixCanvasLoadRecipeBuilder.inputItems(GTOItems.AFFIX_CANVAS);
         affixCanvasLoadRecipeBuilder.outputItems(affixCanvas);
-        affixCanvasLoadRecipeBuilder.duration(5 * uniqueItems.size());
+        affixCanvasLoadRecipeBuilder.duration(uniqueItems.size());
         affixCanvasLoadRecipeBuilder.MANAt(512);
 
         return affixCanvasLoadRecipeBuilder.buildRawRecipe();
@@ -579,7 +589,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         RecipeBuilder GemSynthesisRecipeBuilder = getRecipeBuilder();
 
         ObjectArrayList<ItemStack> inputsGems = new ObjectArrayList<>();
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             if (stack.getItem() == Adventure.Items.GEM.get()) {
                 inputsGems.add(stack);
             }
@@ -587,7 +597,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         });
         if (inputsGems.isEmpty()) return null;
 
-        Object2IntOpenHashMap<CompoundTag> nbtCountMap = new Object2IntOpenHashMap<>();
+        Object2IntOpenHashMap<CompoundTag> nbtCountMap = new O2IOpenCacheHashMap<>();
         // 计算每个唯一NBT的总数量
         for (ItemStack stack : inputsGems) {
             CompoundTag nbt = stack.getTag() != null ? stack.getTag() : new CompoundTag();
@@ -642,7 +652,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
                 Item materialType = RARITY_MATERIAL_MAP.getOrDefault(RARITIES[i], RARITY_MATERIAL_MAP.get("default"));
                 GemSynthesisRecipeBuilder.inputItems(gem);
                 GemSynthesisRecipeBuilder.inputItems(materialType, count * 3);
-                GemSynthesisRecipeBuilder.inputItems(Adventure.Items.GEM_DUST.get(), count * 7);
+                GemSynthesisRecipeBuilder.inputItems(Adventure.Items.GEM_DUST.get(), count * (i * 2 + 1));
 
                 String originalRarity = getGemRarity(gem);
                 int currentIndex = -1;
@@ -664,7 +674,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
                 GemSynthesisRecipeBuilder.outputItems(upgradedGem, count);
             }
         }
-        GemSynthesisRecipeBuilder.duration(5 * timeMultiplier);
+        GemSynthesisRecipeBuilder.duration(timeMultiplier);
         return GemSynthesisRecipeBuilder.buildRawRecipe();
     }
 
@@ -676,7 +686,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         ObjectHolder<ItemStack> EnchantedBook = new ObjectHolder<>(null);
         ObjectHolder<ItemStack> NonEnchantedItem = new ObjectHolder<>(null);
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             Item stackItem = stack.getItem();
             if (stackItem == GTItems.PROGRAMMED_CIRCUIT.asItem()) return false;
             if (EnchantedBook.value == null && stackItem == Items.ENCHANTED_BOOK) {
@@ -717,7 +727,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         forcedEnchantmentRecipeBuilder.outputItems(inputItem, 1);
         forcedEnchantmentRecipeBuilder.outputItems(Items.BOOK);
-        forcedEnchantmentRecipeBuilder.duration(20);
+        forcedEnchantmentRecipeBuilder.duration(5);
         forcedEnchantmentRecipeBuilder.MANAt(512);
 
         return forcedEnchantmentRecipeBuilder.buildRawRecipe();
@@ -731,7 +741,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         ObjectHolder<ItemStack> affixCanvas = new ObjectHolder<>(null);
         ObjectHolder<ItemStack> NonAffixItem = new ObjectHolder<>(null);
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             Item stackItem = stack.getItem();
             if (stackItem == GTItems.PROGRAMMED_CIRCUIT.asItem()) return false;
             if (affixCanvas.value == null && stackItem == GTOItems.AFFIX_CANVAS.asItem()) {
@@ -780,7 +790,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         forcedAffixRecipeBuilder.outputItems(inputItem, 1);
         forcedAffixRecipeBuilder.outputItems(GTOItems.AFFIX_CANVAS);
-        forcedAffixRecipeBuilder.duration(20);
+        forcedAffixRecipeBuilder.duration(5);
         forcedAffixRecipeBuilder.MANAt(512);
 
         return forcedAffixRecipeBuilder.buildRawRecipe();
@@ -794,7 +804,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         ObjectHolder<ItemStack> rarityUpItem = new ObjectHolder<>(null);
         ObjectHolder<ItemStack> materialItem = new ObjectHolder<>(null);
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             Item stackItem = stack.getItem();
             if (stackItem == GTItems.PROGRAMMED_CIRCUIT.asItem() || stackItem == Adventure.Items.SIGIL_OF_REBIRTH.get()) return false;
             if (rarityUpItem.value == null)
@@ -826,7 +836,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         affixData.putString("rarity", rarity);
 
         ForcedRarityUpRecipeBuilder.outputItems(inputRarityUpItem, 1);
-        ForcedRarityUpRecipeBuilder.duration(20);
+        ForcedRarityUpRecipeBuilder.duration(5);
         ForcedRarityUpRecipeBuilder.MANAt(512);
 
         return ForcedRarityUpRecipeBuilder.buildRawRecipe();
@@ -840,11 +850,11 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         ObjectHolder<ItemStack> addSocketItem = new ObjectHolder<>(null);
         IntHolder sigilCount = new IntHolder(0);
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             Item stackItem = stack.getItem();
             if (stackItem == GTItems.PROGRAMMED_CIRCUIT.asItem()) return false;
             if (stackItem == Adventure.Items.SIGIL_OF_SOCKETING.get()) {
-                sigilCount.value += stack.getCount();
+                sigilCount.value += amount;
                 return false;
             }
             if (addSocketItem.value == null)
@@ -871,7 +881,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         ForcedAddSocketRecipeBuilder.inputItems(Adventure.Items.SIGIL_OF_SOCKETING.get(), costSigil);
         ForcedAddSocketRecipeBuilder.outputItems(inputAddSocketItem, 1);
-        ForcedAddSocketRecipeBuilder.duration(10 * costSigil);
+        ForcedAddSocketRecipeBuilder.duration(costSigil);
         ForcedAddSocketRecipeBuilder.MANAt(512);
 
         return ForcedAddSocketRecipeBuilder.buildRawRecipe();
@@ -885,7 +895,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
 
         ObjectHolder<ItemStack> addGemItem = new ObjectHolder<>(null);
         List<ItemStack> gemItems = new ObjectArrayList<>();
-        forEachInputItems(stack -> {
+        forEachInputItems((stack, amount) -> {
             Item stackItem = stack.getItem();
             if (stackItem == GTItems.PROGRAMMED_CIRCUIT.asItem()) return false;
             if (addGemItem.value == null && stackItem != Adventure.Items.GEM.get())
@@ -950,7 +960,7 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
         for (ItemStack inputGemItem : inputGemItems) ForcedMosaicGemRecipeBuilder.inputItems(inputGemItem, 1);
 
         ForcedMosaicGemRecipeBuilder.outputItems(inputAddGemItem, 1);
-        ForcedMosaicGemRecipeBuilder.duration(10 * inputGemItems.size());
+        ForcedMosaicGemRecipeBuilder.duration(inputGemItems.size());
         ForcedMosaicGemRecipeBuilder.MANAt(512);
 
         return ForcedMosaicGemRecipeBuilder.buildRawRecipe();
@@ -1020,5 +1030,20 @@ public class ThePrimordialReconstructor extends ManaMultiblockMachine {
             }
         }
         return "apotheosis:common";
+    }
+
+    /**
+     * 通过字符串获取宝石
+     */
+    public static ItemStack getGem(int rarity, String gem) {
+        if (rarity > 5) rarity = 0;
+        ItemStack gemStack = new ItemStack(Adventure.Items.GEM.get());
+        CompoundTag rootTag = new CompoundTag();
+        CompoundTag affixData = new CompoundTag();
+        affixData.putString("rarity", RARITIES[rarity]);
+        rootTag.put("affix_data", affixData);
+        rootTag.putString("gem", gem);
+        gemStack.setTag(rootTag);
+        return gemStack;
     }
 }

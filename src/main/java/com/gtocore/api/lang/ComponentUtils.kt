@@ -11,6 +11,8 @@ import com.gregtechceu.gtceu.client.util.TooltipHelper
 import com.gtolib.api.annotation.NewDataAttributes
 import com.gtolib.api.annotation.component_builder.TranslationKeyProvider
 import com.gtolib.utils.StringUtils
+import dev.shadowsoffire.placebo.color.GradientColor
+
 class ComponentListSupplier(var list: MutableList<ComponentSupplier> = mutableListOf()) : Supplier<List<Component>> {
     var translationPrefix: String = ""
         private set
@@ -173,14 +175,38 @@ class ComponentSupplier(var component: Component, private val delayed: MutableLi
         withStyle { it.withColor(TooltipHelper.RAINBOW_SLOW.current) }
     }
 
+    fun rainbowGradient(): ComponentSupplier = operatorComponent {
+        withStyle { it.withColor(GradientColor.RAINBOW) }
+    }
+
+    fun rainbowGradient(float: Float, int: Int, boolean: Boolean): ComponentSupplier = operatorComponent {
+        withStyle { it.withColor(OffsetGradientColor(float, int, boolean)) }
+    }
+
+    fun rainbowGradient(int: Int): ComponentSupplier = operatorComponent {
+        withStyle { it.withColor(OffsetGradientColor(1f, int)) }
+    }
+
     // ////////////////////////////////
     // ****** 滚动 ******//
     // //////////////////////////////
-    fun scrollWhiteBlue(): ComponentSupplier = transformComponent { supplier ->
+    fun scrollSuprachronal(): ComponentSupplier = transformComponent { supplier ->
         StringUtils.white_blue(supplier.component.string).toLiteralSupplier()
     }
     fun scrollFullColor(): ComponentSupplier = transformComponent { supplier ->
         StringUtils.full_color(supplier.component.string).toLiteralSupplier()
+    }
+    fun scrollBioware(): ComponentSupplier = transformComponent { supplier ->
+        StringUtils.dark_green(supplier.component.string).toLiteralSupplier()
+    }
+    fun scrollOptical(): ComponentSupplier = transformComponent { supplier ->
+        StringUtils.golden(supplier.component.string).toLiteralSupplier()
+    }
+    fun scrollExotic(): ComponentSupplier = transformComponent { supplier ->
+        StringUtils.purplish_red(supplier.component.string).toLiteralSupplier()
+    }
+    fun scrollCosmic(): ComponentSupplier = transformComponent { supplier ->
+        StringUtils.dark_purplish_red(supplier.component.string).toLiteralSupplier()
     }
 
     // ////////////////////////////////

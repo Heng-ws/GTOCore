@@ -120,5 +120,8 @@ public final class $ClassifiedRecipe {
         ManaSimulator.init();
         RarityForge.init();
         LaserWelder.init();
+        FastNeutronBreeder.init();
+        ElectroPlating.init();
+        FuelCell.init();
     }
 }

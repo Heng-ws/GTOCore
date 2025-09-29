@@ -241,7 +241,7 @@ public final class GTOMachines {
     /// ///////////////////////////////////
     public static final MachineDefinition[] THREAD_HATCH = registerTieredMachines("thread_hatch", tier -> GTOValues.VNFR[tier] + "线程仓",
             ThreadHatchPartMachine::new, (tier, builder) -> builder
-                    .langValue(VNF[tier] + " Thread Hatch")
+                    .langValue(GTOValues.VNFR[tier] + " Thread Hatch")
                     .allRotation()
                     .abilities(GTOPartAbility.THREAD_HATCH)
                     .workableTieredHullRenderer(GTOCore.id("block/machines/thread_hatch/thread_hatch_mk" + (tier - 7)))
@@ -251,7 +251,7 @@ public final class GTOMachines {
 
     public static final MachineDefinition[] OVERCLOCK_HATCH = registerTieredMachines("overclock_hatch", tier -> GTOValues.VNFR[tier] + "超频仓",
             OverclockHatchPartMachine::new, (tier, builder) -> builder
-                    .langValue(VNF[tier] + " Overclock Hatch")
+                    .langValue(GTOValues.VNFR[tier] + " Overclock Hatch")
                     .allRotation()
                     .abilities(GTOPartAbility.OVERCLOCK_HATCH)
                     .tooltips(NewDataAttributes.MAIN_FUNCTION.create(
@@ -272,7 +272,7 @@ public final class GTOMachines {
 
     public static final MachineDefinition[] ACCELERATE_HATCH = registerTieredMachines("accelerate_hatch", tier -> GTOValues.VNFR[tier] + "加速仓",
             AccelerateHatchPartMachine::new, (tier, builder) -> builder
-                    .langValue(VNF[tier] + " Accelerate Hatch")
+                    .langValue(GTOValues.VNFR[tier] + " Accelerate Hatch")
                     .allRotation()
                     .abilities(GTOPartAbility.ACCELERATE_HATCH)
                     .tooltips(NewDataAttributes.MAIN_FUNCTION.create(
@@ -294,7 +294,7 @@ public final class GTOMachines {
     public static final MachineDefinition[] PROGRAMMABLEC_HATCH = registerTieredMachines("programmablec_hatch", tier -> GTOValues.VNFR[tier] + "可编程仓",
             (holder, tier) -> new ProgrammableHatchPartMachine(holder, tier, IN),
             (tier, builder) -> builder
-                    .langValue("%s Programmablec Hatch".formatted(VNF[tier]))
+                    .langValue("%s Programmablec Hatch".formatted(GTOValues.VNFR[tier]))
                     .allRotation()
                     .abilities(PartAbility.IMPORT_ITEMS)
                     .renderer(() -> new OverlayTieredMachineRenderer(tier, GTCEu.id("block/machine/part/dual_hatch.import")))
@@ -310,7 +310,7 @@ public final class GTOMachines {
     public static final MachineDefinition[] ENERGY_INPUT_HATCH_4A = registerTieredMachines("energy_input_hatch_4a", tier -> 4 + "安" + GTOValues.VNFR[tier] + "能源仓",
             (holder, tier) -> new EnergyHatchPartMachine(holder, tier, IO.IN, 4),
             (tier, builder) -> builder
-                    .langValue(VNF[tier] + " 4A Energy Hatch")
+                    .langValue(GTOValues.VNFR[tier] + " 4A Energy Hatch")
                     .allRotation()
                     .abilities(PartAbility.INPUT_ENERGY)
                     .tooltips(Component.translatable("gtceu.machine.energy_hatch.input_hi_amp.tooltip"))
@@ -321,7 +321,7 @@ public final class GTOMachines {
     public static final MachineDefinition[] ENERGY_OUTPUT_HATCH_4A = registerTieredMachines("energy_output_hatch_4a", tier -> 4 + "安" + GTOValues.VNFR[tier] + "动力仓",
             (holder, tier) -> new EnergyHatchPartMachine(holder, tier, IO.OUT, 4),
             (tier, builder) -> builder
-                    .langValue(VNF[tier] + " 4A Dynamo Hatch")
+                    .langValue(GTOValues.VNFR[tier] + " 4A Dynamo Hatch")
                     .allRotation()
                     .abilities(PartAbility.OUTPUT_ENERGY)
                     .tooltips(Component.translatable("gtceu.machine.energy_hatch.output_hi_amp.tooltip"))
@@ -332,7 +332,7 @@ public final class GTOMachines {
     public static final MachineDefinition[] ENERGY_INPUT_HATCH_16A = registerTieredMachines("energy_input_hatch_16a", tier -> 16 + "安" + GTOValues.VNFR[tier] + "能源仓",
             (holder, tier) -> new EnergyHatchPartMachine(holder, tier, IO.IN, 16),
             (tier, builder) -> builder
-                    .langValue(VNF[tier] + " 16A Energy Hatch")
+                    .langValue(GTOValues.VNFR[tier] + " 16A Energy Hatch")
                     .allRotation()
                     .abilities(PartAbility.INPUT_ENERGY)
                     .tooltips(Component.translatable("gtceu.machine.energy_hatch.input_hi_amp.tooltip"))
@@ -343,7 +343,7 @@ public final class GTOMachines {
     public static final MachineDefinition[] ENERGY_OUTPUT_HATCH_16A = registerTieredMachines("energy_output_hatch_16a", tier -> 16 + "安" + GTOValues.VNFR[tier] + "动力仓",
             (holder, tier) -> new EnergyHatchPartMachine(holder, tier, IO.OUT, 16),
             (tier, builder) -> builder
-                    .langValue(VNF[tier] + " 16A Dynamo Hatch")
+                    .langValue(GTOValues.VNFR[tier] + " 16A Dynamo Hatch")
                     .allRotation()
                     .abilities(PartAbility.OUTPUT_ENERGY)
                     .tooltips(Component.translatable("gtceu.machine.energy_hatch.output_hi_amp.tooltip"))
@@ -353,7 +353,7 @@ public final class GTOMachines {
 
     public static final MachineDefinition[] DRONE_HATCH = registerTieredMachines("drone_hatch", tier -> GTOValues.VNFR[tier] + "无人机仓",
             DroneHatchPartMachine::new, (tier, builder) -> builder
-                    .langValue(VNF[tier] + " Drone Hatch")
+                    .langValue(GTOValues.VNFR[tier] + " Drone Hatch")
                     .allRotation()
                     .abilities(GTOPartAbility.DRONE_HATCH)
                     .notAllowSharedTooltips()
@@ -471,10 +471,10 @@ public final class GTOMachines {
             .allRotation()
             .register();
 
-    public static final MachineDefinition[] NEUTRON_ACCELERATOR = registerTieredMachines("neutron_accelerator", tier -> VNF[tier] + "中子加速器",
+    public static final MachineDefinition[] NEUTRON_ACCELERATOR = registerTieredMachines("neutron_accelerator", tier -> GTOValues.VNFR[tier] + "中子加速器",
             NeutronAcceleratorPartMachine::new,
             (tier, builder) -> builder
-                    .langValue(VNF[tier] + "Neutron Accelerator")
+                    .langValue(GTOValues.VNFR[tier] + " Neutron Accelerator")
                     .allRotation()
                     .abilities(GTOPartAbility.NEUTRON_ACCELERATOR)
                     .tooltips(GTOMachineTooltips.INSTANCE.getNeutronAcceleratorTooltips().invoke(V[tier], VNF[tier], (V[tier] << 3) / 10, 2 * V[tier]).getSupplier())
@@ -758,7 +758,7 @@ public final class GTOMachines {
             .renderer(() -> new OverlayTieredMachineRenderer(IV, GTCEu.id("block/machine/part/data_access_hatch")))
             .register();
 
-    public static final MachineDefinition MACHINE_ACCESS_TERMINAL = machine("machine_access_terminal", "机器访问终端", MachineAccessTerminalPartMachine::new)
+    public static final MachineDefinition MACHINE_ACCESS_TERMINAL = machine("machine_access_terminal", "机器访问终端", GTOMachineBuilder::encapsulatorPart)
             .tier(UEV)
             .allRotation()
             .notAllowSharedTooltips()
@@ -877,6 +877,7 @@ public final class GTOMachines {
             .tooltips(GTOMachineTooltips.INSTANCE.getHyperCubeMachineTooltips().getSupplier())
             .modelRenderer(() -> GTOCore.id("block/machine/tesseract_generator"))
             .tier(HV)
+            .allowCoverOnFront(true)
             .register();
 
     public static final MachineDefinition ADVANCED_TESSERACT_GENERATOR = blockEntityMachine("advanced_tesseract_generator", "进阶超立方体发生器", AdvancedTesseractMachine::new, TesseractBlockEntity::new)
@@ -884,31 +885,32 @@ public final class GTOMachines {
             .tooltips(GTOMachineTooltips.INSTANCE.getAdvancedHyperCubeMachineTooltips().getSupplier())
             .modelRenderer(() -> GTOCore.id("block/machine/tesseract_generator"))
             .tier(IV)
+            .allowCoverOnFront(true)
             .register();
 
     public static final MachineDefinition BASIC_MONITOR = registerMonitor("basic_monitor", "基础监控器", BasicMonitor::new)
-            .tooltips(GTOMachineTooltips.INSTANCE.getBasicMonitorTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getBasicMonitorTooltips().apply(list))
             .register();
     public static final MachineDefinition MONITOR_MACHINE_ELECTRICITY = registerMonitor("monitor_electricity", "监控器电网组件", MonitorEU::new)
-            .tooltips(GTOMachineTooltips.INSTANCE.getMonitorPowerComponentTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getMonitorPowerComponentTooltips().apply(list))
             .register();
     public static final MachineDefinition MONITOR_MACHINE_MANA = registerMonitor("monitor_mana", "监控器魔力网络组件", MonitorMana::new)
-            .tooltips(GTOMachineTooltips.INSTANCE.getMonitorManaComponentTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getMonitorManaComponentTooltips().apply(list))
             .register();
     public static final MachineDefinition MONITOR_MACHINE_CWU = registerMonitor("monitor_cwu", "监控器算力网络组件", MonitorCWU::new)
-            .tooltips(GTOMachineTooltips.INSTANCE.getMonitorComputingComponentTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getMonitorComputingComponentTooltips().apply(list))
             .register();
     public static final MachineDefinition MONITOR_MACHINE_CUSTOM = registerMonitor("monitor_custom", "监控器自定义文本组件", MonitorCustomInfo::new)
-            .tooltips(GTOMachineTooltips.INSTANCE.getMonitorCustomTextComponentTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getMonitorCustomTextComponentTooltips().apply(list))
             .register();
     public static final MachineDefinition MONITOR_AE_THROUGHPUT = registerMonitor("monitor_ae_throughput", "监控器ME网络吞吐量组件", MonitorAEThroughput::new)
-            .tooltips(GTOMachineTooltips.INSTANCE.getMonitorMEThroughputComponentTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getMonitorMEThroughputComponentTooltips().apply(list))
             .register();
     public static final MachineDefinition MONITOR_AE_CPU = registerMonitor("monitor_ae_cpu", "监控器ME合成处理单元组件", MonitorAECPU::new)
-            .tooltips(GTOMachineTooltips.INSTANCE.getMonitorCraftingComponentTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getMonitorCraftingComponentTooltips().apply(list))
             .register();
     public static final MachineDefinition MONITOR_MACHINE = registerMonitor("monitor_machine", "监控器通用机器组件", MonitorMachine::new)
-            .tooltips(GTOMachineTooltips.INSTANCE.getMonitorMachineComponentTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getMonitorMachineComponentTooltips().apply(list))
             .register();
 
     private static GTOMachineBuilder registerMonitor(String id, String cn, Function<MetaMachineBlockEntity, MetaMachine> monitorConstructor) {

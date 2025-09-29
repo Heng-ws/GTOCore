@@ -13,8 +13,7 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraftforge.fluids.FluidStack;
 
-import static com.gregtechceu.gtceu.api.GTValues.EV;
-import static com.gregtechceu.gtceu.api.GTValues.VA;
+import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.Oxygen;
 import static com.gtocore.common.data.GTORecipeTypes.VACUUM_RECIPES;
 
@@ -23,10 +22,9 @@ final class Vacuum {
     public static void init() {
         VACUUM_RECIPES.recipeBuilder("frozen_pearl")
                 .inputItems(TagPrefix.gem, GTMaterials.EnderPearl)
-                .inputFluids(GTMaterials.Ice.getFluid(576))
                 .outputItems("torchmaster:frozen_pearl")
                 .EUt(120)
-                .duration(120)
+                .duration(600)
                 .save();
 
         VACUUM_RECIPES.recipeBuilder("metastable_oganesson")
@@ -86,6 +84,11 @@ final class Vacuum {
                 .inputFluids(GTOMaterials.HighPressureNitrogen.getFluid(1000))
                 .outputFluids(GTOMaterials.LiquidNitrogen.getFluid(1000))
                 .duration(320).EUt(VA[EV]).save();
+
+        VACUUM_RECIPES.builder("liquid_ammonia")
+                .inputFluids(GTMaterials.Ammonia.getFluid(8000))
+                .outputFluids(GTOMaterials.LiquidAmmonia.getFluid(1000))
+                .duration(200).EUt(VA[HV]).save();
 
         VACUUM_RECIPES.builder("stainless_steel_ingot")
                 .outputItems(TagPrefix.ingot, GTMaterials.StainlessSteel)

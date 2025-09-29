@@ -7,8 +7,11 @@ import com.gtocore.common.data.GTOItems;
 import com.gtocore.common.item.ItemMap;
 import com.gtocore.common.machine.multiblock.electric.voidseries.VoidTransporterMachine;
 import com.gtocore.common.network.ServerMessage;
-import com.gtocore.common.saved.*;
+import com.gtocore.common.saved.DysonSphereSavaedData;
+import com.gtocore.common.saved.RecipeRunLimitSavaedData;
+import com.gtocore.common.saved.WirelessSavedData;
 import com.gtocore.config.GTOConfig;
+import com.gtocore.config.GTOStartupConfig;
 import com.gtocore.utils.OrganUtilsKt;
 
 import com.gtolib.GTOCore;
@@ -34,6 +37,7 @@ import com.gregtechceu.gtceu.common.data.GTItems;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -67,6 +71,7 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.registries.MissingMappingsEvent;
 
 import earth.terrarium.adastra.common.entities.mob.GlacianRam;
 import org.apache.logging.log4j.core.config.Configurator;
@@ -285,6 +290,19 @@ public final class ForgeCommonEvent {
                 enhancedPlayer.getPlayerData().setDrift(enhancedPlayer.getPlayerData().disableDrift);
                 OrganUtilsKt.ktFreshOrganState(enhancedPlayer.getPlayerData());
             }
+            if (!GTCEu.isDev() && player.getLanguage().startsWith("en")) {
+                player.sendSystemMessage(
+                        Component.literal("If you are using the English translation. This translation is community-maintained with help from AI. Have suggestions or corrections? No Chinese required.")
+                                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+                player.sendSystemMessage(
+                        Component.literal("Click Here to Join the English translation project on ParaTranz")
+                                .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)
+                                        .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://paratranz.cn/projects/16320"))));
+                player.sendSystemMessage(
+                        Component.literal("Click Here to Join the Discord for more information and updates")
+                                .withStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)
+                                        .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/ZSVb4dgVNB"))));
+            }
         }
     }
 
@@ -331,8 +349,22 @@ public final class ForgeCommonEvent {
     @SubscribeEvent
     public static void serverStarting(ServerStartingEvent event) {
         DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
-            if (Objects.equals(GTOConfig.INSTANCE.serverLanguage, "en_us")) return;
-            ServerLangHook.gto$loadLanguage(GTOConfig.INSTANCE.serverLanguage, event.getServer());
+            if (Objects.equals(GTOStartupConfig.serverLang, "en_us")) return;
+            ServerLangHook.gto$loadLanguage(GTOStartupConfig.serverLang, event.getServer());
+        });
+    }
+
+    @SubscribeEvent
+    public static void remapIds(MissingMappingsEvent event) {
+        event.getMappings(Registries.BLOCK, GTOCore.MOD_ID).forEach(mapping -> {
+            if (mapping.getKey().equals(GTOCore.id("abs_rad_casing"))) {
+                mapping.remap(GTOBlocks.ABS_RED_CASING.get());
+            }
+        });
+        event.getMappings(Registries.ITEM, GTOCore.MOD_ID).forEach(mapping -> {
+            if (mapping.getKey().equals(GTOCore.id("abs_rad_casing"))) {
+                mapping.remap(GTOBlocks.ABS_RED_CASING.asItem());
+            }
         });
     }
 }

@@ -3,6 +3,7 @@ package com.gtocore.data.recipe.classified;
 import com.gtocore.api.data.tag.GTOTagPrefix;
 import com.gtocore.common.data.*;
 import com.gtocore.common.data.machines.GTAEMachines;
+import com.gtocore.common.data.machines.GeneratorMultiblock;
 import com.gtocore.common.data.machines.MultiBlockG;
 
 import com.gregtechceu.gtceu.api.GTValues;
@@ -26,12 +27,21 @@ import static com.gregtechceu.gtceu.api.GTValues.LuV;
 import static com.gregtechceu.gtceu.api.GTValues.VA;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
-import static com.gregtechceu.gtceu.common.data.GTMaterials.Osmiridium;
 import static com.gtocore.common.data.GTORecipeTypes.ASSEMBLER_RECIPES;
 
 final class AssemblerA {
 
     public static void init() {
+        ASSEMBLER_RECIPES.builder("control_hatch")
+                .inputItems(GTMachines.HULL[GTValues.MV].asStack())
+                .inputItems(GTItems.COVER_MACHINE_CONTROLLER.asStack())
+                .inputItems("enderio:redstone_sensor_filter")
+                .inputFluids(GTMaterials.RedAlloy, 288)
+                .outputItems(GTMachines.CONTROL_HATCH.getItem())
+                .EUt(30)
+                .duration(200)
+                .save();
+
         ASSEMBLER_RECIPES.builder("heat_vacuum_interface")
                 .inputItems(GTMachines.HULL[GTValues.LV].asStack())
                 .inputItems(GTOItems.AIR_VENT)
@@ -362,6 +372,86 @@ final class AssemblerA {
                 .inputFluids(GTMaterials.ReinforcedEpoxyResin, 2000)
                 .EUt(480)
                 .duration(200)
+                .save();
+
+        ASSEMBLER_RECIPES.builder("transcendentally_amplified_magnetic_confinement_casing")
+                .inputItems(TagPrefix.frameGt, GTOMaterials.Laurenium)
+                .inputItems(GTOBlocks.ACCELERATOR_MAGNETIC_CONSTRAINED_RAIL_CASING.asStack(4))
+                .inputItems(TagPrefix.plateDouble, GTOMaterials.Ostrum, 8)
+                .inputItems(TagPrefix.plateDouble, GTOMaterials.Vibranium, 8)
+                .outputItems(GTOBlocks.TRANSCENDENTALLY_AMPLIFIED_MAGNETIC_CONFINEMENT_CASING.asStack())
+                .circuitMeta(6)
+                .EUt(122800)
+                .duration(200)
+                .save();
+        ASSEMBLER_RECIPES.builder("polytetrafluoroethylene_membrane_electrode")
+                .inputItems(TagPrefix.foil, GTMaterials.Polytetrafluoroethylene, 16)
+                .inputItems(GTOTagPrefix.CATALYST, Nickel, 4)
+                .inputItems(new ItemStack(Items.SPONGE.asItem()))
+                .outputItems(GTOTagPrefix.MEMBRANE_ELECTRODE, GTMaterials.Polytetrafluoroethylene)
+                .inputFluids(GTMaterials.Polycaprolactam, 144)
+                .EUt(8168)
+                .duration(600)
+                .save();
+        ASSEMBLER_RECIPES.builder("graphene_membrane_electrode")
+                .inputItems(TagPrefix.foil, GTMaterials.Graphene, 16)
+                .inputItems(GTOTagPrefix.CATALYST, Platinum, 4)
+                .inputItems(new ItemStack(Items.SPONGE.asItem()))
+                .outputItems(GTOTagPrefix.MEMBRANE_ELECTRODE, GTMaterials.Graphene)
+                .inputFluids(GTMaterials.Polycaprolactam, 144)
+                .EUt(8168)
+                .duration(600)
+                .save();
+        ASSEMBLER_RECIPES.builder("polous_polyolefin_sulfonate_membrane_electrode")
+                .inputItems(TagPrefix.foil, GTOMaterials.PolousPolyolefinSulfonate, 16)
+                .inputItems(GTOTagPrefix.CATALYST, GTOMaterials.TitaniumDioxideNanotubes, 4)
+                .inputItems(new ItemStack(Items.SPONGE.asItem()))
+                .outputItems(GTOTagPrefix.MEMBRANE_ELECTRODE, GTOMaterials.PolousPolyolefinSulfonate)
+                .inputFluids(GTMaterials.Polycaprolactam, 144)
+                .EUt(8168)
+                .duration(600)
+                .save();
+        ASSEMBLER_RECIPES.builder("perfluorosulfonic_acid_polytetrafluoroethylene_copolymer_membrane_electrode")
+                .inputItems(TagPrefix.foil, GTOMaterials.PerfluorosulfonicAcidPolytetrafluoroethyleneCopolymer, 16)
+                .inputItems(GTOTagPrefix.CATALYST, GTOMaterials.RhodiumRheniumNaquadahCatalyst, 4)
+                .inputItems(new ItemStack(Items.SPONGE.asItem()))
+                .outputItems(GTOTagPrefix.MEMBRANE_ELECTRODE, GTOMaterials.PerfluorosulfonicAcidPolytetrafluoroethyleneCopolymer)
+                .inputFluids(GTMaterials.Polycaprolactam, 144)
+                .EUt(8168)
+                .duration(600)
+                .save();
+        ASSEMBLER_RECIPES.builder("ce_ox_poly_dopamine_reinforced_polytetrafluoroethylene_membrane_electrode")
+                .inputItems(TagPrefix.foil, GTOMaterials.CeOxPolyDopamineReinforcedPolytetrafluoroethylene, 16)
+                .inputItems(GTOTagPrefix.CATALYST, Hafnium, 4)
+                .inputItems(new ItemStack(Items.SPONGE.asItem()))
+                .outputItems(GTOTagPrefix.MEMBRANE_ELECTRODE, GTOMaterials.CeOxPolyDopamineReinforcedPolytetrafluoroethylene)
+                .inputFluids(GTMaterials.Polycaprolactam, 144)
+                .EUt(8168)
+                .duration(600)
+                .save();
+        ASSEMBLER_RECIPES.builder("nanocrack_regulated_self_humidifying_composite_material_membrane_electrode")
+                .inputItems(TagPrefix.foil, GTOMaterials.NanocrackRegulatedSelfHumidifyingCompositeMaterial, 16)
+                .inputItems(GTOTagPrefix.CATALYST, GTOMaterials.RhodiumTriphenylphosphineChloride, 4)
+                .inputItems(new ItemStack(Items.SPONGE.asItem()))
+                .outputItems(GTOTagPrefix.MEMBRANE_ELECTRODE, GTOMaterials.NanocrackRegulatedSelfHumidifyingCompositeMaterial)
+                .inputFluids(GTMaterials.Polycaprolactam, 144)
+                .EUt(8168)
+                .duration(600)
+                .save();
+        ASSEMBLER_RECIPES.builder("fuel_cell_generator")
+                .inputItems(GTOBlocks.IRIDIUM_CASING.asStack(4))
+                .inputItems(GeneratorMultiblock.CHEMICAL_ENERGY_DEVOURER.asStack())
+                .inputItems(GTOTagPrefix.MEMBRANE_ELECTRODE, GTMaterials.Polytetrafluoroethylene, 16)
+                .inputItems(GTItems.ENGRAVED_LAPOTRON_CHIP.asStack(8))
+                .inputItems(GTBlocks.HERMETIC_CASING_EV.asStack(4))
+                .inputItems(GTBlocks.HERMETIC_CASING_IV.asStack(4))
+                .inputItems(CustomTags.LuV_CIRCUITS, 4)
+                .inputItems(GTItems.ELECTRIC_PUMP_IV.asStack(8))
+                .inputItems(TagPrefix.wireGtQuadruple, GTMaterials.SamariumIronArsenicOxide, 4)
+                .outputItems(GeneratorMultiblock.FUEL_CELL_GENERATOR.asStack())
+                .inputFluids(GTMaterials.SolderingAlloy, 4000)
+                .EUt(7680)
+                .duration(1200)
                 .save();
     }
 }

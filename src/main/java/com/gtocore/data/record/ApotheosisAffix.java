@@ -1,7 +1,16 @@
 package com.gtocore.data.record;
 
+import com.gtocore.common.item.ApothItem;
+import com.gtocore.data.tag.Tags;
+
+import com.gtolib.GTOCore;
+
+import com.tterrag.registrate.util.entry.ItemEntry;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.gtolib.utils.register.ItemRegisterUtils.item;
 
 public class ApotheosisAffix {
 
@@ -59,13 +68,18 @@ public class ApotheosisAffix {
     // 根据serialNumber获取apotheosisAffixId
     public static String getApotheosisAffixIdBySerialNumber(int serialNumber) {
         ApotheosisAffixRecord record = findBySerialNumber(serialNumber);
-        return record != null ? record.affixId() : "error";
+        return record != null ? record.affixId() : "original";
+    }
+
+    // 根据精粹数量
+    public static int getAffixSize() {
+        return initializeApotheosisAffixRecords().size();
     }
 
     public static List<ApotheosisAffixRecord> initializeApotheosisAffixRecords() {
         List<ApotheosisAffixRecord> records = new ArrayList<>();
 
-        records.add(ApotheosisAffixRecord.create(0, "error", "error", "错误"));
+        records.add(ApotheosisAffixRecord.create(0, "original", "original", "原始"));
         records.add(ApotheosisAffixRecord.create(1, "apotheosis:armor/attribute/ironforged", "Ironforged · of Iron", "铁铸 · 铁"));
         records.add(ApotheosisAffixRecord.create(2, "apotheosis:sword/attribute/vampiric", "Vampiric · of Bloodletting", "吸血 · 放血"));
         records.add(ApotheosisAffixRecord.create(3, "apotheosis:sword/special/festive", "Festive · of Partying", "节庆 · 派对"));
@@ -148,5 +162,22 @@ public class ApotheosisAffix {
         records.add(ApotheosisAffixRecord.create(80, "apotheosis:sword/attribute/spellbreaking", "Spellbreaking · of the Petricite Golem", "破法 · 岩石傀儡"));
         records.add(ApotheosisAffixRecord.create(81, "apotheosis:shield/mob_effect/devilish", "Devilish · of the Veteran", "残忍 · 老兵"));
         return records;
+    }
+
+    public static ItemEntry<ApothItem>[] registerAffixEssence() {
+        List<ApotheosisAffixRecord> records = initializeApotheosisAffixRecords();
+        ItemEntry<ApothItem>[] entries = new ItemEntry[getAffixSize()];
+        for (ApotheosisAffixRecord record : records) {
+            String id = record.affixId().substring(record.affixId().indexOf(':') + 1).replace("/", "_");
+            String cn = "刻印精粹 " + "(" + record.cnId() + ")";
+            String en = "Affix Essence " + "(" + record.enId() + ")";
+            entries[record.serialNumber()] = item("affix_essence_" + record.serialNumber(), cn, p -> ApothItem.create(p, record.color()))
+                    .model((ctx, prov) -> prov.generated(ctx, GTOCore.id("item/apoth/fabric0"), GTOCore.id("item/apoth/fabric1")))
+                    .lang(en)
+                    .color(() -> ApothItem::color)
+                    .tag(Tags.AFFIX_ESSENCE)
+                    .register();
+        }
+        return entries;
     }
 }

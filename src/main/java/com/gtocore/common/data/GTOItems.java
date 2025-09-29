@@ -1,5 +1,6 @@
 package com.gtocore.common.data;
 
+import com.gtocore.api.lang.OffsetGradientColor;
 import com.gtocore.api.misc.AutoInitializeImpl;
 import com.gtocore.client.renderer.item.HaloItemRenderer;
 import com.gtocore.client.renderer.item.OrderItemProviderRenderer;
@@ -8,16 +9,10 @@ import com.gtocore.common.data.translation.GTOItemTooltips;
 import com.gtocore.common.item.*;
 import com.gtocore.common.item.armor.SpaceArmorComponentItem;
 import com.gtocore.common.item.misc.GrassHarvesterBehaviour;
-import com.gtocore.data.record.ApotheosisAffix;
-import com.gtocore.data.record.Enchantment;
 
 import com.gtolib.GTOCore;
 import com.gtolib.api.ae2.me2in1.Wireless;
-import com.gtolib.api.annotation.NewDataAttributes;
 import com.gtolib.api.annotation.component_builder.ComponentBuilder;
-import com.gtolib.api.annotation.component_builder.ComponentSupplier;
-import com.gtolib.api.annotation.component_builder.StyleBuilder;
-import com.gtolib.api.lang.CNEN;
 import com.gtolib.utils.StringUtils;
 
 import com.gregtechceu.gtceu.GTCEu;
@@ -50,13 +45,12 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 import earth.terrarium.adastra.common.registry.ModFluids;
-
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 import static com.gregtechceu.gtceu.common.data.GTItems.*;
-import static com.gregtechceu.gtceu.common.data.GTItems.attach;
-import static com.gtocore.data.record.ApotheosisAffix.initializeApotheosisAffixRecords;
-import static com.gtocore.data.record.Enchantment.initializeEnchantmentRecords;
+import static com.gtocore.common.item.tarotArcanumRegister.registerTarotArcanum;
+import static com.gtocore.data.record.ApotheosisAffix.registerAffixEssence;
+import static com.gtocore.data.record.Enchantment.registerEnchantmentEssence;
 import static com.gtolib.api.registries.GTORegistration.GTM;
 import static com.gtolib.utils.register.ItemRegisterUtils.*;
 
@@ -100,21 +94,10 @@ public final class GTOItems {
     public static final ItemEntry<StorageComponentItem> CELL_COMPONENT_64M = registerStorageComponentItem(64);
     public static final ItemEntry<StorageComponentItem> CELL_COMPONENT_256M = registerStorageComponentItem(256);
 
-    private static final ComponentSupplier ORDER_TOOLTIPS = NewDataAttributes.MIRACULOUS_TOOLS.create(CNEN.create("AE2 Order", "AE2 订单"), b -> b.addCommentLines("""
-            右键可以放入一个虚拟物品，例如多方块主机
-            不需要再在铁砧使用告示牌命名
-            可以作为AE自动合成的大型机器产物
-            当此合成完成时，会自动取消，无需手动取消""",
-            """
-                    Right click to put a virtual item, such as a multi-block machine
-                    No longer need to use a sign to name it in anvil
-                    Can be used as a large machine product for AE2 automatic synthesis
-                    When the synthesis is completed, it will automatically cancel, no need to cancel manually"""));
-    private static final List<Component> ORDER_TOOLTIPS_DATA_GEN_INITIALIZATION = ORDER_TOOLTIPS.get();
     public static final ItemEntry<ComponentItem> ORDER = item("order", "%s 订单", ComponentItem::create)
+            .toolTips(GTOItemTooltips.INSTANCE.getOrderTooltips().getArray())
             .properties(p -> p.stacksTo(1))
             .onRegister(attach(OrderItem.INSTANCE))
-            .onRegister(attach(new TooltipBehavior(a -> a.addAll(ORDER_TOOLTIPS.get()))))
             .onRegister(attachRenderer(() -> OrderItemProviderRenderer.INSTANCE))
             .register();
     public static final ItemEntry<ComponentItem> REALLY_MAX_BATTERY = item("really_max_battery", "真·终极电池", ComponentItem::create)
@@ -326,18 +309,7 @@ public final class GTOItems {
     public static final ItemEntry<ComponentItem> WIRELESS_ENERGY_RECEIVE_COVER_MAX_4A = registerTieredCover(4);
 
     public static final ItemEntry<ComponentItem> TIME_TWISTER = item("time_twister", "时间扭曲者", ComponentItem::create)
-            .toolTips(ComponentBuilder.create()
-                    .addLines(NewDataAttributes.MIRACULOUS_TOOLS.create(CNEN.create("时间扭曲者", "Time Twister")), a -> a)
-                    .addLines(NewDataAttributes.EMPTY_WITH_BAR.create(CNEN.create("启动加速：", "Acceleration for normal block entities:")), StyleBuilder::setGold)
-                    .addLines(NewDataAttributes.EMPTY_WITH_TAB.create(CNEN.create("普通点击：消耗8192 EU能量，加速一次", "Normal click: Consume 8192 EU energy, accelerate once (200 extra ticks)")), StyleBuilder::setAqua)
-                    .addLines(NewDataAttributes.EMPTY_WITH_TAB.create(CNEN.create("Shift点击：消耗819200 EU能量，持续100刻内加速目标方块，每tick一次", "Shift click: Consume 819200 EU energy, accelerate the target block once per tick for 100 ticks")), StyleBuilder::setAqua)
-                    .addLines(NewDataAttributes.EMPTY_WITH_BAR.create(CNEN.create("加速方式：", "Acceleration methods:")), StyleBuilder::setGold)
-                    .addLines(NewDataAttributes.EMPTY_WITH_TAB.create(CNEN.create("普通机器：不额外消耗EU能量，每次200tick", "For normal machines: No extra EU consumption, 200 ticks per acceleration")), StyleBuilder::setAqua)
-                    .addLines(NewDataAttributes.EMPTY_WITH_TAB.create(CNEN.create("GT机器：根据模式消耗相应倍数EU能量，每次使当前正在工作的机器进度立即增加最多50%", "For GT machines: Consume EU energy corresponding to the mode, immediately increase current progress by up to 50% per use")), StyleBuilder::setAqua)
-                    .addLines(NewDataAttributes.EMPTY_WITH_BAR.create(CNEN.create("能量消耗：", "Energy consumption:")), StyleBuilder::setGold)
-                    .addLines(NewDataAttributes.EMPTY_WITH_TAB.create(CNEN.create("使用无线能量系统作为能量来源", "Use wireless energy system as energy source")), StyleBuilder::setAqua)
-                    .addLines(NewDataAttributes.EMPTY_WITH_TAB.create(CNEN.create("不同操作消耗不同数量的EU", "Different operations consume different amounts of EU")), StyleBuilder::setAqua)
-                    .build().getArray())
+            .toolTips(GTOItemTooltips.INSTANCE.getTimeTwisterTooltips().getArray())
             .properties(p -> p.stacksTo(1))
             .onRegister(attach(TimeTwisterBehavior.INSTANCE))
             .register();
@@ -895,7 +867,7 @@ public final class GTOItems {
     public static final ItemEntry<Item> HIGH_PURITY_SILICA_COLUMN = register("high_purity_silica_column", "高纯二氧化硅柱");
     public static final ItemEntry<Item> HIGH_PURITY_SILICA_TUBE = register("high_purity_silica_tube", "高纯二氧化硅管");
     public static final ItemEntry<Item> SIMPLE_OPTICAL_FIBER_PREFORM = item("simple_optical_fiber_preform", "简易光纤预制棒", Item::new)
-            .properties(p -> p.stacksTo(1).defaultDurability(1024)).register();
+            .properties(p -> p.stacksTo(1)).register();
     public static final ItemEntry<Item> SIMPLE_FIBER_OPTIC_ROUGH = register("simple_fiber_optic_rough", "简易光纤粗胚");
     public static final ItemEntry<Item> SIMPLE_FIBER_OPTIC = register("simple_fiber_optic", "简易光纤");
 
@@ -907,9 +879,29 @@ public final class GTOItems {
 
     public static final ItemEntry<Item> COLORFUL_MYSTICAL_FLOWER = register("colorful_mystical_flower", "多彩神秘花瓣");
     public static final ItemEntry<Item> GAIA_CORE = register("gaia_core", "§e盖亚之核");
-    public static final ItemEntry<Item> UNSTABLE_GAIA_SOUL = register("unstable_gaia_soul", "§e不稳定的盖亚之魂");
-    public static final ItemEntry<Item> WILDEN_SLATE = register("wilden_slate", "§d荒野石板");
-    public static final ItemEntry<Item> PHILOSOPHERS_STONE = register("philosophers_stone", "贤者之石");
+    public static final ItemEntry<Item> UNSTABLE_GAIA_SOUL = item("unstable_gaia_soul", "不稳定的盖亚之魂", Item::new).properties(p -> p.rarity(Rarity.UNCOMMON)).register();
+    public static final ItemEntry<Item> WILDEN_SLATE = item("wilden_slate", "荒野石板", Item::new).properties(p -> p.rarity(Rarity.EPIC)).register();
+    public static final ItemEntry<Item> HELIO_COAL = register("helio_coal", "日耀煤");
+    public static final ItemEntry<Item> ENDER_DIAMOND = register("ender_diamond", "末影钻石");
+    public static final ItemEntry<Item> RIBBON = register("ribbon", "绶带");
+    public static final ItemEntry<Item> GOLD_MEDAL = item("gold_medal", "金制勋章", Item::new).properties(p -> p.rarity(Rarity.UNCOMMON)).register();
+    public static final ItemEntry<Item> HEROS_SOUL = item("heros_soul", "英雄之魂", Item::new).properties(p -> p.rarity(Rarity.UNCOMMON)).register();
+
+    @SuppressWarnings("unchecked")
+    public static final ItemEntry<Item> PHILOSOPHERS_STONE = (ItemEntry<Item>) (ItemEntry<? extends Item>) item("philosophers_stone", "贤者之石", p -> new Item(p) {
+
+        @Override
+        public @NotNull Component getName(@NotNull ItemStack pStack) {
+            return Component.translatable(this.getDescriptionId(pStack)).withStyle(s -> s.withColor(new OffsetGradientColor(2f)));
+        }
+    }).register();
+
+    @SuppressWarnings("rawtypes")
+    public static final ItemEntry[] TAROT_ARCANUM = registerTarotArcanum();
+
+    public static final ItemEntry<AffixCanvas> AFFIX_CANVAS = item("affix_canvas", "铭刻之布", AffixCanvas::new).register();
+    public static final ItemEntry<ApothItem>[] ENCHANTMENT_ESSENCE = registerEnchantmentEssence();
+    public static final ItemEntry<ApothItem>[] AFFIX_ESSENCE = registerAffixEssence();
 
     public static final ItemEntry<Wireless.Item> WIRELESS_ME2IN1 = item("wireless_me2in1_terminal", "无线ME2合1终端", Wireless.Item::new).register();
 
@@ -1027,47 +1019,4 @@ public final class GTOItems {
             .properties(p -> p.stacksTo(1))
             .onRegister(attach(new CoordinateCardBehavior()))
             .register();
-
-    public static final ItemEntry<AffixCanvas> AFFIX_CANVAS = item("affix_canvas", "铭刻之布", AffixCanvas::new)
-            .properties(p -> p.rarity(Rarity.UNCOMMON))
-            .register();
-
-    public static final ItemEntry<ApothItem>[] ENCHANTMENT_ESSENCE = registerEnchantmentEssence();
-    public static final ItemEntry<ApothItem>[] AFFIX_ESSENCE = registerAffixEssence();
-
-    public static ItemEntry<ApothItem>[] registerEnchantmentEssence() {
-        List<Enchantment.EnchantmentRecord> records = initializeEnchantmentRecords();
-        ItemEntry<ApothItem>[] entries = new ItemEntry[records.size()];
-        for (Enchantment.EnchantmentRecord record : records) {
-            String id = record.enchantmentId().substring(record.enchantmentId().indexOf(':') + 1);
-            String cn = "附魔精粹 " + "(" + record.simplifiedId() + ")";
-            String en = "Enchantment Essence " + "(" + FormattingUtil.toEnglishName(id) + ")";
-            entries[record.serialNumber()] = item("enchantment_essence_" + record.serialNumber(), cn,
-                    p -> ApothItem.create(p, record.color()))
-                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), GTOCore.id("item/enchantment_essence")))
-                    .lang(en)
-                    .properties(p -> p.stacksTo(16).rarity(Rarity.UNCOMMON))
-                    .color(() -> ApothItem::color)
-                    .register();
-        }
-        return entries;
-    }
-
-    public static ItemEntry<ApothItem>[] registerAffixEssence() {
-        List<ApotheosisAffix.ApotheosisAffixRecord> records = initializeApotheosisAffixRecords();
-        ItemEntry<ApothItem>[] entries = new ItemEntry[records.size()];
-        for (ApotheosisAffix.ApotheosisAffixRecord record : records) {
-            String id = record.affixId().substring(record.affixId().indexOf(':') + 1).replace("/", "_");
-            String cn = "刻印精粹 " + "(" + record.cnId() + ")";
-            String en = "Affix Essence " + "(" + record.enId() + ")";
-            entries[record.serialNumber()] = item("affix_essence_" + record.serialNumber(), cn,
-                    p -> ApothItem.create(p, record.color()))
-                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), GTOCore.id("item/affix_essence")))
-                    .lang(en)
-                    .properties(p -> p.stacksTo(16).rarity(Rarity.UNCOMMON))
-                    .color(() -> ApothItem::color)
-                    .register();
-        }
-        return entries;
-    }
 }

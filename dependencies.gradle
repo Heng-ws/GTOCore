@@ -7,6 +7,7 @@ dependencies {
 
     modImplementation(jarJar("dev:gtolib:1.0"))
     modImplementation(jarJar("com.hepdd:ae2emicraftingforge:1.0.0"))
+//    modImplementation(jarJar("dev.mineland:item-interactions-mod-forge+1.20.1:2.1.4"))
 
     api(annotationProcessor("io.github.llamalad7:mixinextras-common:$project.mixinextras_version"))
     annotationProcessor 'org.spongepowered:mixin:0.8.7:processor'
@@ -14,12 +15,14 @@ dependencies {
     compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:0.3.2-beta.4"))
     implementation("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:0.3.2-beta.4")
 
-    modImplementation("curse.maven:ldlib-626676:6979445")
+    modImplementation("curse.maven:ldlib-626676:6995785")
 
     modImplementation("com.tterrag.registrate:Registrate:$project.registrate_version")
 
     modImplementation("appeng:appliedenergistics2-forge:${project.ae2_version}") { transitive false }
-    modImplementation("org.appliedenergistics:guideme:20.1.7")
+    modImplementation("org.appliedenergistics:guideme:20.1.13")
+    modImplementation("curse.maven:applied-energistics-2-wireless-terminals-459929:7014805")
+    modRuntimeOnly("curse.maven:applied-botanics-addon-610632:7024180")
 
     modImplementation("dev.architectury:architectury-forge:${project.architectury_version}")
 
@@ -50,6 +53,7 @@ dependencies {
     modRuntimeOnly("dev.shadowsoffire:ApothicAttributes:${project.minecraft_version}-1.3.7")
     modImplementation("dev.shadowsoffire:Placebo:${project.minecraft_version}-8.6.2")
     modImplementation("dev.shadowsoffire:Apotheosis:${project.minecraft_version}-7.4.7")
+    modImplementation("dev.shadowsoffire:FastSuite:${project.minecraft_version}-5.1.0")
 
     modCompileOnly("com.hollingsworth.ars_nouveau:ars_nouveau-${project.minecraft_version}:4.12.6.256")
     modRuntimeOnly("curse.maven:ars-nouveau-401955:5894609")
@@ -57,28 +61,29 @@ dependencies {
     modImplementation("curse.maven:ars-meteorites-1278083:6714970")
 
     modImplementation("curse.maven:glodium-957920:5006780")
-    modImplementation("curse.maven:ex-pattern-provider-892005:6975234")
+    modImplementation("curse.maven:ex-pattern-provider-892005:7005572")
 
     modImplementation("curse.maven:merequester-688367:5689932")
 
     modImplementation("curse.maven:functional-storage-556861:5650296")
     modImplementation("curse.maven:titanium-287342:5468426")
 
-    modImplementation("curse.maven:ae2wtlib-459929:5217955")
-
     modImplementation("curse.maven:deeperdarker-659011:5906086")
 
     modImplementation("curse.maven:modernfix-790626:6719008")
 
     modImplementation("curse.maven:re-avaritia-623969:6958116")
+//    modImplementation("curse.maven:render-blender-1346485:6993848")
+//    modImplementation("curse.maven:avaritia-integration-1347675:7001596")
 
     modImplementation("curse.maven:EnderIO-64578:5780352")
 
-    modImplementation("curse.maven:farmers-delight-398521:6154802")
-
+    modImplementation("curse.maven:farmers-delight-398521:6917255")
     modImplementation("curse.maven:farmers-respite-551453:5543547")
 
-     modImplementation("curse.maven:spark-361579:4738952")
+    modImplementation("curse.maven:endremastered-404183:5598990")
+
+    modImplementation("curse.maven:spark-361579:4738952")
 
     modCompileOnly("curse.maven:libx-412525:5207625")
 
@@ -122,15 +127,29 @@ dependencies {
 
     modRuntimeOnly("curse.maven:cloth-config-348521:5729105")
 
+    modRuntimeOnly("curse.maven:redstone-pen-461710:5242883")
+    modRuntimeOnly("curse.maven:more-red-387638:4691333")
+
+//    modRuntimeOnly("curse.maven:worldedit-225608:4586218")
+
+    modImplementation("curse.maven:ars-energistique-905641:5504444")
+
     modImplementation("curse.maven:embeddium-908741:5681725")
 
     // modRuntimeOnly("curse.maven:modern-ui-352491:5977000")
 
     jarJar(modImplementation("dev:gtceu-$project.minecraft_version:$project.gtceu_version"))
 
-    jarJar(modImplementation("dev:gtmthings:1.5.4-GTO-Port"))
+    jarJar(modImplementation("dev:gtmthings:1.5.5-GTO-Port"))
 
     modImplementation("dev:Jade-1.20.1-Forge-11.13.1")
 
     modRuntimeOnly("dev:jecharacters:1.20.1-forge-4.5.11-dev-shadow")
+
+//    modRuntimeOnly("curse.maven:mouse-tweaks-60089:4581240")
+//    modRuntimeOnly("curse.maven:inventory-essentials-368825:6977231")
+//    modRuntimeOnly("curse.maven:balm-531761:6978679")
+//    modCompileOnly("curse.maven:mouse-tweaks-60089:4581240")
+    modCompileOnly("curse.maven:inventory-essentials-368825:6977231")
+    modCompileOnly("curse.maven:balm-531761:6978679")
 }

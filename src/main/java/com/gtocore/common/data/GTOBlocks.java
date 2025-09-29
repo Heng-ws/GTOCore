@@ -23,6 +23,7 @@ import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullBiConsumer;
 
 import static com.gtocore.common.block.BlockMap.*;
+import static com.gtocore.common.block.GlowingBlock.createStarStone;
 import static com.gtolib.utils.register.BlockRegisterUtils.*;
 
 public final class GTOBlocks {
@@ -376,7 +377,7 @@ public final class GTOBlocks {
     public static final BlockEntry<Block> ABS_GREY_CASING = createCasingBlock("abs_grey_casing", "灰色ABS塑料机械外壳", GTOCore.id("block/casings/abs_grey_casing"));
     public static final BlockEntry<Block> ABS_LIME_CASING = createCasingBlock("abs_lime_casing", "黄绿色ABS塑料机械外壳", GTOCore.id("block/casings/abs_lime_casing"));
     public static final BlockEntry<Block> ABS_ORANGE_CASING = createCasingBlock("abs_orange_casing", "橙色ABS塑料机械外壳", GTOCore.id("block/casings/abs_orange_casing"));
-    public static final BlockEntry<Block> ABS_RAD_CASING = createCasingBlock("abs_rad_casing", "红色ABS塑料机械外壳", GTOCore.id("block/casings/abs_rad_casing"));
+    public static final BlockEntry<Block> ABS_RED_CASING = createCasingBlock("abs_red_casing", "红色ABS塑料机械外壳", GTOCore.id("block/casings/abs_red_casing"));
     public static final BlockEntry<Block> ABS_WHITE_CASING = createCasingBlock("abs_white_casing", "白色ABS塑料机械外壳", GTOCore.id("block/casings/abs_white_casing"));
     public static final BlockEntry<Block> ABS_YELLOW_CASING = createCasingBlock("abs_yellow_casing", "黄色ABS塑料机械外壳", GTOCore.id("block/casings/abs_yellow_casing"));
     public static final BlockEntry<Block> ABS_CYAN_CASING = createCasingBlock("abs_cyan_casing", "青色ABS塑料机械外壳", GTOCore.id("block/casings/abs_cyan_casing"));
@@ -407,6 +408,8 @@ public final class GTOBlocks {
     public static final BlockEntry<Block> GAIASTEEL_CASING = createCasingBlock("gaiasteel_casing", "盖亚钢外壳", GTOCore.id("block/casings/gaiasteel_casing"));
     public static final BlockEntry<Block> ORICHALCOS_CASING = createCasingBlock("orichalcos_casing", "奥利哈钢外壳", GTOCore.id("block/casings/orichalcos_casing"));
     public static final BlockEntry<Block> HERETICAL_MECHANICAL_CASING = createCasingBlock("heretical_mechanical_casing", "邪术机械方块", GTOCore.id("block/casings/heretical_mechanical_casing"));
+
+    public static final BlockEntry<GlowingBlock>[] STAR_STONE = createStarStone();
 
     public static final BlockEntry<Block> ACCELERATOR_PARTICLE_CONSTRAINED_CASING = createCasingBlock("accelerator_particle_constrained_casing", "加速器粒子约束机械方块", GTOCore.id("block/casings/accelerator/accelerator_particle_constrained_casing"));
     public static final BlockEntry<Block> ACCELERATOR_PROTECTION_CASING = createCasingBlock("accelerator_protection_casing", "加速器防护机械方块", GTOCore.id("block/casings/accelerator/accelerator_protection_casing"));
@@ -463,4 +466,10 @@ public final class GTOBlocks {
     public static final BlockEntry<Block> MULTI_WIRE_PROPORTIONAL_CHAMBER_DETECTOR_BLOCK = createCasingBlock("multi_wire_proportional_chamber_detector_block", "多丝正比室探测器方块", GTOCore.id("block/casings/vacuum_chamber/multi_wire_proportional_chamber_detector_block"));
     // 太阳能集热管道机械方块
     public static final BlockEntry<Block> SOLAR_HEAT_COLLECTOR_PIPE_CASING = createCasingBlock("solar_heat_collector_pipe_casing", "太阳能集热管道机械方块", GTOCore.id("block/casings/solar_heat_collector_pipe_casing"));
+    // 复合装甲防护层
+    public static final BlockEntry<Block> COMPOSITE_ARMOR_PROTECTIVE_LAYER = createCasingBlock("composite_armor_protective_layer", "复合装甲防护层", GTOCore.id("block/casings/composite_armor_protective_layer"));
+    // 光学动态镀膜仪器防护罩玻璃
+    public static final BlockEntry<Block> OPTICAL_DYNAMIC_COATING_INSTRUMENT_PROTECTIVE_SHIELD_GLASS = createGlassCasingBlock("optical_dynamic_coating_instrument_protective_shield_glass", "光学动态镀膜仪器防护罩玻璃", GTOCore.id("block/casings/optical_dynamic_coating_instrument_protective_shield_glass"));
+    // 黑体辐射防护机械外壳
+    public static final BlockEntry<Block> BLACKBODY_RADIATION_PROTECTION_MECHANICAL_HOUSING = createCasingBlock("blackbody_radiation_protection_mechanical_housing", "黑体防护机械外壳", GTOCore.id("block/casings/blackbody_radiation_protection_mechanical_housing"));
 }

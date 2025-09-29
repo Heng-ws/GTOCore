@@ -6,7 +6,9 @@ import com.gtolib.utils.MathUtil;
 
 import com.gregtechceu.gtceu.api.capability.recipe.IO;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.utils.ItemStackHashStrategy;
+import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
+import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
+import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -14,8 +16,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import appeng.api.config.Actionable;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
-import appeng.api.stacks.KeyCounter;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenCustomHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,42 +31,20 @@ public class ExportOnlyAEStockingItemList extends ExportOnlyAEItemList {
     }
 
     @Override
-    public Object2LongOpenCustomHashMap<ItemStack> getItemMap() {
-        if (!machine.isWorkingEnabled() || !machine.isOnline()) return null;
-        if (itemMap == null) {
-            itemMap = new Object2LongOpenCustomHashMap<>(ItemStackHashStrategy.ITEM);
-        }
-        if (changed) {
-            changed = false;
-            itemMap.clear();
-            var grid = machine.getMainNode().getGrid();
-            if (grid == null) return null;
-            KeyCounter counter = grid.getStorageService().getCachedInventory();
-            for (var i : inventory) {
-                if (i.config == null) continue;
-                var stock = i.stock;
-                if (stock == null) continue;
-                var amount = counter.get(stock.what());
-                if (amount < 1) {
-                    i.stock = null;
-                    continue;
-                } else {
-                    i.stock = ExportOnlyAESlot.copy(stock, amount);
-                }
-                var stack = i.getStack();
-                if (stack.isEmpty()) continue;
-                itemMap.addTo(stack, amount);
-            }
-            isEmpty = itemMap.isEmpty();
-        }
-        return isEmpty ? null : itemMap;
+    public boolean forEachItems(ObjectLongPredicate<ItemStack> function) {
+        if (machine.isWorkingEnabled()) return super.forEachItems(function);
+        return false;
     }
 
     @Override
-    @NotNull
-    public Object[] getContents() {
-        if (machine.isWorkingEnabled()) return super.getContents();
-        return new Object[0];
+    public void fastForEachItems(ObjectLongConsumer<ItemStack> function) {
+        if (machine.isWorkingEnabled()) super.fastForEachItems(function);
+    }
+
+    @Override
+    public IntIngredientMap getIngredientMap() {
+        if (machine.isWorkingEnabled()) return super.getIngredientMap();
+        return IntIngredientMap.EMPTY;
     }
 
     @Override
@@ -115,7 +93,7 @@ public class ExportOnlyAEStockingItemList extends ExportOnlyAEItemList {
                 if (!machine.isOnline()) return 0;
                 var grid = machine.getMainNode().getGrid();
                 if (grid == null) return 0;
-                long extracted = simulate ? Math.min(amount, grid.getStorageService().getCachedInventory().get(stock.what())) : grid.getStorageService().getInventory().extract(stock.what(), amount, Actionable.MODULATE, machine.getActionSource());
+                long extracted = simulate ? stock.amount() : grid.getStorageService().getInventory().extract(stock.what(), amount, Actionable.MODULATE, machine.getActionSource());
                 if (extracted > 0) {
                     if (!simulate) {
                         this.stock = ExportOnlyAESlot.copy(stock, stock.amount() - extracted);
@@ -137,8 +115,8 @@ public class ExportOnlyAEStockingItemList extends ExportOnlyAEItemList {
                 if (!machine.isOnline()) return ItemStack.EMPTY;
                 var grid = machine.getMainNode().getGrid();
                 if (grid == null) return ItemStack.EMPTY;
-                var key = config.what();
-                long extracted = simulate ? Math.min(amount, grid.getStorageService().getCachedInventory().get(key)) : grid.getStorageService().getInventory().extract(key, amount, Actionable.MODULATE, machine.getActionSource());
+                var key = stock.what();
+                long extracted = simulate ? stock.amount() : grid.getStorageService().getInventory().extract(key, amount, Actionable.MODULATE, machine.getActionSource());
                 if (extracted > 0) {
                     ItemStack resultStack = key instanceof AEItemKey itemKey ? itemKey.toStack((int) extracted) : ItemStack.EMPTY;
                     if (!simulate) {

@@ -217,14 +217,6 @@ public final class AssemblerRecipeLoader {
                 .outputItems(VOLTAGE_COIL_UV)
                 .save();
 
-        // Neutron Reflector
-        ASSEMBLER_RECIPES.recipeBuilder("neutron_reflector").duration(4000).EUt(VA[MV])
-                .inputItems(plate, Ruridit)
-                .inputItems(plateDouble, Beryllium, 4)
-                .inputItems(plateDouble, TungstenCarbide, 2)
-                .inputFluids(TinAlloy.getFluid(L << 5))
-                .outputItems(NEUTRON_REFLECTOR).save();
-
         // hazmat pieces
         ASSEMBLER_RECIPES.recipeBuilder("hazmat_boots").duration(200).EUt(VA[LV])
                 .inputItems(plate, Rubber, 4)

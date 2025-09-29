@@ -12,6 +12,9 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableRecipeHandlerTrait;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.lookup.IntIngredientMap;
+import com.gregtechceu.gtceu.utils.function.ObjectLongConsumer;
+import com.gregtechceu.gtceu.utils.function.ObjectLongPredicate;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -20,9 +23,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -77,16 +78,6 @@ public final class InfiniteWaterHatchPartMachine extends TieredIOPartMachine {
         }
 
         @Override
-        public @NotNull Object[] getContents() {
-            return new Object[] { WATER };
-        }
-
-        @Override
-        public double getTotalContentAmount() {
-            return Integer.MAX_VALUE;
-        }
-
-        @Override
         public RecipeCapability<FluidIngredient> getCapability() {
             return FluidRecipeCapability.CAP;
         }
@@ -101,14 +92,24 @@ public final class InfiniteWaterHatchPartMachine extends TieredIOPartMachine {
             return IO.IN;
         }
 
-        private static final Object2LongOpenHashMap<FluidStack> MAP = new Object2LongOpenHashMap<>(2, 0.99F);
+        private static final IntIngredientMap MAP = new IntIngredientMap();
 
         static {
-            MAP.put(WATER, Long.MAX_VALUE);
+            IntIngredientMap.FLUID_CONVERSION.convert(WATER, Long.MAX_VALUE, MAP);
         }
 
         @Override
-        public Object2LongOpenHashMap<FluidStack> getFluidMap() {
+        public boolean forEachFluids(ObjectLongPredicate<FluidStack> function) {
+            return function.test(WATER, Long.MAX_VALUE);
+        }
+
+        @Override
+        public void fastForEachFluids(ObjectLongConsumer<FluidStack> function) {
+            function.accept(WATER, Long.MAX_VALUE);
+        }
+
+        @Override
+        public IntIngredientMap getIngredientMap() {
             return MAP;
         }
     }

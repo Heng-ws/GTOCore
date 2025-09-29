@@ -16,15 +16,12 @@ import com.gtolib.utils.GTOUtils;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.capability.recipe.EURecipeCapability;
-import com.gregtechceu.gtceu.api.capability.recipe.FluidRecipeCapability;
 import com.gregtechceu.gtceu.api.capability.recipe.RecipeCapability;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.content.ContentModifier;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -164,7 +161,7 @@ public final class GeneratorArrayMachine extends StorageMultiblockMachine implem
 
     @Override
     public boolean canVoidRecipeOutputs(RecipeCapability<?> capability) {
-        return capability != EURecipeCapability.CAP;
+        return true;
     }
 
     @Override
@@ -181,13 +178,12 @@ public final class GeneratorArrayMachine extends StorageMultiblockMachine implem
             long EUt = recipe.getOutputEUt();
             if (EUt > 0) {
                 recipe.outputs.clear();
-                long paralle = ParallelLogic.getInputFluidParallel(this, getCurrentHandlerList(), recipe.getInputContents(FluidRecipeCapability.CAP), (int) (multiply * GTValues.V[getOverclockTier()] * a * GTOUtils.getGeneratorAmperage(getTier()) / EUt));
-                if (paralle == 0) return null;
-                recipe.modifier(ContentModifier.multiplier(paralle), true);
+                recipe = ParallelLogic.accurateParallel(this, recipe, (long) (multiply * GTValues.V[getOverclockTier()] * a * GTOUtils.getGeneratorAmperage(getTier()) / EUt));
+                if (recipe == null) return null;
                 recipe.duration = recipe.duration * GTOUtils.getGeneratorEfficiency(getRecipeType(), getTier()) / 100;
                 if (isw) {
                     recipe.setOutputEUt(0);
-                    eut = EUt * paralle;
+                    eut = EUt * recipe.parallels;
                 }
                 return recipe;
             }
@@ -214,7 +210,7 @@ public final class GeneratorArrayMachine extends StorageMultiblockMachine implem
                 isw = !isw;
                 eut = 0;
                 getRecipeLogic().markLastRecipeDirty();
-            }
+            } else super.handleDisplayClick(componentData, clickData);
         }
     }
 

@@ -18,6 +18,8 @@ import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.integration.ae2.machine.feature.IGridConnectedMachine;
 import com.gregtechceu.gtceu.integration.ae2.machine.trait.GridNodeHolder;
+import com.gregtechceu.gtceu.utils.collection.O2LOpenCacheHashMap;
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -30,7 +32,10 @@ import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.KeyCounter;
-import appeng.api.storage.*;
+import appeng.api.storage.IStorageMounts;
+import appeng.api.storage.IStorageProvider;
+import appeng.api.storage.MEStorage;
+import appeng.api.storage.StorageHelper;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -79,7 +84,7 @@ public abstract class StorageAccessPartMachine extends AmountConfigurationHatchP
     @DescSynced
     boolean isOnline;
     @Persisted
-    UUID uuid;
+    public UUID uuid;
 
     @Persisted
     private final GridNodeHolder nodeHolder;
@@ -216,6 +221,7 @@ public abstract class StorageAccessPartMachine extends AmountConfigurationHatchP
                 dirty = false;
                 getCellStorage().setPersisted(false);
                 onChanged();
+                CellDataStorage.setDirty();
             }
             if (uuid == null || capacity == 0 || !isOnline) return;
             if (!check) {
@@ -252,7 +258,7 @@ public abstract class StorageAccessPartMachine extends AmountConfigurationHatchP
             var data = getCellStorage();
             var map = data.getStoredMap();
             if (map == null) {
-                map = new Object2LongOpenHashMap<>();
+                map = new O2LOpenCacheHashMap<>();
                 data.setStoredMap(map);
             }
             return map;
@@ -558,6 +564,7 @@ public abstract class StorageAccessPartMachine extends AmountConfigurationHatchP
                 dirty = false;
                 getCellStorage().setPersisted(false);
                 onChanged();
+                CellDataStorage.setDirty();
             }
             if (uuid == null || capacity == 0 || !isOnline) return;
             if (!check) {
@@ -597,7 +604,7 @@ public abstract class StorageAccessPartMachine extends AmountConfigurationHatchP
             var data = getCellStorage();
             var map = data.getStoredMap();
             if (map == null) {
-                map = new Object2ObjectOpenHashMap<>();
+                map = new O2OOpenCacheHashMap<>();
                 data.setStoredMap(map);
             }
             return map;

@@ -49,7 +49,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget
 import com.lowdragmc.lowdraglib.syncdata.IContentChangeAware
 import com.lowdragmc.lowdraglib.syncdata.ITagSerializable
 
-import java.util.UUID
+import java.util.*
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -378,7 +378,9 @@ interface WirelessMachine :
                         maxWidth = availableWidth - 4,
                         textSupplier = { Component.translatable(yourWirelessGrid) },
                     )
-                    vScroll(width = availableWidth, height = 176 - 4 - 20 - 36 - 16, { spacing = 2 }) a@{
+                    val availableHeight = 166 - ((4 * 10) + (1 * 16) + (if (isConnectedClient) 16 else 0) + (4 * 7))
+                    val finalListHeight = maxOf(0, (((availableHeight / 16) + 1) * 16) - 2)
+                    vScroll(width = availableWidth, height = finalListHeight, { spacing = 2 }) a@{
                         wirelessMachineRunTime.gridAccessibleCache.get()
                             .forEach { grid ->
                                 hBox(height = 14, { spacing = 4 }) {
@@ -493,7 +495,7 @@ interface WirelessMachine :
                         }
                     }
                     if (self().isRemote) {
-                        vScroll(width = availableWidth, height = 176 - 4 - 10 - 16 - 20, { spacing = 2 }) {
+                        vScroll(width = availableWidth, height = 152 - 4 - 10 - 16 - 20, { spacing = 2 }) {
                             val availableWidth1 = availableWidth
                             // filter 应用，数据展示。
                             val objects = wirelessMachineRunTime.gridCache.get().firstOrNull { it.name == wirelessMachinePersisted.gridConnectedName }?.connectionPoolTable

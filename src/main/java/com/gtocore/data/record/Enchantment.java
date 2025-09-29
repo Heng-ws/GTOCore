@@ -1,12 +1,23 @@
 package com.gtocore.data.record;
 
+import com.gtocore.common.item.ApothItem;
+import com.gtocore.data.tag.Tags;
+
+import com.gtolib.GTOCore;
+
+import com.gregtechceu.gtceu.utils.FormattingUtil;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.util.*;
+import com.tterrag.registrate.util.entry.ItemEntry;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.gtolib.utils.register.ItemRegisterUtils.item;
 import static net.minecraft.nbt.Tag.TAG_COMPOUND;
 
 public class Enchantment {
@@ -67,7 +78,12 @@ public class Enchantment {
     // 根据serialNumber获取enchantmentId
     public static String getEnchantmentIdBySerialNumber(int serialNumber) {
         EnchantmentRecord record = findBySerialNumber(serialNumber);
-        return record != null ? record.enchantmentId() : "null";
+        return record != null ? record.enchantmentId() : "original";
+    }
+
+    // 根据精粹数量
+    public static int getEnchantmentSize() {
+        return initializeEnchantmentRecords().size();
     }
 
     // 获取附魔书
@@ -93,7 +109,7 @@ public class Enchantment {
     public static List<EnchantmentRecord> initializeEnchantmentRecords() {
         List<EnchantmentRecord> records = new ArrayList<>();
 
-        records.add(EnchantmentRecord.create(0, "error", 0, "错误", "error"));
+        records.add(EnchantmentRecord.create(0, "original", 0, "原始", "original"));
         records.add(EnchantmentRecord.create(1, "apotheosis:bane_of_illagers", 5, "灾厄村民杀手", "enchantment.apotheosis.bane_of_illagers"));
         records.add(EnchantmentRecord.create(2, "apotheosis:berserkers_fury", 3, "狂战士之怒", "enchantment.apotheosis.berserkers_fury"));
         records.add(EnchantmentRecord.create(3, "apotheosis:capturing", 5, "捕捉", "enchantment.apotheosis.capturing"));
@@ -172,5 +188,22 @@ public class Enchantment {
         records.add(EnchantmentRecord.create(76, "minecraft:vanishing_curse", 1, "消失诅咒", "enchantment.minecraft.vanishing_curse"));
         records.add(EnchantmentRecord.create(77, "mythicbotany:hammer_mobility", 5, "迅锤", "enchantment.mythicbotany.hammer_mobility"));
         return records;
+    }
+
+    public static ItemEntry<ApothItem>[] registerEnchantmentEssence() {
+        List<EnchantmentRecord> records = initializeEnchantmentRecords();
+        ItemEntry<ApothItem>[] entries = new ItemEntry[getEnchantmentSize()];
+        for (EnchantmentRecord record : records) {
+            String id = record.enchantmentId().substring(record.enchantmentId().indexOf(':') + 1);
+            String cn = "附魔精粹 " + "(" + record.simplifiedId() + ")";
+            String en = "Enchantment Essence " + "(" + FormattingUtil.toEnglishName(id) + ")";
+            entries[record.serialNumber()] = item("enchantment_essence_" + record.serialNumber(), cn, p -> ApothItem.create(p, record.color()))
+                    .model((ctx, prov) -> prov.generated(ctx, GTOCore.id("item/apoth/orb0"), GTOCore.id("item/apoth/orb1")))
+                    .lang(en)
+                    .color(() -> ApothItem::color)
+                    .tag(Tags.ENCHANTMENT_ESSENCE)
+                    .register();
+        }
+        return entries;
     }
 }

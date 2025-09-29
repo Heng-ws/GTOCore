@@ -1,6 +1,8 @@
 package com.gtocore.data.recipe.gtm.misc;
 
+import com.gtocore.common.data.GTOItems;
 import com.gtocore.common.data.machines.GTAEMachines;
+import com.gtocore.common.data.machines.SimpleModeMachine;
 
 import com.gtolib.utils.ItemUtils;
 
@@ -232,6 +234,8 @@ public final class MachineRecipeLoader {
                 .outputFluids(Creosote.getFluid(500)).duration(900).save();
         COKE_OVEN_RECIPES.recipeBuilder("coal_to_coke_block").inputItems(block, Coal).outputItems(block, Coke)
                 .outputFluids(Creosote.getFluid(4500)).duration(8100).save();
+        COKE_OVEN_RECIPES.recipeBuilder("coal_to_coke_dust").inputItems(dust, Coal).outputItems(dust, Coke)
+                .outputFluids(Creosote.getFluid(500)).duration(900).save();
     }
 
     private static void registerStoneBricksRecipes() {
@@ -663,8 +667,8 @@ public final class MachineRecipeLoader {
                 .inputItems(ELECTRIC_MOTOR_MV)
                 .inputItems(rotor, Steel)
                 .outputItems(GTBlocks.CASING_GRATE, ConfigHolder.INSTANCE.recipes.casingsPerCraft)
-                .duration(800)
-                .EUt(VA[IV])
+                .duration(200)
+                .EUt(VA[HV])
                 .save();
 
         ASSEMBLER_RECIPES.recipeBuilder("assembly_line_casing")
@@ -1162,6 +1166,28 @@ public final class MachineRecipeLoader {
                 TOOL_DATA_ORB.asStack());
         VanillaRecipeHelper.addShapelessNBTClearingRecipe("data_module_nbt", TOOL_DATA_MODULE.asStack(),
                 TOOL_DATA_MODULE.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("data_neural_matrix", GTOItems.NEURAL_MATRIX.asStack(),
+                GTOItems.NEURAL_MATRIX.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("data_atomic_archives", GTOItems.ATOMIC_ARCHIVES.asStack(),
+                GTOItems.ATOMIC_ARCHIVES.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("data_obsidian_matrix", GTOItems.OBSIDIAN_MATRIX.asStack(),
+                GTOItems.OBSIDIAN_MATRIX.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("data_microcosm", GTOItems.MICROCOSM.asStack(),
+                GTOItems.MICROCOSM.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("data_closed_timelike_curve_guidance_unit", GTOItems.CLOSED_TIMELIKE_CURVE_GUIDANCE_UNIT.asStack(),
+                GTOItems.CLOSED_TIMELIKE_CURVE_GUIDANCE_UNIT.asStack());
+
+        // pattern_buffer
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("ME_PATTERN_BUFFER", GTAEMachines.ME_PATTERN_BUFFER.asStack(),
+                GTAEMachines.ME_PATTERN_BUFFER.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("ME_EXTEND_PATTERN_BUFFER", GTAEMachines.ME_EXTEND_PATTERN_BUFFER.asStack(),
+                GTAEMachines.ME_EXTEND_PATTERN_BUFFER.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("ME_EXTEND_PATTERN_BUFFER_ULTRA", GTAEMachines.ME_EXTEND_PATTERN_BUFFER_ULTRA.asStack(),
+                GTAEMachines.ME_EXTEND_PATTERN_BUFFER_ULTRA.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("ME_CATALYST_ME_PATTERN_BUFFER", GTAEMachines.ME_CATALYST_ME_PATTERN_BUFFER.asStack(),
+                GTAEMachines.ME_CATALYST_ME_PATTERN_BUFFER.asStack());
+        VanillaRecipeHelper.addShapelessNBTClearingRecipe("ME_SIMPLE_PATTERN_BUFFER", SimpleModeMachine.ME_SIMPLE_PATTERN_BUFFER.asStack(),
+                SimpleModeMachine.ME_SIMPLE_PATTERN_BUFFER.asStack());
 
         // Jetpacks
         VanillaRecipeHelper.addShapelessRecipe("fluid_jetpack_clear", LIQUID_FUEL_JETPACK.asStack(),

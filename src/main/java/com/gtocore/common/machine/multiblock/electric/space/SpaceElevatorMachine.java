@@ -87,12 +87,12 @@ public class SpaceElevatorMachine extends TierCasingMultiblockMachine implements
         if (promptly || getOffsetTimer() % 40 == 0) {
             moduleCount = 0;
             if (spoolCount < getMaxSpoolCount()) {
-                forEachInputItems(stack -> {
+                forEachInputItems((stack, amount) -> {
                     if (stack.getItem() == GTOItems.NANOTUBE_SPOOL.get()) {
                         int count = Math.min(stack.getCount(), getMaxSpoolCount() - spoolCount);
                         if (count < 1) return true;
                         spoolCount += count;
-                        stack.shrink(count);
+                        inputItem(stack.copyWithCount(count));
                     }
                     return false;
                 });
@@ -104,6 +104,7 @@ public class SpaceElevatorMachine extends TierCasingMultiblockMachine implements
                 MetaMachine metaMachine = getMachine(level, blockPoss);
                 if (metaMachine instanceof SpaceElevatorModuleMachine moduleMachine && moduleMachine.isFormed()) {
                     moduleMachine.spaceElevatorMachine = this;
+                    if (promptly) moduleMachine.getRecipeLogic().updateTickSubscription();
                     moduleCount++;
                 }
             }
@@ -119,11 +120,16 @@ public class SpaceElevatorMachine extends TierCasingMultiblockMachine implements
     }
 
     @Override
+    protected void onStructureFormedAfter() {
+        super.onStructureFormedAfter();
+        update(true);
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         initialize();
         high = getBaseHigh();
-        update(true);
     }
 
     @Override

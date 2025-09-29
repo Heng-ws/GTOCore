@@ -16,11 +16,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.NavigableMap;
 
 @Mixin(NetworkStorage.class)
 public abstract class NetworkStorageMixin {
+
+    @Unique
+    private static final Deque<NetworkStorage> gtocore$DEQUE = new ArrayDeque<>();
 
     @Unique
     private ObjectArrayList<IntObjectHolder<MEStorage>> gtolib$inventory;
@@ -39,6 +44,9 @@ public abstract class NetworkStorageMixin {
     @Shadow(remap = false)
     protected abstract void flushQueuedOperations();
 
+    @Unique
+    private boolean gtocore$inUse;
+
     @Inject(method = "<init>", at = @At("TAIL"), remap = false)
     private void gtolib$init(CallbackInfo ci) {
         gtolib$inventory = new ObjectArrayList<>();
@@ -47,9 +55,9 @@ public abstract class NetworkStorageMixin {
 
     @Inject(method = "mount", at = @At(value = "INVOKE", target = "Ljava/util/NavigableMap;computeIfAbsent(Ljava/lang/Object;Ljava/util/function/Function;)Ljava/lang/Object;"), remap = false, cancellable = true)
     private void gtolib$mount(int priority, MEStorage inventory, CallbackInfo ci) {
-        if (inventory instanceof StorageAccessPartMachine) {
+        if (inventory instanceof StorageAccessPartMachine m1) {
             for (var inv : gtolib$inventory) {
-                if (inv.obj instanceof StorageAccessPartMachine) {
+                if (inv.obj instanceof StorageAccessPartMachine m2 && m1.getClass() == m2.getClass() && m1.uuid.equals(m2.uuid)) {
                     ci.cancel();
                     return;
                 }
@@ -122,12 +130,12 @@ public abstract class NetworkStorageMixin {
      */
     @Overwrite(remap = false)
     public void getAvailableStacks(KeyCounter out) {
-        if (mountsInUse) return;
-        this.mountsInUse = true;
+        if (gtocore$inUse) return;
+        gtocore$inUse = true;
         try {
             gtolib$inventory.forEach(entry -> entry.obj.getAvailableStacks(out));
         } finally {
-            this.mountsInUse = false;
+            gtocore$inUse = false;
         }
     }
 }

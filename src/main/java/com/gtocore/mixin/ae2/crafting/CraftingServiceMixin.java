@@ -3,6 +3,8 @@ package com.gtocore.mixin.ae2.crafting;
 import com.gtolib.api.ae2.crafting.OptimizedCalculation;
 import com.gtolib.api.ae2.machine.CraftingInterfacePartMachine;
 
+import com.gregtechceu.gtceu.utils.collection.O2OOpenCacheHashMap;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 
@@ -10,6 +12,7 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.*;
 import appeng.api.networking.energy.IEnergyService;
+import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEKey;
 import appeng.blockentity.crafting.CraftingBlockEntity;
@@ -19,12 +22,13 @@ import appeng.hooks.ticking.TickHandler;
 import appeng.me.cluster.implementations.CraftingCPUCluster;
 import appeng.me.helpers.StackWatcher;
 import appeng.me.service.CraftingService;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import com.llamalad7.mixinextras.sugar.Local;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Map;
@@ -66,7 +70,7 @@ public abstract class CraftingServiceMixin {
     private void init(IGrid grid, IStorageService storageGrid, IEnergyService energyGrid, CallbackInfo ci) {
         craftingCPUClusters = new ReferenceOpenHashSet<>();
         craftingWatchers = new Reference2ObjectOpenHashMap<>();
-        craftingLinks = new Object2ObjectOpenHashMap<>();
+        craftingLinks = new O2OOpenCacheHashMap<>();
     }
 
     @Inject(method = "onServerEndTick", at = @At(value = "INVOKE", target = "Ljava/util/Map;values()Ljava/util/Collection;"), remap = false, cancellable = true)
@@ -134,5 +138,10 @@ public abstract class CraftingServiceMixin {
             throw new IllegalArgumentException("Invalid Crafting Job Request");
         }
         return CRAFTING_POOL.submit(() -> OptimizedCalculation.execute(grid, simRequester, what, amount, strategy));
+    }
+
+    @Redirect(method = "submitJob", at = @At(value = "INVOKE", target = "Lappeng/api/networking/crafting/ICraftingPlan;simulation()Z"), remap = false)
+    private boolean ignoreCantCraftWhileManuallySubmitted(ICraftingPlan instance, @Local(argsOnly = true) IActionSource src) {
+        return src.player().isEmpty() && instance.simulation();
     }
 }

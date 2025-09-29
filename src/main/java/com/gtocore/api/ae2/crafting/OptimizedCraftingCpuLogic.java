@@ -1,6 +1,7 @@
 package com.gtocore.api.ae2.crafting;
 
 import com.gtocore.common.data.GTOItems;
+import com.gtocore.integration.ae.CraftingCpuHelperExtended;
 
 import com.gtolib.GTOCore;
 import com.gtolib.api.ae2.IPatternProviderLogic;
@@ -50,12 +51,9 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 public class OptimizedCraftingCpuLogic extends CraftingCpuLogic {
-
-    private final static int BREAK = 1;
-    private final static int BREAK_TASK_LOOP = 2;
 
     final CraftingCPUCluster cluster;
 
@@ -64,6 +62,7 @@ public class OptimizedCraftingCpuLogic extends CraftingCpuLogic {
     private Consumer<AEKey> listener = null;
 
     private final SetMultimap<AEKey, GlobalPos> pendingRequests = HashMultimap.create();
+    private final SetMultimap<AEKey, IPatternProviderLogic.PushResult> craftingResults = HashMultimap.create();
 
     private final ListCraftingInventory.ChangeListener changeListener = what -> {
         lastModifiedOnTick = TickHandler.instance().getCurrentTick();
@@ -91,14 +90,21 @@ public class OptimizedCraftingCpuLogic extends CraftingCpuLogic {
 
         if (!inventory.list.isEmpty()) GTOCore.LOGGER.error("Crafting CPU inventory is not empty yet a job was submitted.");
 
-        var missingIngredient = CraftingCpuHelper.tryExtractInitialItems(plan, grid, inventory, src);
-        if (missingIngredient != null) return CraftingSubmitResult.missingIngredient(missingIngredient);
+        KeyCounter missingIng;
+        if (src.player().isPresent()) {
+            missingIng = CraftingCpuHelperExtended.tryExtractInitialItemsIgnoreMissing(plan, grid, inventory, src);
+        } else {
+            var missingIngredient = CraftingCpuHelper.tryExtractInitialItems(plan, grid, inventory, src);
+            if (missingIngredient != null) return CraftingSubmitResult.missingIngredient(missingIngredient);
+            missingIng = new KeyCounter();
+        }
+
         var playerId = src.player()
                 .map(p -> p instanceof ServerPlayer serverPlayer ? IPlayerRegistry.getPlayerId(serverPlayer) : null)
                 .orElse(null);
         var craftId = UUID.randomUUID();
         var linkCpu = new CraftingLink(CraftingCpuHelper.generateLinkData(craftId, requester == null, false), cluster);
-        this.job = new ExecutingCraftingJob(plan, changeListener, linkCpu, playerId);
+        this.job = new ExecutingCraftingJob(plan, changeListener, linkCpu, playerId, missingIng);
         cluster.updateOutput(plan.finalOutput());
         cluster.markDirty();
         notifyJobOwner(job, CraftingJobStatusPacket.Status.STARTED);
@@ -195,7 +201,7 @@ public class OptimizedCraftingCpuLogic extends CraftingCpuLogic {
             var details = tmp_details;
             var providerIterable = craftingService.getProviders(details).iterator();
             long finalParallelValue = parallelValue;
-            IntSupplier pushPatternSuccess = () -> {
+            Supplier<IPatternProviderLogic.PushResult> pushPatternSuccess = () -> {
                 energyService.extractAEPower(CraftingCpuHelper.calculatePatternPower(craftingContainer.value) * finalParallelValue, Actionable.MODULATE, PowerMultiplier.CONFIG);
                 pushedPatterns.value++;
 
@@ -206,28 +212,36 @@ public class OptimizedCraftingCpuLogic extends CraftingCpuLogic {
                 progress.value -= finalParallelValue;
                 if (progress.value <= 0) {
                     it.remove();
-                    return BREAK;
+                    return IPatternProviderLogic.PushResult.BREAK;
                 }
 
                 if (pushedPatterns.value > maxPatterns) {
-                    return BREAK_TASK_LOOP;
+                    return IPatternProviderLogic.PushResult.BREAK_TASK_LOOP;
                 }
 
                 expectedOutputs.reset();
                 craftingContainer.value = extractPatternInputs(details, inventory, expectedOutputs);
-                return 0;
+                return IPatternProviderLogic.PushResult.SUCCESS;
             };
             var targetOutput = details.getPrimaryOutput().what();
+            if (!providerIterable.hasNext()) {
+                craftingResults.put(targetOutput, IPatternProviderLogic.PushResult.PATTERN_DOES_NOT_EXIST);
+            }
             while (providerIterable.hasNext()) {
                 if (craftingContainer.value == null) break;
                 ICraftingProvider provider = providerIterable.next();
                 if (provider.isBusy()) continue;
                 if (provider instanceof IPatternProviderLogic logic) {
                     var result = logic.gtolib$pushPattern(details, craftingContainer, pushPatternSuccess);
-                    if (result != -1) {
+                    if (result != IPatternProviderLogic.PushResult.PATTERN_DOES_NOT_EXIST) {
                         this.pendingRequests.put(targetOutput, logic.gto$getPos());
                     }
-                    if (result < 0) continue;
+                    if (!result.success()) {
+                        this.craftingResults.put(targetOutput, result);
+                        continue;
+                    }
+                    this.craftingResults.removeAll(targetOutput);
+                    this.craftingResults.put(targetOutput, result);
                     cluster.markDirty();
                     switch (result) {
                         case BREAK:
@@ -236,8 +250,13 @@ public class OptimizedCraftingCpuLogic extends CraftingCpuLogic {
                             break taskLoop;
                     }
                 } else if (provider.pushPattern(details, craftingContainer.value)) {
-                    var result = pushPatternSuccess.getAsInt();
-                    if (result < 0) continue;
+                    var result = pushPatternSuccess.get();
+                    if (!result.success()) {
+                        this.craftingResults.put(targetOutput, result);
+                        continue;
+                    }
+                    this.craftingResults.removeAll(targetOutput);
+                    this.craftingResults.put(targetOutput, result);
                     cluster.markDirty();
                     if (provider instanceof BlockEntity be) {
                         this.pendingRequests.put(targetOutput, GlobalPos.of(level.dimension(), be.getBlockPos()));
@@ -443,6 +462,10 @@ public class OptimizedCraftingCpuLogic extends CraftingCpuLogic {
         return this.pendingRequests.get(template);
     }
 
+    public SetMultimap<AEKey, IPatternProviderLogic.PushResult> getCraftingResults() {
+        return this.craftingResults;
+    }
+
     @Override
     public void getAllItems(KeyCounter out) {
         out.addAll(this.inventory.list);
@@ -481,6 +504,7 @@ public class OptimizedCraftingCpuLogic extends CraftingCpuLogic {
         this.job = null;
 
         this.pendingRequests.clear();
+        this.craftingResults.clear();
 
         this.storeItems();
     }

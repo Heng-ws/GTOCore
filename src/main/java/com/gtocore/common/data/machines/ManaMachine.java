@@ -1,6 +1,7 @@
 package com.gtocore.common.data.machines;
 
 import com.gtocore.api.machine.part.GTOPartAbility;
+import com.gtocore.client.renderer.machine.CelestialCondenserRenderer;
 import com.gtocore.client.renderer.machine.ManaHeaterRenderer;
 import com.gtocore.client.renderer.machine.OverlayManaTieredMachineRenderer;
 import com.gtocore.common.data.GTORecipeTypes;
@@ -8,6 +9,7 @@ import com.gtocore.common.data.translation.GTOMachineTooltips;
 import com.gtocore.common.machine.generator.MagicEnergyMachine;
 import com.gtocore.common.machine.mana.AlchemyCauldron;
 import com.gtocore.common.machine.mana.AreaDestructionToolsMachine;
+import com.gtocore.common.machine.mana.CelestialCondenser;
 import com.gtocore.common.machine.mana.ManaHeaterMachine;
 import com.gtocore.common.machine.mana.part.ManaAmplifierPartMachine;
 import com.gtocore.common.machine.mana.part.ManaExtractHatchPartMachine;
@@ -42,7 +44,7 @@ public final class ManaMachine {
         ManaMultiBlock.init();
     }
 
-    public static final MachineDefinition[] MANA_HULL = registerTieredManaMachines("mana_machine_hull", tier -> "%s%s".formatted(MANACN[tier], "魔法机器外壳"),
+    public static final MachineDefinition[] MANA_HULL = registerTieredMachines("mana_machine_hull", tier -> "%s%s".formatted(MANACN[tier], "魔法机器外壳"),
             HullMachine::new,
             (tier, builder) -> builder
                     .langValue(MANAN[tier] + " Mana Machine Hull")
@@ -131,8 +133,7 @@ public final class ManaMachine {
     public static final MachineDefinition MANA_AMPLIFIER_HATCH = manaMachine("mana_amplifier_hatch", "魔力增幅仓", ManaAmplifierPartMachine::new)
             .tier(MV)
             .allRotation()
-            .tooltipsText("If mana equivalent to the machine's maximum power is input prior to operation, the current recipe will switch to perfect overclocking.", "如果运行前输入了等同机器最大功率的魔力，则将本次配方改为无损超频")
-            .tooltipsText("Otherwise, the machine will not execute the recipe.", "否则，机器不执行配方")
+            .tooltips(GTOMachineTooltips.INSTANCE.getManaAmplifierHatchTooltips().getSupplier())
             .workableManaTieredHullRenderer(6, GTOCore.id("block/multiblock/mana"))
             .register();
 
@@ -140,15 +141,23 @@ public final class ManaMachine {
             .tier(LV)
             .editableUI(SimpleNoEnergyMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("alchemy_cauldron"), GTORecipeTypes.ALCHEMY_CAULDRON_RECIPES))
             .recipeType(GTORecipeTypes.ALCHEMY_CAULDRON_RECIPES)
-            .tooltipsText("§7Do not use it for cooking food", "§7不要用它来做饭")
-            .tooltipsText("§7Alchemy is a mysterious process", "§7炼金是一个神秘的过程")
-            .tooltipsText("§7The probability of partial recipe output increases with the number of runs", "§7部分配方产出概率随运行次数增长")
-            .tooltipsText("§7All recipes require heating", "§7所有配方都需要加热")
-            .tooltipsKey("gtceu.fluid_pipe.max_temperature", 1600)
+            .tooltips(GTOMachineTooltips.INSTANCE.getAlchemicalDeviceTooltips().getSupplier())
+            .tooltips(GTOMachineTooltips.INSTANCE.getAlchemyCauldronTooltips().getSupplier())
             .nonYAxisRotation()
             .modelRenderer(() -> GTOCore.id("block/machine/alchemy_cauldron"))
             .blockProp(p -> p.noOcclusion().isViewBlocking((state, level, pos) -> false))
             .tooltips(workableNoEnergy(GTORecipeTypes.ALCHEMY_CAULDRON_RECIPES, 1600))
+            .register();
+
+    public static final MachineDefinition CELESTIAL_CONDENSER = manaMachine("celestial_condenser", "苍穹凝聚器", CelestialCondenser::new)
+            .tier(HV)
+            .editableUI(SimpleNoEnergyMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("celestial_condenser"), GTORecipeTypes.CELESTIAL_CONDENSER_RECIPES))
+            .recipeType(GTORecipeTypes.CELESTIAL_CONDENSER_RECIPES)
+            .tooltips(GTOMachineTooltips.INSTANCE.getCelestialCondenserTooltips().getSupplier())
+            .nonYAxisRotation()
+            .renderer(CelestialCondenserRenderer::new)
+            .hasTESR(true)
+            .blockProp(p -> p.noOcclusion().isViewBlocking((state, level, pos) -> false))
             .register();
 
     public static final MachineDefinition MANA_HEATER = manaMachine("mana_heater", "魔力加热器", ManaHeaterMachine::new)
@@ -157,14 +166,13 @@ public final class ManaMachine {
             .recipeType(GTORecipeTypes.MANA_HEATER_RECIPES)
             .noRecipeModifier()
             .nonYAxisRotation()
-            .tooltipsText("Input mana to heat, if fire element is input, the heating speed will be 5 times faster.", "输入魔力加热，如果输入火元素，则加热速度翻5倍")
-            .tooltipsKey("gtceu.fluid_pipe.max_temperature", 2400)
+            .tooltips(GTOMachineTooltips.INSTANCE.getManaHeaterTooltips().getSupplier())
             .renderer(() -> new ManaHeaterRenderer(MV))
             .register();
 
     public static final MachineDefinition AREA_DESTRUCTION_TOOLS = manaMachine("area_destruction_tools", "区域破坏器", AreaDestructionToolsMachine::new)
             .tier(LuV)
-            .tooltips(GTOMachineTooltips.INSTANCE.getAreaDestructionToolsTooltips().getSupplier())
+            .tooltipBuilder((stack, list) -> GTOMachineTooltips.INSTANCE.getAreaDestructionToolsTooltips().apply(list))
             .nonYAxisRotation()
             .workableManaTieredHullRenderer(6, GTOCore.id("block/multiblock/area_destruction_tools"))
             .register();

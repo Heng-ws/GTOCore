@@ -8,6 +8,7 @@ import com.gtocore.data.recipe.generated.GenerateDisassembly;
 
 import com.gtolib.GTOCore;
 import com.gtolib.api.gui.GTOGuiTextures;
+import com.gtolib.api.lang.CNEN;
 import com.gtolib.api.machine.trait.TierCasingTrait;
 import com.gtolib.api.recipe.CombinedRecipeType;
 import com.gtolib.api.recipe.RecipeType;
@@ -23,6 +24,7 @@ import com.gregtechceu.gtceu.common.data.GCYMRecipeTypes;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
 import com.gregtechceu.gtceu.common.item.armor.PowerlessJetpack;
+import com.gregtechceu.gtceu.data.recipe.builder.GTRecipeBuilder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.client.resources.language.I18n;
@@ -36,6 +38,7 @@ import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.*;
 import static com.gtocore.common.machine.multiblock.part.SpoolHatchPartMachine.SPOOL;
@@ -51,6 +54,7 @@ public final class GTORecipeTypes {
         RecipeTypeModify.init();
     }
 
+    private static final Consumer<GTRecipeBuilder> addFuelProperties = (b) -> PowerlessJetpack.FUELS.putIfAbsent(FluidRecipeCapability.CAP.of(b.input.get(FluidRecipeCapability.CAP).get(0).content).copy(), (int) (b.duration * Math.abs(b.EUt())));
     public static final RecipeType ALLOY_BLAST_RECIPES = (RecipeType) GCYMRecipeTypes.ALLOY_BLAST_RECIPES;
     public static final RecipeType STEAM_BOILER_RECIPES = (RecipeType) GTRecipeTypes.STEAM_BOILER_RECIPES;
     public static final RecipeType FURNACE_RECIPES = (RecipeType) GTRecipeTypes.FURNACE_RECIPES;
@@ -61,7 +65,7 @@ public final class GTORecipeTypes {
     public static final RecipeType BENDER_RECIPES = (RecipeType) GTRecipeTypes.BENDER_RECIPES;
     public static final RecipeType BREWING_RECIPES = (RecipeType) GTRecipeTypes.BREWING_RECIPES;
     public static final RecipeType MACERATOR_RECIPES = (RecipeType) GTRecipeTypes.MACERATOR_RECIPES;
-    public static final RecipeType CANNER_RECIPES = (RecipeType) GTRecipeTypes.CANNER_RECIPES;
+    public static final RecipeType CANNER_RECIPES = (RecipeType) GTRecipeTypes.CANNER_RECIPES.setMaxIOSize(2, 2, 2, 2);
     public static final RecipeType CENTRIFUGE_RECIPES = (RecipeType) GTRecipeTypes.CENTRIFUGE_RECIPES;
     public static final RecipeType CHEMICAL_BATH_RECIPES = (RecipeType) GTRecipeTypes.CHEMICAL_BATH_RECIPES;
     public static final RecipeType CHEMICAL_RECIPES = (RecipeType) GTRecipeTypes.CHEMICAL_RECIPES;
@@ -92,8 +96,8 @@ public final class GTORecipeTypes {
     public static final RecipeType RESEARCH_STATION_RECIPES = (RecipeType) GTRecipeTypes.RESEARCH_STATION_RECIPES;
     public static final RecipeType ROCK_BREAKER_RECIPES = (RecipeType) GTRecipeTypes.ROCK_BREAKER_RECIPES;
     public static final RecipeType SCANNER_RECIPES = (RecipeType) GTRecipeTypes.SCANNER_RECIPES;
-    public static final RecipeType COMBUSTION_GENERATOR_FUELS = (RecipeType) GTRecipeTypes.COMBUSTION_GENERATOR_FUELS.onRecipeBuild((b) -> PowerlessJetpack.FUELS.putIfAbsent(FluidRecipeCapability.CAP.of(b.input.get(FluidRecipeCapability.CAP).get(0).content).copy(), b.duration));
-    public static final RecipeType GAS_TURBINE_FUELS = (RecipeType) GTRecipeTypes.GAS_TURBINE_FUELS;
+    public static final RecipeType COMBUSTION_GENERATOR_FUELS = (RecipeType) GTRecipeTypes.COMBUSTION_GENERATOR_FUELS.onRecipeBuild(addFuelProperties);
+    public static final RecipeType GAS_TURBINE_FUELS = (RecipeType) GTRecipeTypes.GAS_TURBINE_FUELS.onRecipeBuild(addFuelProperties);
     public static final RecipeType STEAM_TURBINE_FUELS = (RecipeType) GTRecipeTypes.STEAM_TURBINE_FUELS;
     public static final RecipeType PLASMA_GENERATOR_FUELS = (RecipeType) GTRecipeTypes.PLASMA_GENERATOR_FUELS;
     public static final RecipeType LARGE_BOILER_RECIPES = (RecipeType) GTRecipeTypes.LARGE_BOILER_RECIPES;
@@ -206,7 +210,8 @@ public final class GTORecipeTypes {
             .setEUIO(IO.OUT)
             .setMaxIOSize(0, 0, 1, 0)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
-            .setSound(GTSoundEntries.JET_ENGINE);
+            .setSound(GTSoundEntries.JET_ENGINE)
+            .onRecipeBuild(addFuelProperties);
 
     public static final RecipeType NAQUADAH_REACTOR = register("naquadah_reactor", "硅岩反应", GENERATOR)
             .setEUIO(IO.OUT)
@@ -532,7 +537,7 @@ public final class GTORecipeTypes {
     public static final RecipeType DIMENSIONAL_FOCUS_ENGRAVING_ARRAY_RECIPES = register("dimensional_focus_engraving_array", "维度聚焦激光蚀刻阵列", MULTIBLOCK)
             .setEUIO(IO.IN)
             .setMaxTooltips(4)
-            .setMaxIOSize(2, 1, 2, 0)
+            .setMaxIOSize(2, 1, 2, 1)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ARC)
             .setHasResearchSlot(true);
@@ -742,7 +747,7 @@ public final class GTORecipeTypes {
             .setSound(GTSoundEntries.ARC);
 
     public static final RecipeType THREE_DIMENSIONAL_PRINTER_RECIPES = register("three_dimensional_printer", "3D Printer", "3D打印", MULTIBLOCK)
-            .setMaxIOSize(1, 1, 1, 0)
+            .setMaxIOSize(3, 1, 3, 0)
             .setEUIO(IO.IN)
             .setMaxTooltips(4)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
@@ -750,7 +755,7 @@ public final class GTORecipeTypes {
 
     public static final RecipeType SINTERING_FURNACE_RECIPES = register("sintering_furnace", "烧结炉", MULTIBLOCK)
             .setEUIO(IO.IN)
-            .setMaxIOSize(1, 1, 0, 0)
+            .setMaxIOSize(4, 1, 3, 0)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW_MULTIPLE, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.FURNACE)
             .addDataInfo(TEMPERATURE)
@@ -780,6 +785,12 @@ public final class GTORecipeTypes {
             .setMaxIOSize(7, 2, 2, 0)
             .setProgressBar(GuiTextures.PROGRESS_BAR_BATH, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.FURNACE);
+
+    public static final RecipeType ELECTROPLATING_RECIPES = register("electrochemical_deposition", "电化学电镀", MULTIBLOCK)
+            .setEUIO(IO.IN)
+            .setMaxIOSize(4, 2, 3, 2)
+            .setProgressBar(GuiTextures.PROGRESS_BAR_BATH, LEFT_TO_RIGHT)
+            .setSound(GTSoundEntries.CHEMICAL);
 
     public static final RecipeType DRAWING_RECIPES = register("drawing", "拉丝", MULTIBLOCK)
             .setEUIO(IO.IN)
@@ -833,6 +844,18 @@ public final class GTORecipeTypes {
             .addDataInfo(COIL)
             .setUiBuilder(COIL_UI);
 
+    public static final RecipeType FAST_NEUTRON_BREEDER_REACTOR_RECIPES = register("fast_neutron_breeder_reactor", "快中子增殖反应堆", MULTIBLOCK)
+            .setEUIO(IO.IN)
+            .setMaxIOSize(2, 2, 1, 1)
+            .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
+            .setSound(GTSoundEntries.TURBINE)
+            .addDataInfo(data -> {
+                var nFlux = data.getFloat("neutron_flux");
+                return LocalizationUtils.format(nFlux > 1000 ? "gtocore.recipe.neutron_flux.m" : "gtocore.recipe.neutron_flux.k", FormattingUtil.formatNumber2Places(nFlux > 1000 ? nFlux / 1_000f : nFlux));
+            })
+            .addDataInfo(data -> LocalizationUtils.format("gtocore.recipe.neutron_flux.change", FormattingUtil.formatNumber2Places(data.getFloat("neutron_flux_change"))))
+            .addDataInfo(data -> LocalizationUtils.format("gtocore.recipe.heat.change", FormattingUtil.formatNumber2Places(data.getFloat("heat"))));
+
     public static final RecipeType BIOCHEMICAL_REACTION_RECIPES = register("biochemical_reaction", "生化反应", MULTIBLOCK)
             .setEUIO(IO.IN)
             .setMaxIOSize(3, 2, 5, 1)
@@ -840,9 +863,29 @@ public final class GTORecipeTypes {
             .addDataInfo(data -> data.contains("radioactivity") ? LocalizationUtils.format("gtocore.recipe.radioactivity", data.getInt("radioactivity")) : "")
             .setSound(GTSoundEntries.COOLING);
 
+    public static final RecipeType FUEL_CELL_ENERGY_ABSORPTION_RECIPES = register("fuel_cell_energy_absorption", "燃料电池液能量吸收", MULTIBLOCK)
+            .setEUIO(IO.IN)
+            .setMaxIOSize(1, 0, 2, 0)
+            .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
+            .addDataInfo(data -> LocalizationUtils.format("gtocore.recipe.fuelcell.converted_energy", data.getLong("convertedEnergy")))
+            .setSound(GTSoundEntries.CHEMICAL);
+
+    public static final RecipeType FUEL_CELL_ENERGY_TRANSFER_RECIPES = register("fuel_cell_energy_transfer", "燃料电池液能量交换", MULTIBLOCK)
+            .setEUIO(IO.IN)
+            .setMaxIOSize(1, 1, 4, 4)
+            .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
+            .addDataInfo(data -> LocalizationUtils.format("gtocore.recipe.fuelcell.converted_efficiency", FormattingUtil.formatNumber2Places(data.getFloat("efficiency") * 100)))
+            .setSound(GTSoundEntries.CHEMICAL);
+
+    public static final RecipeType FUEL_CELL_ENERGY_RELEASE_RECIPES = register("fuel_cell_energy_release", "燃料电池液能量释放", MULTIBLOCK)
+            .setEUIO(IO.OUT)
+            .setMaxIOSize(1, 1, 2, 2)
+            .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
+            .setSound(GTSoundEntries.ARC);
+
     public static final RecipeType BIOCHEMICAL_EXTRACTION_RECIPES = register("biochemical_extraction", "生物提取", MULTIBLOCK)
             .setEUIO(IO.IN)
-            .setMaxIOSize(1, 6, 1, 1)
+            .setMaxIOSize(1, 6, 2, 1)
             .setProgressBar(GuiTextures.PROGRESS_BAR_EXTRACT, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ARC);
 
@@ -854,7 +897,7 @@ public final class GTORecipeTypes {
 
     public static final RecipeType RARITY_FORGE_RECIPES = register("rarity_forge", "珍宝锻炉", MULTIBLOCK)
             .setEUIO(IO.IN)
-            .setMaxIOSize(3, 1, 0, 0)
+            .setMaxIOSize(4, 1, 0, 0)
             .setProgressBar(GuiTextures.COMPRESSOR_OVERLAY, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ARC);
 
@@ -909,6 +952,29 @@ public final class GTORecipeTypes {
                     return I18n.get("gtceu.multiblock.hpca.temperature", temperature);
                 }
                 return "";
+            })
+            .addDataInfo(data -> {
+                boolean flag = data.contains("param0") || data.contains("param1") || data.contains("param2");
+                if (flag) {
+                    return I18n.get("gtocore.machine.alchemical.chance_can_be_boosted");
+                }
+                return "";
+            });
+
+    public static final RecipeType CELESTIAL_CONDENSER_RECIPES = register("celestial_condenser", "苍穹凝聚", MAGIC)
+            .setMaxIOSize(1, 1, 0, 0)
+            .setProgressBar(GuiTextures.PROGRESS_BAR_BATH, LEFT_TO_RIGHT)
+            .setSound(GTSoundEntries.COOLING)
+            .addDataInfo(data -> {
+                int solaris = data.getInt("solaris");
+                int lunara = data.getInt("lunara");
+                int voidflux = data.getInt("voidflux");
+                int any = data.getInt("any");
+                if (solaris > 0) return I18n.get("gtocore.celestial_condenser.solaris", solaris);
+                if (lunara > 0) return I18n.get("gtocore.celestial_condenser.lunara", lunara);
+                if (voidflux > 0) return I18n.get("gtocore.celestial_condenser.voidflux", voidflux);
+                if (any > 0) return I18n.get("gtocore.celestial_condenser.any", any);
+                return "";
             });
 
     public static final RecipeType MANA_HEATER_RECIPES = register("mana_heater", "魔力加热器", MAGIC)
@@ -929,7 +995,7 @@ public final class GTORecipeTypes {
 
     public static final RecipeType ELF_EXCHANGE_RECIPES = register("elf_exchange", "ELF Exchange", "精灵交易", MAGIC)
             .setMANAIO(IO.IN)
-            .setMaxIOSize(1, 1, 0, 0)
+            .setMaxIOSize(2, 1, 0, 0)
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.REPLICATOR);
 
@@ -970,19 +1036,26 @@ public final class GTORecipeTypes {
     //////////////////////////////////////
     // ********** Combined **********//
     //////////////////////////////////////
-    public static final RecipeType CHEMICAL = CombinedRecipeType.register("chemical", LARGE_CHEMICAL_RECIPES, CHEMICAL_RECIPES).setMaxIOSize(3, 3, 5, 4).setEUIO(IO.IN).setSound(GTSoundEntries.CHEMICAL);
+    public static final RecipeType CHEMICAL = registerCombined("chemical", "化学反应", LARGE_CHEMICAL_RECIPES, CHEMICAL_RECIPES).setMaxIOSize(3, 3, 5, 4).setEUIO(IO.IN).setSound(GTSoundEntries.CHEMICAL);
 
-    public static final RecipeType CHEMICAL_ENERGY_DEVOURER_FUELS = CombinedRecipeType.register("chemical_energy_devourer", COMBUSTION_GENERATOR_FUELS, GAS_TURBINE_FUELS, ROCKET_ENGINE_FUELS).setSound(GTSoundEntries.COMBUSTION);
+    public static final RecipeType CHEMICAL_ENERGY_DEVOURER_FUELS = registerCombined("chemical_energy_devourer", "化学能吞噬者", COMBUSTION_GENERATOR_FUELS, GAS_TURBINE_FUELS, ROCKET_ENGINE_FUELS).setSound(GTSoundEntries.COMBUSTION);
 
-    public static final RecipeType VAPOR_DEPOSITION = CombinedRecipeType.register("vapor_deposition", CHEMICAL_VAPOR_DEPOSITION_RECIPES, PHYSICAL_VAPOR_DEPOSITION_RECIPES).setMaxIOSize(3, 1, 3, 1).setEUIO(IO.IN).setSound(GTSoundEntries.ARC);
+    public static final RecipeType VAPOR_DEPOSITION = registerCombined("vapor_deposition", "气相沉积", CHEMICAL_VAPOR_DEPOSITION_RECIPES, PHYSICAL_VAPOR_DEPOSITION_RECIPES).setMaxIOSize(3, 1, 3, 1).setEUIO(IO.IN).setSound(GTSoundEntries.ARC);
 
-    public static final RecipeType SUPRACHRONAL_ASSEMBLY_LINE = CombinedRecipeType.register("suprachronal_assembly", SUPRACHRONAL_ASSEMBLY_LINE_RECIPES, ASSEMBLY_LINE_RECIPES, CIRCUIT_ASSEMBLY_LINE_RECIPES).setMaxIOSize(16, 1, 4, 0).setEUIO(IO.IN).setSound(GTSoundEntries.ASSEMBLER);
+    public static final RecipeType SUPRACHRONAL_ASSEMBLY_LINE = registerCombined("suprachronal_assembly", "奈亚拉托提普之触", SUPRACHRONAL_ASSEMBLY_LINE_RECIPES, ASSEMBLY_LINE_RECIPES, CIRCUIT_ASSEMBLY_LINE_RECIPES).setMaxIOSize(16, 1, 4, 0).setEUIO(IO.IN).setSound(GTSoundEntries.ASSEMBLER);
 
-    public static final RecipeType INTEGRATED_ASSEMBLER = CombinedRecipeType.register("integrated_assembler", ASSEMBLER_RECIPES, LAMINATOR_RECIPES).setMaxIOSize(9, 1, 1, 0).setEUIO(IO.IN).setSound(GTSoundEntries.ASSEMBLER);
+    public static final RecipeType INTEGRATED_ASSEMBLER = registerCombined("integrated_assembler", "综合组装", ASSEMBLER_RECIPES, LAMINATOR_RECIPES).setMaxIOSize(9, 1, 1, 0).setEUIO(IO.IN).setSound(GTSoundEntries.ASSEMBLER);
 
-    public static final RecipeType HEAVY_ROLLING = CombinedRecipeType.register("heavy_rolling", ROLLING_RECIPES, CLUSTER_RECIPES).setMaxIOSize(2, 1, 0, 0).setEUIO(IO.IN).setSound(GTSoundEntries.MOTOR);
+    public static final RecipeType HEAVY_ROLLING = registerCombined("heavy_rolling", "重型辊轧", ROLLING_RECIPES, CLUSTER_RECIPES).setMaxIOSize(2, 1, 0, 0).setEUIO(IO.IN).setSound(GTSoundEntries.MOTOR);
 
-    public static final RecipeType LARGE_CHEMICAL_PLANT = CombinedRecipeType.register("large_chemical_plant", LARGE_CHEMICAL_RECIPES, CHEMICAL_RECIPES, POLYMERIZATION_REACTOR_RECIPES).setMaxIOSize(3, 3, 5, 4).setEUIO(IO.IN).setSound(GTSoundEntries.CHEMICAL);
+    public static final RecipeType LARGE_CHEMICAL_PLANT = registerCombined("large_chemical_plant", "化工复合", LARGE_CHEMICAL_RECIPES, CHEMICAL_RECIPES, POLYMERIZATION_REACTOR_RECIPES).setMaxIOSize(3, 3, 5, 4).setEUIO(IO.IN).setSound(GTSoundEntries.CHEMICAL);
 
-    public static final RecipeType EXTREME_COMPRESSOR = CombinedRecipeType.register("extreme_compressor", COMPRESSOR_RECIPES, GAS_COMPRESSOR_RECIPES).setMaxIOSize(1, 1, 1, 1).setEUIO(IO.IN).setSound(GTSoundEntries.COMPRESSOR);
+    public static final RecipeType EXTREME_COMPRESSOR = registerCombined("extreme_compressor", "极限压缩", COMPRESSOR_RECIPES, GAS_COMPRESSOR_RECIPES).setMaxIOSize(1, 1, 1, 1).setEUIO(IO.IN).setSound(GTSoundEntries.COMPRESSOR);
+
+    public static final RecipeType LIFE_FORGE = registerCombined("life_forge", "生命熔炉", BIOCHEMICAL_EXTRACTION_RECIPES, BIOCHEMICAL_REACTION_RECIPES).setMaxIOSize(1, 1, 1, 1).setEUIO(IO.IN).setSound(GTSoundEntries.ARC);
+
+    private static RecipeType registerCombined(String name, String cn, RecipeType... types) {
+        if (LANG != null) LANG.put(name, new CNEN(cn, FormattingUtil.toEnglishName(name)));
+        return CombinedRecipeType.register(name, types);
+    }
 }

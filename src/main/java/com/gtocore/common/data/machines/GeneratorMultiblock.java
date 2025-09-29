@@ -14,10 +14,7 @@ import com.gtocore.common.data.translation.GTOMachineStories;
 import com.gtocore.common.data.translation.GTOMachineTooltips;
 import com.gtocore.common.machine.multiblock.electric.space.DysonSphereLaunchSiloMachine;
 import com.gtocore.common.machine.multiblock.electric.space.DysonSphereReceivingStationMcahine;
-import com.gtocore.common.machine.multiblock.generator.ChemicalEnergyDevourerMachine;
-import com.gtocore.common.machine.multiblock.generator.GeneratorArrayMachine;
-import com.gtocore.common.machine.multiblock.generator.MagneticFluidGeneratorMachine;
-import com.gtocore.common.machine.multiblock.generator.PhotovoltaicPowerStationMachine;
+import com.gtocore.common.machine.multiblock.generator.*;
 
 import com.gtolib.GTOCore;
 import com.gtolib.api.annotation.NewDataAttributes;
@@ -35,11 +32,9 @@ import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
+import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-import com.gregtechceu.gtceu.common.data.GCYMBlocks;
-import com.gregtechceu.gtceu.common.data.GTBlocks;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
-import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import com.gregtechceu.gtceu.common.data.*;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -92,6 +87,7 @@ public final class GeneratorMultiblock {
                         .where('B', blocks(photovoltaicBlock.get()))
                         .where('C', blocks(casing.get()))
                         .where('D', blocks(casing.get())
+                                .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                                 .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(1))
                                 .or(abilities(OUTPUT_ENERGY).setMaxGlobalLimited(1))
                                 .or(abilities(GTOPartAbility.OUTPUT_MANA).setMaxGlobalLimited(4))
@@ -134,6 +130,7 @@ public final class GeneratorMultiblock {
                     .where('K', blocks(GTOBlocks.BORON_CARBIDE_CERAMIC_RADIATION_RESISTANT_MECHANICAL_CUBE.get()))
                     .where('L', controller(blocks(definition.get())))
                     .where('I', blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(OUTPUT_LASER).setExactLimit(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1))
                             .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(1))
@@ -230,6 +227,7 @@ public final class GeneratorMultiblock {
                     .where('N', blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get())
                             .or(abilities(OUTPUT_ENERGY).setMaxGlobalLimited(4, 4)))
                     .where('n', blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(MAINTENANCE).setExactLimit(1))
                             .or(abilities(OUTPUT_ENERGY).setMaxGlobalLimited(4, 4)))
                     .where('O', blocks(GTOBlocks.OXIDATION_RESISTANT_HASTELLOY_N_MECHANICAL_CASING.get()))
@@ -280,14 +278,14 @@ public final class GeneratorMultiblock {
                     .aisle("   GGGGGGG   ", "   GGGGGGG   ", "  G  JJJ  G  ", "  G JJJJJ G  ", "  GJJ   JJG  ", "  GJJ   JJG  ", "  GJJ   JJG  ", "  G JJJJJ G  ", "  G  JJJ  G  ", "   GGGGGGG   ", "             ")
                     .aisle("   GGGGGGG   ", "   GGGGGGG   ", "  G  JJJ  G  ", "  G JJJJJ G  ", "  GJJ   JJG  ", "  GJJ   JJG  ", "  GJJ   JJG  ", "  G JJJJJ G  ", "  G  JJJ  G  ", "   GGGGGGG   ", "             ")
                     .aisle("BBBB     BBBB", "BBB       BBB", "BB         BB", "B           B", "B           B", "B           B", "             ", "             ", "             ", "             ", "             ")
-                    .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "F           F", " F         F ", "  F       F  ", "   A     A   ")
+                    .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "            F", "           F ", "          F  ", "   A     A   ")
                     .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "A           A", " A         A ", "  A       A  ", "   A     A   ")
                     .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "A           A", " A         A ", "  A       A  ", "   A     A   ")
                     .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "             ", "             ", "             ", "   A     A   ")
                     .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "             ", "             ", "             ", "   A     A   ")
                     .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "A           A", " A         A ", "  A       A  ", "   A     A   ")
                     .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "A           A", " A         A ", "  A       A  ", "   A     A   ")
-                    .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "F           F", " F         F ", "  F       F  ", "   A     A   ")
+                    .aisle("BBBB     BBBB", "EBB       BBE", "BB         BB", "E           E", "B           B", "B           B", "A           A", "            F", "           F ", "          F  ", "   A     A   ")
                     .aisle("BBBB     BBBB", "BBB       BBB", "BB         BB", "B           B", "B           B", "B           B", "             ", "             ", "             ", "             ", "             ")
                     .aisle("     GGG     ", "     GGG     ", "     GGG     ", "    GJJJG    ", "   GJ   JG   ", "   GJ   JG   ", "   GJ   JG   ", "    GJJJG    ", "     GGG     ", "             ", "             ")
                     .aisle(" GGGGGGGGGGG ", " G   GGG   G ", " G   GGG   G ", " G  GJJJG  G ", "   GJ   JG   ", "   GJ   JG   ", "   GJ   JG   ", "    GJJJG    ", "     GGG     ", "             ", "             ")
@@ -311,16 +309,16 @@ public final class GeneratorMultiblock {
                     .aisle("ABBBBBBBBBBBA", "DBBBBBBBBBBBD", "ABBB     BBBA", " GBB     BBG ", "  BB     BB  ", "  BB     BB  ", "   B     B   ", "   B     B   ", "             ", "             ", "             ")
                     .aisle("ABBBBBBBBBBBA", "ABBBBBBBBBBBA", "ABBB     BBBA", " GBB     BBG ", "  BB     BB  ", "  BB  K  BB  ", "   B     B   ", "   B     B   ", "             ", "             ", "             ")
                     .aisle(" GGGGGGGGGGG ", " GAAAAAAAAAG ", " GAAAAAAAAAG ", " GBBBB BBBBG ", "  BB     BB  ", "   B     B   ", "             ", "             ", "             ", "             ", "             ")
-                    .where('A', blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get()))
-                    .where('B', blocks(GTBlocks.CASING_TUNGSTENSTEEL_TURBINE.get()))
+                    .where('A', blocks(GTBlocks.CASING_STAINLESS_CLEAN.get()))
+                    .where('B', blocks(GTBlocks.CASING_STAINLESS_TURBINE.get()))
                     .where('C', blocks(GTBlocks.CASING_STEEL_TURBINE.get())
                             .or(abilities(PartAbility.OUTPUT_ENERGY).setMaxGlobalLimited(4)))
-                    .where('D', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
-                    .where('E', blocks(GTBlocks.CASING_EXTREME_ENGINE_INTAKE.get()))
-                    .where('F', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.TungstenSteel)))
+                    .where('D', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
+                    .where('E', blocks(GTBlocks.CASING_ENGINE_INTAKE.get()))
+                    .where('F', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.StainlessSteel)))
                     .where('G', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.BlackSteel)))
                     .where('H', blocks(GTBlocks.FILTER_CASING.get()))
-                    .where('I', blocks(GTBlocks.CASING_LAMINATED_GLASS.get()))
+                    .where('I', blocks(GTOBlocks.NAQUADAH_BOROSILICATE_GLASS.get()))
                     .where('J', blocks(GTBlocks.CASING_STAINLESS_STEEL_GEARBOX.get()))
                     .where('K', controller(blocks(definition.get())))
                     .where(' ', any())
@@ -378,8 +376,8 @@ public final class GeneratorMultiblock {
                     .where('C', blocks(GTBlocks.CASING_STAINLESS_TURBINE.get())
                             .or(abilities(PartAbility.OUTPUT_ENERGY).setMaxGlobalLimited(4)))
                     .where('D', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
-                    .where('E', blocks(GTBlocks.CASING_EXTREME_ENGINE_INTAKE.get()))
-                    .where('F', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.TungstenSteel)))
+                    .where('E', blocks(GTBlocks.CASING_ENGINE_INTAKE.get()))
+                    .where('F', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Titanium)))
                     .where('G', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.BlackSteel)))
                     .where('H', blocks(GTBlocks.FILTER_CASING.get()))
                     .where('I', blocks(GTBlocks.CASING_LAMINATED_GLASS.get()))
@@ -435,16 +433,16 @@ public final class GeneratorMultiblock {
                     .aisle("ABBBBBBBBBBBA", "DBBBBBBBBBBBD", "ABBB     BBBA", " GBB     BBG ", "  BB     BB  ", "  BB     BB  ", "   B     B   ", "   B     B   ", "             ", "             ", "             ")
                     .aisle("ABBBBBBBBBBBA", "ABBBBBBBBBBBA", "ABBB     BBBA", " GBB     BBG ", "  BB     BB  ", "  BB  K  BB  ", "   B     B   ", "   B     B   ", "             ", "             ", "             ")
                     .aisle(" GGGGGGGGGGG ", " GAAAAAAAAAG ", " GAAAAAAAAAG ", " GBBBB BBBBG ", "  BB     BB  ", "   B     B   ", "             ", "             ", "             ", "             ", "             ")
-                    .where('A', blocks(GCYMBlocks.CASING_HIGH_TEMPERATURE_SMELTING.get()))
-                    .where('B', blocks(GTOBlocks.SUPERCRITICAL_TURBINE_CASING.get()))
+                    .where('A', blocks(GTBlocks.CASING_TUNGSTENSTEEL_ROBUST.get()))
+                    .where('B', blocks(GTBlocks.CASING_TUNGSTENSTEEL_TURBINE.get()))
                     .where('C', blocks(GTBlocks.CASING_TITANIUM_TURBINE.get())
                             .or(abilities(PartAbility.OUTPUT_ENERGY).setMaxGlobalLimited(4)))
-                    .where('D', blocks(GTOBlocks.OIL_GAS_TRANSPORTATION_PIPE_CASING.get()))
+                    .where('D', blocks(GTOBlocks.HIGH_PRESSURE_PIPE_CASING.get()))
                     .where('E', blocks(GTBlocks.CASING_EXTREME_ENGINE_INTAKE.get()))
                     .where('F', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.TungstenSteel)))
                     .where('G', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.BlackSteel)))
                     .where('H', blocks(GTBlocks.FILTER_CASING.get()))
-                    .where('I', blocks(GTOBlocks.HSSS_BOROSILICATE_GLASS.get()))
+                    .where('I', blocks(GTBlocks.CASING_LAMINATED_GLASS.get()))
                     .where('J', blocks(GTBlocks.CASING_TUNGSTENSTEEL_GEARBOX.get()))
                     .where('K', controller(blocks(definition.get())))
                     .where(' ', any())
@@ -501,13 +499,13 @@ public final class GeneratorMultiblock {
                     .where('B', blocks(GTOBlocks.SUPERCRITICAL_TURBINE_CASING.get()))
                     .where('C', blocks(GTOBlocks.SUPERCRITICAL_TURBINE_CASING.get())
                             .or(abilities(PartAbility.OUTPUT_ENERGY).setMaxGlobalLimited(4)))
-                    .where('D', blocks(GTOBlocks.OIL_GAS_TRANSPORTATION_PIPE_CASING.get()))
+                    .where('D', blocks(GCYMBlocks.ELECTROLYTIC_CELL.get()))
                     .where('E', blocks(GTBlocks.CASING_EXTREME_ENGINE_INTAKE.get()))
-                    .where('F', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.TungstenSteel)))
+                    .where('F', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Iridium)))
                     .where('G', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.BlackSteel)))
                     .where('H', blocks(GTBlocks.FILTER_CASING.get()))
                     .where('I', blocks(GTOBlocks.HSSS_BOROSILICATE_GLASS.get()))
-                    .where('J', blocks(GTBlocks.CASING_TUNGSTENSTEEL_GEARBOX.get()))
+                    .where('J', blocks(GTOBlocks.IRIDIUM_GEARBOX.get()))
                     .where('K', controller(blocks(definition.get())))
                     .where(' ', any())
                     .build());
@@ -576,6 +574,7 @@ public final class GeneratorMultiblock {
                     .where('H', blocks(GTOBlocks.MOLECULAR_CASING.get()))
                     .where('I', blocks(GTBlocks.HIGH_POWER_CASING.get()))
                     .where('a', blocks(GTBlocks.HIGH_POWER_CASING.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(IMPORT_FLUIDS).setExactLimit(1))
                             .or(abilities(COMPUTATION_DATA_RECEPTION).setExactLimit(1))
                             .or(abilities(OUTPUT_LASER).setExactLimit(1)))
@@ -613,6 +612,7 @@ public final class GeneratorMultiblock {
                     .where('F', blocks(GTOBlocks.AMPROSIUM_PIPE_CASING.get()))
                     .where('G', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.Trinium)))
                     .where('a', blocks(GTOBlocks.HYPER_MECHANICAL_CASING.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(2))
                             .or(abilities(OUTPUT_ENERGY).setMaxGlobalLimited(1))
                             .or(abilities(OUTPUT_LASER).setMaxGlobalLimited(1)))
@@ -652,6 +652,7 @@ public final class GeneratorMultiblock {
                     .where('G', blocks(GTOBlocks.CONTAINMENT_FIELD_GENERATOR.get()))
                     .where('H', blocks(GTOBlocks.HYPER_CORE.get()))
                     .where('a', blocks(GTOBlocks.ENHANCE_HYPER_MECHANICAL_CASING.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1))
                             .or(abilities(OUTPUT_ENERGY).setMaxGlobalLimited(1))
@@ -728,6 +729,7 @@ public final class GeneratorMultiblock {
                     .where('H', blocks(GTOBlocks.HYPER_CORE.get()))
                     .where('I', blocks(GTOBlocks.AMPROSIUM_PIPE_CASING.get()))
                     .where('a', blocks(GTOBlocks.ENHANCE_HYPER_MECHANICAL_CASING.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(2))
                             .or(abilities(MAINTENANCE).setExactLimit(1))
                             .or(abilities(OUTPUT_ENERGY).setMaxGlobalLimited(1))
@@ -758,6 +760,7 @@ public final class GeneratorMultiblock {
                     .aisle("XSX", "CCC", "XXX")
                     .where('S', controller(blocks(definition.getBlock())))
                     .where('X', blocks(GTBlocks.CASING_STEEL_SOLID.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(IMPORT_FLUIDS).setMaxGlobalLimited(4))
                             .or(abilities(OUTPUT_ENERGY).setMaxGlobalLimited(1))
                             .or(abilities(MAINTENANCE).setExactLimit(1)))
@@ -895,6 +898,7 @@ public final class GeneratorMultiblock {
                     .where('H', blocks(GTOBlocks.RHENIUM_REINFORCED_ENERGY_GLASS.get()))
                     .where('P', blocks(GTOBlocks.DYSON_CONTROL_CASING.get()))
                     .where('S', blocks(GTBlocks.HIGH_POWER_CASING.get())
+                            .or(Predicates.blocks(GTMachines.CONTROL_HATCH.getBlock()).setMaxGlobalLimited(1).setPreviewCount(0))
                             .or(abilities(OUTPUT_LASER))
                             .or(abilities(IMPORT_ITEMS))
                             .or(abilities(EXPORT_ITEMS)))
@@ -904,5 +908,48 @@ public final class GeneratorMultiblock {
                     .build())
             .renderer(AnnihilateGeneratorRenderer::new)
             .hasTESR(true)
+            .register();
+
+    public static final MultiblockMachineDefinition FUEL_CELL_GENERATOR = multiblock("fuel_cell_generator", "燃料电池发电机", FullCellGenerator::new)
+            .nonYAxisRotation()
+            .recipeTypes(GTORecipeTypes.FUEL_CELL_ENERGY_ABSORPTION_RECIPES)
+            .recipeTypes(GTORecipeTypes.FUEL_CELL_ENERGY_TRANSFER_RECIPES)
+            .recipeTypes(GTORecipeTypes.FUEL_CELL_ENERGY_RELEASE_RECIPES)
+            .generator()
+            .tooltipsSupplier(GTOMachineTooltips.INSTANCE.getFuelCellGeneratorTooltips().getSupplier())
+            .block(GTOBlocks.IRIDIUM_CASING)
+            .recipeModifier((machine, recipe) -> {
+                if (machine instanceof FullCellGenerator f && f.isGenerator())
+                    return RecipeModifierFunction.GENERATOR_OVERCLOCKING.apply(machine, recipe);
+                else return recipe;
+            })
+            .pattern(definition -> MultiBlockFileReader.start(definition)
+                    .where('A', blocks(GTOBlocks.IRIDIUM_CASING.get())
+                            .or(abilities(OUTPUT_ENERGY).or(abilities(INPUT_ENERGY).or(abilities(OUTPUT_LASER))))
+                            .or(abilities(IMPORT_ITEMS))
+                            .or(abilities(IMPORT_FLUIDS))
+                            .or(abilities(EXPORT_ITEMS))
+                            .or(abilities(EXPORT_FLUIDS))
+                            .or(blocks(GTMachines.CONTROL_HATCH.get())))
+                    .where('B', blocks(GCYMBlocks.ELECTROLYTIC_CELL.get()))
+                    .where('C', controller(blocks(definition.get())))
+                    .where('D', blocks(GTOBlocks.FLOCCULATION_CASING.get()))
+                    .where('E', blocks(GTOBlocks.IRIDIUM_CASING.get()))
+                    .where('F', blocks(GCYMBlocks.MOLYBDENUM_DISILICIDE_COIL_BLOCK.get()))
+                    .where('G', blocks(GTOBlocks.PRESSURE_CONTAINMENT_CASING.get()))
+                    .where('H', blocks(ChemicalHelper.getBlock(TagPrefix.frameGt, GTMaterials.HSSG)))
+                    .where('I', blocks(GTOBlocks.IRIDIUM_PIPE_CASING.get()))
+                    .where('J', blocks(GTOBlocks.CALCIUM_OXIDE_CERAMIC_ANTI_METAL_CORROSION_MECHANICAL_BLOCK.get()))
+                    .where('K', blocks(GTBlocks.FILTER_CASING.get()))
+                    .where('L', blocks(GTBlocks.CASING_PALLADIUM_SUBSTATION.get()))
+                    .where('M', blocks(GTOBlocks.CHEMICAL_CORROSION_RESISTANT_PIPE_CASING.get()))
+                    .where('N', blocks(GTOBlocks.COBALT_OXIDE_CERAMIC_STRONG_THERMALLY_CONDUCTIVE_MECHANICAL_BLOCK.get()))
+                    .where('O', blocks(GTOBlocks.OXIDATION_RESISTANT_HASTELLOY_N_MECHANICAL_CASING.get()))
+                    .where('P', blocks(GTBlocks.CASING_PTFE_INERT.get()))
+                    .where('Q', blocks(GTBlocks.BATTERY_EMPTY_TIER_II.get()))
+                    .where('R', blocks(GTBlocks.FUSION_GLASS.get()))
+                    .where(' ', any())
+                    .build())
+            .renderer(() -> new ArrayMachineRenderer(GTOCore.id("block/casings/iridium_casing"), GTCEu.id("block/multiblock/processing_array")))
             .register();
 }

@@ -1,5 +1,6 @@
 package com.gtocore.mixin.gtm.api.machine;
 
+import com.gtolib.GTOCore;
 import com.gtolib.api.machine.feature.multiblock.IExtendedRecipeCapabilityHolder;
 import com.gtolib.api.machine.trait.IEnhancedRecipeLogic;
 import com.gtolib.api.recipe.*;
@@ -14,11 +15,13 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeHandlerList;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
 import net.minecraft.network.chat.Component;
 
 import com.lowdragmc.lowdraglib.syncdata.annotation.DescSynced;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
@@ -33,7 +36,7 @@ import java.util.Map;
 public abstract class RecipeLogicMixin extends MachineTrait implements IEnhancedRecipeLogic {
 
     @Unique
-    private Map<Recipe, RecipeHandlerList> gtolib$recipeCache;
+    private Reference2ReferenceOpenHashMap<Recipe, RecipeHandlerList> gtolib$recipeCache;
     @Unique
     private ParallelCache gtolib$parallelCache;
     @Unique
@@ -74,7 +77,7 @@ public abstract class RecipeLogicMixin extends MachineTrait implements IEnhanced
     protected RecipeLogic.Status status;
 
     @Override
-    public Map<Recipe, RecipeHandlerList> gtolib$getRecipeCache() {
+    public Reference2ReferenceOpenHashMap<Recipe, RecipeHandlerList> gtolib$getRecipeCache() {
         return gtolib$recipeCache;
     }
 
@@ -90,7 +93,7 @@ public abstract class RecipeLogicMixin extends MachineTrait implements IEnhanced
 
     @Override
     public void onMachineUnLoad() {
-        AsyncRecipeOutputTask.removeAsyncLogic(getLogic());
+        AsyncRecipeOutputTask.removeAsyncLogic(this);
     }
 
     @Override
@@ -105,7 +108,7 @@ public abstract class RecipeLogicMixin extends MachineTrait implements IEnhanced
 
     @Inject(method = "<init>", at = @At("TAIL"), remap = false)
     private void init(IRecipeLogicMachine machine, CallbackInfo ci) {
-        gtolib$recipeCache = new Object2ObjectOpenHashMap<>();
+        gtolib$recipeCache = new Reference2ReferenceOpenHashMap<>();
         gtolib$parallelCache = new ParallelCache();
     }
 
@@ -136,7 +139,7 @@ public abstract class RecipeLogicMixin extends MachineTrait implements IEnhanced
     public void findAndHandleRecipe() {
         lastRecipe = null;
         lastOriginRecipe = null;
-        var matches = RecipeType.searchIterator(machine.getRecipeType(), machine, recipe -> RecipeRunner.checkTier(machine, recipe) && RecipeRunner.fastMatchRecipe(machine, recipe) && RecipeRunner.checkConditions(machine, recipe));
+        var matches = RecipeType.searchIterator(machine.getRecipeType(), machine, recipe -> RecipeRunner.checkTier(machine, recipe) && RecipeRunner.checkConditions(machine, recipe));
         while (matches.hasNext()) {
             GTRecipe match = matches.next();
             if (match == null) continue;
@@ -158,8 +161,9 @@ public abstract class RecipeLogicMixin extends MachineTrait implements IEnhanced
      * @reason .
      */
     @Overwrite
-    protected boolean matchRecipe(GTRecipe recipe) {
-        return RecipeRunner.matchTickRecipe(machine, (Recipe) recipe) && (recipe.parallels > 1 || RecipeRunner.matchRecipe(machine, (Recipe) recipe));
+    protected boolean matchRecipe(GTRecipe r) {
+        var recipe = (Recipe) r;
+        return RecipeRunner.matchTickRecipe(machine, recipe) && RecipeRunner.matchRecipe(machine, recipe);
     }
 
     /**
@@ -179,7 +183,7 @@ public abstract class RecipeLogicMixin extends MachineTrait implements IEnhanced
     protected boolean handleRecipeIO(GTRecipe recipe, IO io) {
         if (io == IO.OUT && machine instanceof IExtendedRecipeCapabilityHolder outputMachine && outputMachine.isDualMEOutput(recipe)) {
             var contents = new RecipeCapabilityMap<>(recipe.outputs);
-            AsyncRecipeOutputTask.addAsyncLogic(getLogic(), () -> RecipeRunner.handleRecipe(machine, (Recipe) recipe, IO.OUT, contents, getChanceCaches(), false));
+            AsyncRecipeOutputTask.addAsyncLogic(this, () -> RecipeRunner.handleRecipe(machine, (Recipe) recipe, IO.OUT, contents, getChanceCaches(), false));
             return true;
         }
         return RecipeRunner.handleRecipeIO(machine, (Recipe) recipe, io, chanceCaches);
@@ -207,5 +211,18 @@ public abstract class RecipeLogicMixin extends MachineTrait implements IEnhanced
             gtolib$recipeBuilder.reset();
         }
         return gtolib$recipeBuilder;
+    }
+
+    @Override
+    public void saveCustomPersistedData(@NotNull CompoundTag tag, boolean forDrop) {
+        if (forDrop) return;
+        tag.putInt("difficulty", GTOCore.difficulty);
+    }
+
+    @Override
+    public void loadCustomPersistedData(@NotNull CompoundTag tag) {
+        if (tag.tags.get("difficulty") instanceof IntTag intTag && intTag.getAsInt() != GTOCore.difficulty) {
+            throw new IllegalStateException("Difficulty mismatch");
+        }
     }
 }

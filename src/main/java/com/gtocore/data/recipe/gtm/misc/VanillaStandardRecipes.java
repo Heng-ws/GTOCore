@@ -209,8 +209,8 @@ public final class VanillaStandardRecipes {
                 .save();
 
         FORMING_PRESS_RECIPES.recipeBuilder("form_glass").duration(80).EUt(VA[LV])
-                .inputItems(dust, Glass)
                 .notConsumable(SHAPE_MOLD_BLOCK)
+                .inputItems(dust, Glass)
                 .outputItems(new ItemStack(Blocks.GLASS)).save();
 
         ALLOY_SMELTER_RECIPES.recipeBuilder("glass_bottle").duration(64).EUt(4)
@@ -724,6 +724,7 @@ public final class VanillaStandardRecipes {
         if (!ConfigHolder.INSTANCE.recipes.hardRedstoneRecipes) {
             CUTTER_RECIPES.recipeBuilder("stone_pressure_plate")
                     .inputItems(new ItemStack(Blocks.STONE_SLAB))
+                    .circuitMeta(26)
                     .outputItems(new ItemStack(Blocks.STONE_PRESSURE_PLATE, 8))
                     .duration(250).EUt(VA[ULV]).save();
 
